@@ -1,0 +1,12 @@
+{
+  "name": "MODY AI",
+  "short_name": "MODY",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#080b12",
+  "theme_color": "#0b1020",
+  "description": "MODY AI multi-model AI workspace",
+  "icons": [
+    {"src":"mody-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}
