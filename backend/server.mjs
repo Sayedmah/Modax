@@ -3,7 +3,7 @@ import { URL } from 'node:url';
 import { routeGodotApi } from './godot-api.mjs';
 import { rankAvailableGeminiModels, shouldFallbackGeminiError } from './gemini-auto-router.mjs';
 import { runStableAnswer } from './stable-answer-stream.mjs';
-import { requireUser } from './auth.mjs';
+import { requireUser, requireRole } from './auth.mjs';
 
 const PORT=Number(process.env.PORT||8787);
 const TIMEOUT_MS=Number(process.env.MODY_PROVIDER_TIMEOUT_MS||60000);
@@ -107,6 +107,8 @@ async function handle(req,res){
  const url=new URL(req.url,`http://${req.headers.host||'localhost'}`);
  if(req.method==='GET'&&url.pathname==='/health')return sendJson(res,200,{ok:true,service:'Modax AI Backend',version:'0.6.0',answerEngine:'generateContent',streamingTransport:'sse-wrapper',auth:'supabase',autoRouting:true,thoughtSummaries:false,googleSearch:false,gameStudio:true,godotWorkerConfigured:Boolean(process.env.MODY_GODOT_WORKER_URL),providers:Object.values(providers).filter(p=>process.env[p.keyEnv]).map(p=>p.id)},origin);
  if(req.method==='GET'&&url.pathname==='/v1/providers')return sendJson(res,200,{data:Object.values(providers).map(providerPublicView)},origin);
+ if(req.method==='GET'&&url.pathname==='/v1/me'){const user=await requireUser(req);return sendJson(res,200,{id:user.id,email:user.email,role:user.role},origin);}
+ if(req.method==='GET'&&url.pathname==='/v1/admin/overview'){const user=await requireUser(req);requireRole(user,['owner','admin']);return sendJson(res,200,{ok:true,role:user.role,sections:['users','models','plans','usage','audit']},origin);}
  if(req.method==='GET'&&url.pathname==='/v1/models'){const providerId=url.searchParams.get('provider'),selected=providerId?[getProvider(providerId)]:Object.values(providers).filter(p=>process.env[p.keyEnv]),settled=await Promise.allSettled(selected.map(async p=>({provider:p.id,models:await listModels(p)}))),data=[],errors=[];settled.forEach((r,i)=>r.status==='fulfilled'?data.push(...r.value.models):errors.push({provider:selected[i].id,error:r.reason?.message||'Model sync failed'}));return sendJson(res,200,{data,models:data,auto_priority:providerId==='google'?rankAvailableGeminiModels(data):[],errors},origin);}
  if(req.method==='POST'&&url.pathname==='/v1/chat/stream'){await requireUser(req);const body=normalizeWebChatBody(await readJson(req));if(body.provider!=='google')return sendJson(res,400,{error:'Stable chat stream currently supports Google Gemini only'},origin);return stableGeminiSse(req,res,body,origin);}
  if(req.method==='POST'&&url.pathname==='/v1/chat'){await requireUser(req);const body=normalizeWebChatBody(await readJson(req)),p=getProvider(body.provider),started=Date.now();if(p.id==='google'&&body.model==='auto'){const result=await autoGeminiChat(body);return sendJson(res,200,result,origin);}const result=await chat(p,body);return sendJson(res,200,{provider:p.id,model:body.model,latency_ms:Date.now()-started,...result,response:result.text},origin);}
