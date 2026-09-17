@@ -1,4 +1,4 @@
-const CACHE='mody-ai-web-v5';
+const CACHE='mody-ai-web-v6';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./mody-icon.svg'];
 const MODY_BACKEND='https://modaxai.onrender.com';
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));
