@@ -1,11 +1,11 @@
 {
-  "name": "MODY AI",
-  "short_name": "MODY",
+  "name": "Modax AI",
+  "short_name": "Modax",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#080b12",
   "theme_color": "#0b1020",
-  "description": "MODY AI multi-model AI workspace",
+  "description": "Modax AI — All AI. One Place. كل الذكاء الاصطناعي في مكان واحد",
   "icons": [
     {"src":"mody-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
   ]
