@@ -38,8 +38,6 @@ function parseEventObject(event={}){
 export function parseGoogleSseBlock(block=''){
  const dataLines=String(block).split(/\r?\n/).filter(line=>line.startsWith('data:')).map(line=>line.slice(5).trim());
  if(!dataLines.length)return null;
- // A proxy may coalesce several SSE events into one block. Parse each data payload
- // independently and prefer final-answer text so it can never be hidden by step.start.
  const parsed=[];
  for(const raw of dataLines){
   if(raw==='[DONE]'){parsed.push({type:'done'});continue}
@@ -55,6 +53,18 @@ export function parseGoogleSseBlocks(raw=''){
  const out=[];
  for(const block of blocks){const event=parseGoogleSseBlock(block);if(event)out.push(event)}
  return out;
+}
+
+export function drainGoogleSseBuffer(raw='',final=false){
+ const text=String(raw||'').replace(/\r\n/g,'\n');
+ if(!text)return {events:[],buffer:''};
+ const parts=text.split(/\n\n+|\n(?=event:\s)/);
+ let buffer='';
+ if(!final&&!/\n\n+$/.test(text))buffer=parts.pop()||'';
+ const events=[];
+ for(const part of parts){const event=parseGoogleSseBlock(part.trim());if(event)events.push(event)}
+ if(final&&buffer){const event=parseGoogleSseBlock(buffer.trim());if(event)events.push(event);buffer=''}
+ return {events,buffer};
 }
 
 export function sseEvent(type,data={}){return `event: ${type}\ndata: ${JSON.stringify(data)}\n\n`;}
