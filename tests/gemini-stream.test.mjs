@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildInteractionInput, parseGoogleSseBlock, parseGoogleSseBlocks } from '../backend/gemini-stream.mjs';
+import { buildInteractionInput, parseGoogleSseBlock, parseGoogleSseBlocks, drainGoogleSseBuffer } from '../backend/gemini-stream.mjs';
 
 test('buildInteractionInput preserves multi-turn conversation context',()=>{
  const input=buildInteractionInput([{role:'user',content:'اسمي محمود'},{role:'assistant',content:'أهلًا محمود'},{role:'user',content:'ما اسمي؟'}]);
@@ -42,4 +42,15 @@ test('parses consecutive SSE events even when provider omits blank separators',(
 test('parses normal blank-line separated SSE events without losing final text',()=>{
  const raw='event: step.start\ndata: {"event_type":"step.start","index":1,"step":{"type":"model_output"}}\n\nevent: step.delta\ndata: {"event_type":"step.delta","index":1,"delta":{"type":"text","text":"Hello"}}\n\nevent: interaction.completed\ndata: {"event_type":"interaction.completed","interaction":{"usage":{"total_tokens":4}}}\n\n';
  assert.deepEqual(parseGoogleSseBlocks(raw),[{type:'text',text:'Hello'},{type:'done',usage:{total_tokens:4}}]);
+});
+
+test('drains complete provider events across chunks and flushes final unterminated event',()=>{
+ let buffer='event: step.delta\ndata: {"event_type":"step.delta","delta":{"type":"text","text":"Hello"}}\n';
+ let result=drainGoogleSseBuffer(buffer,false);
+ assert.deepEqual(result.events,[]);
+ assert.equal(result.buffer,buffer);
+ buffer+='event: step.delta\ndata: {"event_type":"step.delta","delta":{"type":"text","text":" world"}}';
+ result=drainGoogleSseBuffer(buffer,true);
+ assert.deepEqual(result.events,[{type:'text',text:'Hello'},{type:'text',text:' world'}]);
+ assert.equal(result.buffer,'');
 });
