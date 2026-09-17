@@ -67,4 +67,8 @@ export function drainGoogleSseBuffer(raw='',final=false){
  return {events,buffer};
 }
 
+export function needsFinalAnswerFallback({streamCompleted=false,textSeen=false,aborted=false}={}){
+ return Boolean(streamCompleted&&!textSeen&&!aborted);
+}
+
 export function sseEvent(type,data={}){return `event: ${type}\ndata: ${JSON.stringify(data)}\n\n`;}
