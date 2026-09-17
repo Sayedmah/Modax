@@ -2,7 +2,7 @@ import http from 'node:http';
 import { URL } from 'node:url';
 import { routeGodotApi } from './godot-api.mjs';
 import { rankAvailableGeminiModels, shouldFallbackGeminiError } from './gemini-auto-router.mjs';
-import { buildInteractionInput, parseGoogleSseBlock, sseEvent } from './gemini-stream.mjs';
+import { buildInteractionInput, drainGoogleSseBuffer, sseEvent } from './gemini-stream.mjs';
 import { ensureFinalAnswer } from './final-answer-fallback.mjs';
 
 const PORT=Number(process.env.PORT||8787);
@@ -68,8 +68,17 @@ async function streamGemini(req,res,body,origin){
    res.write(sseEvent('model',{model}));
    const reader=upstream.body.getReader(),decoder=new TextDecoder();let buffer='';
    const handleEvent=event=>{if(!event)return;if(event.type==='thought')res.write(sseEvent('thought',{text:event.text}));else if(event.type==='text'){streamedText+=event.text||'';res.write(sseEvent('text',{text:event.text,sources:event.sources||[]}));}else if(event.type==='sources')res.write(sseEvent('sources',{sources:event.sources||[]}));else if(event.type==='search')res.write(sseEvent('search',{queries:event.queries||[]}));else if(event.type==='search_result')res.write(sseEvent('status',{stage:'search_result',message:'تمت مراجعة نتائج البحث'}));else if(event.type==='done'&&event.usage)res.write(sseEvent('usage',{usage:event.usage}));};
-   while(!closed){const {value,done}=await reader.read();if(done)break;buffer+=decoder.decode(value,{stream:true});const blocks=buffer.split(/\r?\n\r?\n/);buffer=blocks.pop()||'';for(const block of blocks)handleEvent(parseGoogleSseBlock(block));}
-   if(buffer.trim())handleEvent(parseGoogleSseBlock(buffer));
+   while(!closed){
+    const {value,done}=await reader.read();if(done)break;
+    buffer+=decoder.decode(value,{stream:true});
+    const drained=drainGoogleSseBuffer(buffer,false);buffer=drained.buffer;
+    for(const event of drained.events)handleEvent(event);
+   }
+   if(!closed){
+    buffer+=decoder.decode();
+    const finalDrain=drainGoogleSseBuffer(buffer,true);
+    for(const event of finalDrain.events)handleEvent(event);
+   }
    clearTimeout(timer);
    if(closed)return;
    const final=await ensureFinalAnswer({streamText:streamedText,model,body,generate:(selectedModel,requestBody)=>chatGemini(p,requestBody,selectedModel),emitStatus:data=>res.write(sseEvent('status',data)),emitText:data=>res.write(sseEvent('text',data))});
@@ -91,7 +100,7 @@ async function handle(req,res){
  if(req.method==='OPTIONS'){res.writeHead(204,corsHeaders(origin));return res.end();}
  if(!checkRateLimit(req.socket.remoteAddress||'unknown'))return sendJson(res,429,{error:'Rate limit exceeded'},origin);
  const url=new URL(req.url,`http://${req.headers.host||'localhost'}`);
- if(req.method==='GET'&&url.pathname==='/health')return sendJson(res,200,{ok:true,service:'MODY AI Backend',version:'0.5.2',autoRouting:true,streaming:true,thoughtSummaries:true,googleSearch:true,finalAnswerFallback:true,providers:process.env.GEMINI_API_KEY?['google']:[]},origin);
+ if(req.method==='GET'&&url.pathname==='/health')return sendJson(res,200,{ok:true,service:'MODY AI Backend',version:'0.5.3',autoRouting:true,streaming:true,thoughtSummaries:true,googleSearch:true,finalAnswerFallback:true,robustSseFraming:true,providers:process.env.GEMINI_API_KEY?['google']:[]},origin);
  if(req.method==='GET'&&url.pathname==='/v1/providers')return sendJson(res,200,{data:[{id:'google',label:'Google Gemini',kind:'gemini',configured:Boolean(process.env.GEMINI_API_KEY),modelDiscovery:true,streaming:true,googleSearch:true}]},origin);
  if(req.method==='GET'&&url.pathname==='/v1/models'){const data=await listModels(providers.google);return sendJson(res,200,{data,models:data,auto_priority:rankAvailableGeminiModels(data),errors:[]},origin);}
  if(req.method==='POST'&&url.pathname==='/v1/chat/stream'){const raw=await readJson(req);return streamGemini(req,res,{...raw,prompt:typeof raw.prompt==='string'?raw.prompt:(raw.message||''),model:raw.model||'auto'},origin);}
@@ -101,4 +110,4 @@ async function handle(req,res){
  return sendJson(res,404,{error:'Not found'},origin);
 }
 const server=http.createServer((req,res)=>{handle(req,res).catch(err=>{const origin=req.headers.origin||'',status=Number(err.status)>=400&&Number(err.status)<600?Number(err.status):500;console.error(err);if(!res.headersSent)sendJson(res,status,{error:status===500?'Internal server error':err.message,attempts:err.attempts||undefined},origin);else res.end();});});
-server.listen(PORT,'0.0.0.0',()=>console.log(`MODY AI Backend listening on :${PORT} — streaming + guaranteed final answer fallback enabled`));
+server.listen(PORT,'0.0.0.0',()=>console.log(`MODY AI Backend listening on :${PORT} — robust streaming + guaranteed final answer fallback enabled`));
