@@ -3,25 +3,33 @@ import assert from 'node:assert/strict';
 import { buildInteractionInput, parseGoogleSseBlock } from '../backend/gemini-stream.mjs';
 
 test('buildInteractionInput preserves multi-turn conversation context',()=>{
- const input=buildInteractionInput([
-  {role:'user',content:'اسمي محمود'},
-  {role:'assistant',content:'أهلًا محمود'},
-  {role:'user',content:'ما اسمي؟'}
- ]);
- assert.match(input,/المستخدم: اسمي محمود/);
- assert.match(input,/MODY: أهلًا محمود/);
- assert.match(input,/المستخدم: ما اسمي؟/);
+ const input=buildInteractionInput([{role:'user',content:'اسمي محمود'},{role:'assistant',content:'أهلًا محمود'},{role:'user',content:'ما اسمي؟'}]);
+ assert.match(input,/المستخدم: اسمي محمود/);assert.match(input,/MODY: أهلًا محمود/);assert.match(input,/المستخدم: ما اسمي؟/);
 });
 
-test('parseGoogleSseBlock exposes thought summaries but never thought signatures',()=>{
- const thought=parseGoogleSseBlock('event: step.delta\ndata: {"event_type":"step.delta","delta":{"type":"thought_summary","content":{"type":"text","text":"أراجع المطلوب"}}}');
- assert.deepEqual(thought,{type:'thought',text:'أراجع المطلوب'});
- const signature=parseGoogleSseBlock('event: step.delta\ndata: {"event_type":"step.delta","delta":{"type":"thought_signature","signature":"secret"}}');
- assert.equal(signature,null);
+test('exposes thought summaries but never thought signatures',()=>{
+ assert.deepEqual(parseGoogleSseBlock('event: step.delta\ndata: {"event_type":"step.delta","delta":{"type":"thought_summary","content":{"type":"text","text":"أراجع المطلوب"}}}'),{type:'thought',text:'أراجع المطلوب'});
+ assert.equal(parseGoogleSseBlock('event: step.delta\ndata: {"event_type":"step.delta","delta":{"type":"thought_signature","signature":"secret"}}'),null);
 });
 
-test('parseGoogleSseBlock exposes answer text and completion usage',()=>{
- assert.deepEqual(parseGoogleSseBlock('data: {"event_type":"step.delta","delta":{"type":"text","text":"مرحبا"}}'),{type:'text',text:'مرحبا'});
+test('captures model output that arrives in step.start before text deltas',()=>{
+ const event=parseGoogleSseBlock('event: step.start\ndata: {"event_type":"step.start","index":1,"step":{"type":"model_output","content":[{"type":"text","text":"هذه بداية الإجابة"}]}}');
+ assert.deepEqual(event,{type:'text',text:'هذه بداية الإجابة'});
+});
+
+test('captures thought summary that arrives in step.start',()=>{
+ const event=parseGoogleSseBlock('event: step.start\ndata: {"event_type":"step.start","step":{"type":"thought","summary":[{"type":"text","text":"أخطط للإجابة"}]}}');
+ assert.deepEqual(event,{type:'thought',text:'أخطط للإجابة'});
+});
+
+test('captures google search queries and url citations',()=>{
+ const search=parseGoogleSseBlock('event: step.start\ndata: {"event_type":"step.start","step":{"type":"google_search_call","arguments":{"queries":["Gemini API docs"]}}}');
+ assert.deepEqual(search,{type:'search',queries:['Gemini API docs']});
+ const source=parseGoogleSseBlock('event: step.delta\ndata: {"event_type":"step.delta","delta":{"type":"text","text":"Answer","annotations":[{"type":"url_citation","url":"https://example.com/a","title":"Example"}]}}');
+ assert.equal(source.type,'text');assert.equal(source.text,'Answer');assert.deepEqual(source.sources,[{url:'https://example.com/a',title:'Example'}]);
+});
+
+test('exposes completion usage',()=>{
  const done=parseGoogleSseBlock('data: {"event_type":"interaction.completed","interaction":{"usage":{"total_tokens":12}}}');
  assert.deepEqual(done,{type:'done',usage:{total_tokens:12}});
 });
