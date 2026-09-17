@@ -38,4 +38,17 @@ export function parseGoogleSseBlock(block=''){
  if(event.event_type==='interaction.completed')return {type:'done',usage:event.interaction?.usage||null};
  return null;
 }
+
+// Parse one or more SSE events. Gemini normally separates events with a blank line,
+// but proxies can occasionally normalize framing. Splitting at a new `event:` line
+// prevents a valid step.delta text event from being swallowed by the preceding event.
+export function parseGoogleSseBlocks(raw=''){
+ const text=String(raw||'').replace(/\r\n/g,'\n');
+ if(!text.trim())return [];
+ const blocks=text.split(/\n\n+|(?=^event:\s)/m).map(x=>x.trim()).filter(Boolean);
+ const out=[];
+ for(const block of blocks){const event=parseGoogleSseBlock(block);if(event)out.push(event)}
+ return out;
+}
+
 export function sseEvent(type,data={}){return `event: ${type}\ndata: ${JSON.stringify(data)}\n\n`;}
