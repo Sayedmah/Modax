@@ -13,10 +13,7 @@ function contentEvent(content=[]){
  if(sources.length)return {type:'sources',sources};
  return null;
 }
-export function parseGoogleSseBlock(block=''){
- const dataLines=String(block).split(/\r?\n/).filter(line=>line.startsWith('data:')).map(line=>line.slice(5).trim());
- if(!dataLines.length)return null;const raw=dataLines.join('\n');if(raw==='[DONE]')return {type:'done'};
- let event;try{event=JSON.parse(raw)}catch{return null}
+function parseEventObject(event={}){
  if(event.event_type==='step.start'){
   const step=event.step||{};
   if(step.type==='model_output')return contentEvent(step.content||[]);
@@ -38,10 +35,19 @@ export function parseGoogleSseBlock(block=''){
  if(event.event_type==='interaction.completed')return {type:'done',usage:event.interaction?.usage||null};
  return null;
 }
+export function parseGoogleSseBlock(block=''){
+ const dataLines=String(block).split(/\r?\n/).filter(line=>line.startsWith('data:')).map(line=>line.slice(5).trim());
+ if(!dataLines.length)return null;
+ // A proxy may coalesce several SSE events into one block. Parse each data payload
+ // independently and prefer final-answer text so it can never be hidden by step.start.
+ const parsed=[];
+ for(const raw of dataLines){
+  if(raw==='[DONE]'){parsed.push({type:'done'});continue}
+  try{const event=parseEventObject(JSON.parse(raw));if(event)parsed.push(event)}catch{}
+ }
+ return parsed.find(x=>x.type==='text')||parsed.find(x=>x.type==='thought')||parsed.find(x=>x.type==='search')||parsed.find(x=>x.type==='sources')||parsed.find(x=>x.type==='search_result')||parsed.find(x=>x.type==='model')||parsed.find(x=>x.type==='done')||null;
+}
 
-// Parse one or more SSE events. Gemini normally separates events with a blank line,
-// but proxies can occasionally normalize framing. Splitting at a new `event:` line
-// prevents a valid step.delta text event from being swallowed by the preceding event.
 export function parseGoogleSseBlocks(raw=''){
  const text=String(raw||'').replace(/\r\n/g,'\n');
  if(!text.trim())return [];
