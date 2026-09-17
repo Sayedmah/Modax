@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildInteractionInput, parseGoogleSseBlock, parseGoogleSseBlocks, drainGoogleSseBuffer } from '../backend/gemini-stream.mjs';
+import { buildInteractionInput, parseGoogleSseBlock, parseGoogleSseBlocks, drainGoogleSseBuffer, needsFinalAnswerFallback } from '../backend/gemini-stream.mjs';
 
 test('buildInteractionInput preserves multi-turn conversation context',()=>{
  const input=buildInteractionInput([{role:'user',content:'اسمي محمود'},{role:'assistant',content:'أهلًا محمود'},{role:'user',content:'ما اسمي؟'}]);
@@ -53,4 +53,11 @@ test('drains complete provider events across chunks and flushes final unterminat
  result=drainGoogleSseBuffer(buffer,true);
  assert.deepEqual(result.events,[{type:'text',text:'Hello'},{type:'text',text:' world'}]);
  assert.equal(result.buffer,'');
+});
+
+test('requests a direct final-answer fallback only when the stream completed without answer text',()=>{
+ assert.equal(needsFinalAnswerFallback({streamCompleted:true,textSeen:false,aborted:false}),true);
+ assert.equal(needsFinalAnswerFallback({streamCompleted:true,textSeen:true,aborted:false}),false);
+ assert.equal(needsFinalAnswerFallback({streamCompleted:false,textSeen:false,aborted:false}),false);
+ assert.equal(needsFinalAnswerFallback({streamCompleted:true,textSeen:false,aborted:true}),false);
 });
