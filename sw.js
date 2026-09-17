@@ -1,4 +1,4 @@
-const CACHE='mody-ai-web-v3';
+const CACHE='mody-ai-web-v4';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./mody-icon.svg'];
 const MODY_BACKEND='https://modaxai.onrender.com';
 
@@ -9,27 +9,16 @@ async function bridgeBackend(request){
   const original=new URL(request.url);
   if(original.origin!==MODY_BACKEND)return fetch(request);
 
-  if(request.method==='POST'){
+  if(request.method==='POST'&&original.pathname.endsWith('/v1/chat')){
     const body=await request.clone().json().catch(()=>({}));
-    const isChat=original.pathname.endsWith('/v1/chat') || (typeof body.message==='string' || typeof body.prompt==='string') && !Array.isArray(body.targets);
-    if(isChat){
-      const model=body.model&&body.model!=='auto'&&body.model!=='demo:mock'?body.model:'gemini-2.5-flash';
-      const payload={...body,provider:body.provider||'google',model,prompt:body.prompt||body.message||'',messages:body.messages};
-      const response=await fetch(`${MODY_BACKEND}/v1/chat`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-      const data=await response.clone().json().catch(()=>null);
-      if(!data)return response;
-      return new Response(JSON.stringify({...data,response:data.response||data.text||data.output||data.message||''}),{status:response.status,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
-    }
+    const payload={...body,provider:body.provider||'google',model:body.model||'auto',prompt:body.prompt||body.message||'',messages:body.messages};
+    return fetch(`${MODY_BACKEND}/v1/chat`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
   }
 
-  if(request.method==='GET'&&(original.pathname.endsWith('/v1/models')||original.pathname==='/v1/models')){
+  if(request.method==='GET'&&original.pathname.endsWith('/v1/models')){
     const url=new URL(`${MODY_BACKEND}/v1/models`);
-    url.searchParams.set('provider','google');
-    const response=await fetch(url.toString(),{headers:{'Accept':'application/json'}});
-    const data=await response.clone().json().catch(()=>null);
-    if(!data)return response;
-    const models=Array.isArray(data)?data:(data.models||data.data||[]);
-    return new Response(JSON.stringify({...data,models}),{status:response.status,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
+    url.searchParams.set('provider',original.searchParams.get('provider')||'google');
+    return fetch(url.toString(),{headers:{'Accept':'application/json'}});
   }
 
   if(request.method==='GET'&&original.pathname.endsWith('/health'))return fetch(`${MODY_BACKEND}/health`,{headers:{'Accept':'application/json'}});
