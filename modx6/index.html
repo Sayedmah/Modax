@@ -68,6 +68,21 @@
     .tile{border:1px solid var(--line);background:var(--panel2);border-radius:16px;padding:14px}
     .tile b{display:block;margin-bottom:4px}.tile span{color:var(--muted);font-size:12px;line-height:1.5}
     .note{color:var(--muted);font-size:12px;line-height:1.65;margin-top:10px}
+    .chatShell{display:flex;flex-direction:column;height:calc(100dvh - 150px);min-height:520px;border:1px solid var(--line);background:rgba(16,13,23,.72);border-radius:var(--radius);overflow:hidden}
+    .chatTop{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.02)}
+    .chatTop b{font-size:14px}.chatState{font-size:11px;color:var(--muted)}
+    .chatMessages{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px;scrollbar-width:none}
+    .chatMessages::-webkit-scrollbar{display:none}
+    .msg{max-width:min(82%,720px);padding:11px 13px;border-radius:17px;line-height:1.65;white-space:pre-wrap;word-break:break-word;font-size:14px}
+    .msg.user{align-self:flex-start;background:linear-gradient(135deg,var(--primary),#5b2ad6);border-bottom-left-radius:6px}
+    .msg.ai{align-self:flex-end;background:var(--panel2);border:1px solid var(--line);border-bottom-right-radius:6px}
+    .msg.pending{opacity:.72}
+    .chatComposer{padding:10px;border-top:1px solid var(--line);background:rgba(13,11,20,.95);display:flex;gap:8px;align-items:flex-end}
+    .chatInput{flex:1;min-height:46px;max-height:120px;resize:none;border:1px solid var(--line);background:#110e18;color:var(--text);border-radius:16px;padding:12px 13px;outline:none}
+    .chatInput:focus{border-color:var(--primary)}
+    .micBtn,.sendBtn{width:46px;height:46px;flex:0 0 46px;border:none;border-radius:15px;color:#fff;font-size:18px}
+    .micBtn{background:#2a2237;border:1px solid var(--line)}.micBtn.listening{background:#8a2d4c;box-shadow:0 0 0 5px rgba(255,74,125,.12)}
+    .sendBtn{background:linear-gradient(135deg,var(--primary),#5b2ad6)}
     .toast{position:fixed;left:50%;bottom:calc(18px + var(--safe-bottom));transform:translateX(-50%) translateY(25px);background:#251d33;border:1px solid #49395e;color:#fff;border-radius:14px;padding:11px 14px;opacity:0;pointer-events:none;transition:.22s;z-index:99;max-width:min(92vw,560px);text-align:center;font-size:13px}
     .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
     .splash{position:fixed;inset:0;z-index:999;background:radial-gradient(circle at 50% 35%,#2a1451 0%,#0a0712 58%,#050309 100%);display:grid;place-items:center;transition:.3s opacity}
@@ -84,7 +99,7 @@
   </style>
 </head>
 <body>
-<div class="splash" id="splash"><div class="splashbox"><div class="splashmark">M6</div><h2>MODX 6 Egypt</h2><p>Game • Video • Education • Browser</p></div></div>
+<div class="splash" id="splash"><div class="splashbox"><div class="splashmark">M6</div><h2>MODX 6 Egypt</h2><p>Chat • Game • Video • Education • Browser</p></div></div>
 <div class="app">
   <header class="topbar">
     <div class="brand"><div class="mark">M6</div><div><b>MODX 6 Egypt</b><div class="status">AUTO • Local / Paired / Cloud</div></div></div>
@@ -100,11 +115,18 @@
 const main=document.getElementById('main'),toast=document.getElementById('toast');
 let deferredPrompt=null;
 const studios={
+  chat:{title:'Chat Studio',icon:'💬',subtitle:'Gemini chat with microphone input.'},
   game:{title:'Game Studio',icon:'🎮',subtitle:'Build and repair games from any device.'},
   video:{title:'Video Studio',icon:'🎬',subtitle:'Create video with AUTO model routing.'},
   education:{title:'Education Studio',icon:'🎓',subtitle:'Learn with an adaptive tutor.'},
   browser:{title:'Browser Agent',icon:'🌐',subtitle:'Controlled browser workspace.'}
 };
+const CHAT_BACKEND='https://modaxai.onrender.com';
+const CHAT_STORE='modx6ChatV1';
+let chatHistory=[];
+let recognition=null;
+try{chatHistory=JSON.parse(localStorage.getItem(CHAT_STORE)||'[]')}catch{chatHistory=[]}
+function saveChat(){localStorage.setItem(CHAT_STORE,JSON.stringify(chatHistory.slice(-40)))}
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function notify(msg){toast.textContent=msg;toast.classList.add('show');clearTimeout(window.__toast);window.__toast=setTimeout(()=>toast.classList.remove('show'),2600)}
 function nav(to){location.hash=to==='home'?'#home':'#'+to}
@@ -115,6 +137,68 @@ function home(){
  </section>`;
 }
 function shell(key,body){const s=studios[key];main.innerHTML=`<section class="screen"><div class="screenhead"><button class="back" onclick="nav('home')">→</button><div><h1>${s.icon} ${s.title}</h1><p>${s.subtitle}</p></div></div>${body}</section>`}
+function renderChatMessages(){
+ const box=document.getElementById('chatMessages');if(!box)return;
+ if(!chatHistory.length){
+   box.innerHTML='<div class="msg ai">أهلاً، أنا MODX Chat. اسألني أو استخدم زر المايك 🎤</div>';
+ }else{
+   box.innerHTML=chatHistory.map(m=>'<div class="msg '+(m.role==='user'?'user':'ai')+'">'+esc(m.content)+'</div>').join('');
+ }
+ box.scrollTop=box.scrollHeight;
+}
+function parseSseBlock(block){
+ let type='message',data='';for(const line of block.split(/\r?\n/)){if(line.startsWith('event:'))type=line.slice(6).trim();if(line.startsWith('data:'))data+=line.slice(5).trim()}
+ if(!data)return null;try{return{type,data:JSON.parse(data)}}catch{return null}
+}
+async function streamGemini(messages,onText){
+ const r=await fetch(CHAT_BACKEND+'/v1/chat/stream',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({provider:'google',model:'auto',messages,prompt:messages.at(-1)?.content||''})});
+ if(!r.ok){const x=await r.json().catch(()=>({}));throw new Error(x.error||'HTTP '+r.status)}
+ const reader=r.body?.getReader();if(!reader)throw new Error('Streaming غير مدعوم');
+ const dec=new TextDecoder();let buf='';
+ while(true){const {value,done}=await reader.read();if(done)break;buf+=dec.decode(value,{stream:true});const parts=buf.split(/\r?\n\r?\n/);buf=parts.pop()||'';for(const p of parts){const ev=parseSseBlock(p);if(ev?.type==='text'&&ev.data?.text)onText(ev.data.text)}}
+ if(buf.trim()){const ev=parseSseBlock(buf);if(ev?.type==='text'&&ev.data?.text)onText(ev.data.text)}
+}
+async function sendChat(){
+ const input=document.getElementById('chatInput');if(!input)return;const text=input.value.trim();if(!text)return;
+ input.value='';chatHistory.push({role:'user',content:text});saveChat();renderChatMessages();
+ const state=document.getElementById('chatState');if(state)state.textContent='Processing…';
+ const box=document.getElementById('chatMessages');const pending=document.createElement('div');pending.className='msg ai pending';pending.textContent='Gemini يكتب…';box.appendChild(pending);box.scrollTop=box.scrollHeight;
+ let answer='';
+ try{
+   const history=chatHistory.slice(-24);
+   await streamGemini(history,chunk=>{answer+=chunk;pending.classList.remove('pending');pending.textContent=answer;box.scrollTop=box.scrollHeight});
+   if(!answer.trim())throw new Error('لم يصل رد من Gemini');
+   chatHistory.push({role:'assistant',content:answer.trim()});saveChat();
+ }catch(err){
+   pending.classList.remove('pending');pending.textContent='تعذر الاتصال بـ Gemini: '+err.message;
+ }
+ if(state)state.textContent='Ready • Gemini AUTO';
+}
+function startMic(){
+ const input=document.getElementById('chatInput'),mic=document.getElementById('micBtn'),state=document.getElementById('chatState');if(!input||!mic)return;
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){notify('المتصفح لا يدعم التعرف الصوتي هنا. استخدم Chrome/Edge أو أضف التطبيق للشاشة الرئيسية.');return}
+ if(recognition){try{recognition.stop()}catch{} recognition=null;mic.classList.remove('listening');if(state)state.textContent='Ready • Gemini AUTO';return}
+ recognition=new SR();recognition.lang='ar-EG';recognition.interimResults=true;recognition.continuous=false;
+ let finalText='';
+ recognition.onstart=()=>{mic.classList.add('listening');if(state)state.textContent='Listening…'};
+ recognition.onresult=e=>{let interim='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)finalText+=t;else interim+=t}input.value=(finalText||interim).trim()};
+ recognition.onerror=e=>{notify('مشكلة في المايك: '+(e.error||'غير معروف'))};
+ recognition.onend=()=>{mic.classList.remove('listening');recognition=null;if(state)state.textContent='Ready • Gemini AUTO';input.focus()};
+ recognition.start();
+}
+function chat(){
+ shell('chat',`<div class="chatShell">
+ <div class="chatTop"><b>Gemini AUTO</b><span class="chatState" id="chatState">Ready • Gemini AUTO</span></div>
+ <div class="chatMessages" id="chatMessages"></div>
+ <div class="chatComposer">
+   <textarea class="chatInput" id="chatInput" rows="1" placeholder="اكتب رسالة أو اضغط المايك…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"></textarea>
+   <button class="micBtn" id="micBtn" onclick="startMic()" title="مايك">🎤</button>
+   <button class="sendBtn" onclick="sendChat()" title="إرسال">➤</button>
+ </div>
+ </div>`);
+ renderChatMessages();
+}
 function game(){
  shell('game',`<div class="section"><h3>المحركات</h3><div class="routebar"><span class="chip">Godot • V1</span><span class="chip">Unity • next</span><span class="chip">Unreal • next</span></div></div>
  <div class="section"><h3>Project actions</h3><div class="stack">
@@ -150,7 +234,7 @@ function browserAgent(){
  </div></div>
  <div class="tiles"><div class="tile"><b>🛡️ Permission boundary</b><span>Submitting forms or entering credentials pauses for your approval.</span></div><div class="tile"><b>📋 Action log</b><span>Browser actions and extracted results appear here.</span></div></div>`);
 }
-function render(){const r=(location.hash||'#home').slice(1);({home,game,video,education,browser:browserAgent}[r]||home)();main.scrollTo(0,0)}
+function render(){const r=(location.hash||'#home').slice(1);({home,chat,game,video,education,browser:browserAgent}[r]||home)();main.scrollTo(0,0)}
 window.addEventListener('hashchange',render);render();
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e});
 document.getElementById('installBtn').addEventListener('click',async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null}else{notify('على iPhone: مشاركة ← إضافة إلى الشاشة الرئيسية. على الكمبيوتر استخدم Install App من المتصفح.')}});
