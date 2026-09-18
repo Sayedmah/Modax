@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#0d0b14">
+  <meta name="color-scheme" content="dark">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MODX 6 Egypt">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="description" content="MODX 6 Egypt — Game, Video, Education and Browser AI studios in one app-like PWA.">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <title>MODX 6 Egypt</title>
+  <style>
+    :root{
+      --bg:#0d0b14;--panel:#17131f;--panel2:#211a2c;--line:#352b46;
+      --text:#f7f3ff;--muted:#aaa2ba;--primary:#7c4dff;--primary2:#9b79ff;
+      --good:#43d17d;--warn:#ffb84d;--radius:22px;--safe-top:env(safe-area-inset-top,0px);
+      --safe-bottom:env(safe-area-inset-bottom,0px);
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;width:100%;height:100%;background:var(--bg);color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif;overflow:hidden;overscroll-behavior:none}
+    body{position:fixed;inset:0}
+    button,input,textarea,select{font:inherit}
+    button{cursor:pointer}
+    .app{height:100dvh;display:flex;flex-direction:column;background:
+      radial-gradient(900px 520px at 85% -10%,rgba(124,77,255,.18),transparent 60%),var(--bg)}
+    .topbar{padding:calc(12px + var(--safe-top)) 16px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(13,11,20,.88);backdrop-filter:blur(18px);z-index:5}
+    .brand{display:flex;align-items:center;gap:11px;min-width:0}
+    .mark{width:38px;height:38px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(145deg,var(--primary),#4b1fb8);font-weight:900;box-shadow:0 10px 30px rgba(124,77,255,.28)}
+    .brand b{font-size:16px;white-space:nowrap}
+    .status{font-size:11px;color:var(--muted);white-space:nowrap}
+    .actions{display:flex;gap:8px}
+    .iconbtn,.pillbtn{border:1px solid var(--line);background:rgba(255,255,255,.035);color:var(--text);border-radius:13px;min-height:38px;padding:0 12px}
+    .iconbtn{width:40px;padding:0;font-size:18px}
+    .main{flex:1;overflow:auto;padding:18px 16px calc(22px + var(--safe-bottom));scrollbar-width:none}
+    .main::-webkit-scrollbar{display:none}
+    .hero{max-width:1180px;margin:0 auto 18px}
+    .hero h1{font-size:clamp(26px,5vw,44px);margin:4px 0 8px;letter-spacing:-.7px}
+    .hero p{margin:0;color:var(--muted);line-height:1.7;max-width:750px}
+    .routebar{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+    .chip{padding:8px 11px;border-radius:999px;background:rgba(124,77,255,.1);border:1px solid rgba(124,77,255,.28);color:#d9ccff;font-size:12px}
+    .grid{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+    .card{appearance:none;text-align:right;border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.018));color:var(--text);border-radius:var(--radius);padding:17px;min-height:188px;display:flex;flex-direction:column;transition:.18s transform,.18s border-color,.18s background}
+    .card:hover{transform:translateY(-2px);border-color:#57446f;background:rgba(255,255,255,.05)}
+    .card:active{transform:scale(.99)}
+    .cardicon{width:48px;height:48px;border-radius:16px;background:rgba(124,77,255,.14);display:grid;place-items:center;font-size:23px;margin-bottom:18px}
+    .card h2{margin:0 0 7px;font-size:19px}.card p{margin:0;color:var(--muted);line-height:1.55;font-size:13px}
+    .card .open{margin-top:auto;padding-top:16px;color:#cbbcff;font-size:12px}
+    .screen{max-width:920px;margin:0 auto}
+    .screenhead{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+    .back{border:1px solid var(--line);background:var(--panel);color:var(--text);width:42px;height:42px;border-radius:14px;font-size:20px}
+    .screenhead h1{margin:0;font-size:24px}.screenhead p{margin:3px 0 0;color:var(--muted);font-size:13px}
+    .section{border:1px solid var(--line);background:var(--panel);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+    .section h3{margin:0 0 12px;font-size:16px}
+    .stack{display:grid;gap:10px}
+    .btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:14px;padding:12px 14px;text-align:right}
+    .btn.primary{background:linear-gradient(135deg,var(--primary),#5b2ad6);border-color:transparent;font-weight:700;text-align:center}
+    .btn:active{transform:scale(.995)}
+    .field,textarea,select{width:100%;border:1px solid var(--line);background:#110e18;color:var(--text);border-radius:14px;padding:12px 13px;outline:none}
+    textarea{min-height:118px;resize:vertical}
+    .field:focus,textarea:focus,select:focus{border-color:var(--primary)}
+    .label{font-size:12px;color:var(--muted);margin:2px 2px 6px}
+    .tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .tile{border:1px solid var(--line);background:var(--panel2);border-radius:16px;padding:14px}
+    .tile b{display:block;margin-bottom:4px}.tile span{color:var(--muted);font-size:12px;line-height:1.5}
+    .note{color:var(--muted);font-size:12px;line-height:1.65;margin-top:10px}
+    .toast{position:fixed;left:50%;bottom:calc(18px + var(--safe-bottom));transform:translateX(-50%) translateY(25px);background:#251d33;border:1px solid #49395e;color:#fff;border-radius:14px;padding:11px 14px;opacity:0;pointer-events:none;transition:.22s;z-index:99;max-width:min(92vw,560px);text-align:center;font-size:13px}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    .splash{position:fixed;inset:0;z-index:999;background:radial-gradient(circle at 50% 35%,#2a1451 0%,#0a0712 58%,#050309 100%);display:grid;place-items:center;transition:.3s opacity}
+    .splash.hide{opacity:0;pointer-events:none}
+    .splashbox{text-align:center}.splashmark{margin:auto;width:80px;height:80px;border-radius:24px;display:grid;place-items:center;font-size:28px;font-weight:900;background:linear-gradient(145deg,var(--primary),#4b1fb8);box-shadow:0 20px 70px rgba(124,77,255,.35)}
+    .splash h2{margin:16px 0 5px}.splash p{margin:0;color:var(--muted);font-size:12px}
+    @media(max-width:980px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:620px){
+      .topbar{padding-left:12px;padding-right:12px}.status{display:none}.main{padding-left:12px;padding-right:12px}
+      .grid{grid-template-columns:1fr}.card{min-height:145px}.tiles{grid-template-columns:1fr}
+      .hero h1{font-size:30px}.brand b{font-size:14px}.pillbtn{padding:0 10px;font-size:12px}
+    }
+    @media(display-mode:standalone){.install-only{display:none!important}}
+  </style>
+</head>
+<body>
+<div class="splash" id="splash"><div class="splashbox"><div class="splashmark">M6</div><h2>MODX 6 Egypt</h2><p>Game • Video • Education • Browser</p></div></div>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><div class="mark">M6</div><div><b>MODX 6 Egypt</b><div class="status">AUTO • Local / Paired / Cloud</div></div></div>
+    <div class="actions">
+      <button class="pillbtn install-only" id="installBtn">تثبيت</button>
+      <button class="iconbtn" id="fullBtn" title="ملء الشاشة">⛶</button>
+    </div>
+  </header>
+  <main class="main" id="main"></main>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const main=document.getElementById('main'),toast=document.getElementById('toast');
+let deferredPrompt=null;
+const studios={
+  game:{title:'Game Studio',icon:'🎮',subtitle:'Build and repair games from any device.'},
+  video:{title:'Video Studio',icon:'🎬',subtitle:'Create video with AUTO model routing.'},
+  education:{title:'Education Studio',icon:'🎓',subtitle:'Learn with an adaptive tutor.'},
+  browser:{title:'Browser Agent',icon:'🌐',subtitle:'Controlled browser workspace.'}
+};
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function notify(msg){toast.textContent=msg;toast.classList.add('show');clearTimeout(window.__toast);window.__toast=setTimeout(()=>toast.classList.remove('show'),2600)}
+function nav(to){location.hash=to==='home'?'#home':'#'+to}
+function home(){
+ main.innerHTML=`<section class="hero"><h1>كل أدوات MODX في واجهة واحدة</h1><p>نفس تجربة التطبيق على الموبايل والكمبيوتر. تظهر لك نفس الاستوديوهات، ويقرر AUTO أين تُنفذ المهمة حسب الجهاز والقدرات المتاحة.</p><div class="routebar"><span class="chip">AUTO routing</span><span class="chip">Local</span><span class="chip">Paired Device</span><span class="chip">Cloud Worker</span></div></section>
+ <section class="grid">
+ ${Object.entries(studios).map(([k,s])=>`<button class="card" onclick="nav('${k}')"><div class="cardicon">${s.icon}</div><h2>${s.title}</h2><p>${s.subtitle}</p><div class="open">فتح الاستوديو ←</div></button>`).join('')}
+ </section>`;
+}
+function shell(key,body){const s=studios[key];main.innerHTML=`<section class="screen"><div class="screenhead"><button class="back" onclick="nav('home')">→</button><div><h1>${s.icon} ${s.title}</h1><p>${s.subtitle}</p></div></div>${body}</section>`}
+function game(){
+ shell('game',`<div class="section"><h3>المحركات</h3><div class="routebar"><span class="chip">Godot • V1</span><span class="chip">Unity • next</span><span class="chip">Unreal • next</span></div></div>
+ <div class="section"><h3>Project actions</h3><div class="stack">
+ <button class="btn primary" onclick="notify('Detect Engine جاهز للربط بمنفذ التنفيذ')">Detect Engine</button>
+ <button class="btn" onclick="notify('اختيار المشروع يتطلب ربط جهاز أو Cloud Worker')">Select / Connect Project</button>
+ <button class="btn" onclick="notify('Inspect Project جاهز بعد ربط المشروع')">Inspect Project</button>
+ <button class="btn" onclick="notify('Validate Project جاهز بعد ربط المشروع')">Validate Project</button>
+ <button class="btn" onclick="notify('Headless Test يوجّه تلقائيًا لجهاز مناسب')">Run Headless Test</button>
+ </div><div class="note">AUTO يبقي نفس الأوامر ظاهرة على iPhone والمتصفح، ويرسل العمل الثقيل إلى جهاز مقترن أو Cloud Worker عند عدم توفر التنفيذ المحلي.</div></div>`);
+}
+function video(){
+ shell('video',`<div class="section"><h3>Create video</h3><div class="stack">
+ <div><div class="label">Describe the video</div><textarea id="prompt" placeholder="اكتب وصف الفيديو..."></textarea></div>
+ <div><div class="label">Model mode</div><select><option>AUTO</option><option>Wan 2.2</option><option>LTX</option><option>HunyuanVideo 1.5</option></select></div>
+ <div><div class="label">Task</div><select><option>Text to Video</option><option>Image to Video</option><option>Video to Video</option><option>Extend Video</option></select></div>
+ <button class="btn" onclick="notify('إضافة ملف مرجعي ستتصل بمخزن الملفات عند ربط Backend')">Add image / video reference</button>
+ <button class="btn primary" onclick="notify(document.getElementById('prompt').value?'تم تجهيز المهمة لـ AUTO routing':'اكتب وصف الفيديو أولًا')">Generate with AUTO routing</button>
+ </div></div>`);
+}
+function education(){
+ shell('education',`<div class="section"><button class="btn primary" style="width:100%" onclick="notify('رفع الملفات سيتفعّل مع خدمة التخزين')">Upload PDF / DOCX / PPTX</button></div>
+ <div class="tiles">
+ <div class="tile"><b>💬 Tutor</b><span>Ask grounded questions from your material.</span></div>
+ <div class="tile"><b>📝 Quiz</b><span>Generate adaptive practice.</span></div>
+ <div class="tile"><b>🗂️ Flashcards</b><span>Review with spaced repetition.</span></div>
+ <div class="tile"><b>📅 Study Plan</b><span>Plan goals and review sessions.</span></div>
+ </div>`);
+}
+function browserAgent(){
+ shell('browser',`<div class="section"><div class="stack">
+ <input class="field" id="browserQ" placeholder="Search or open URL">
+ <button class="btn primary" onclick="notify(document.getElementById('browserQ').value?'تم تجهيز طلب البحث للـ Browser Worker':'اكتب بحثًا أو رابطًا أولًا')">Research</button>
+ </div></div>
+ <div class="tiles"><div class="tile"><b>🛡️ Permission boundary</b><span>Submitting forms or entering credentials pauses for your approval.</span></div><div class="tile"><b>📋 Action log</b><span>Browser actions and extracted results appear here.</span></div></div>`);
+}
+function render(){const r=(location.hash||'#home').slice(1);({home,game,video,education,browser:browserAgent}[r]||home)();main.scrollTo(0,0)}
+window.addEventListener('hashchange',render);render();
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e});
+document.getElementById('installBtn').addEventListener('click',async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null}else{notify('على iPhone: مشاركة ← إضافة إلى الشاشة الرئيسية. على الكمبيوتر استخدم Install App من المتصفح.')}});
+document.getElementById('fullBtn').addEventListener('click',async()=>{try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch(e){notify('استخدم إضافة إلى الشاشة الرئيسية للحصول على وضع التطبيق الكامل')}})
+if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{})}
+setTimeout(()=>{document.getElementById('splash').classList.add('hide');setTimeout(()=>document.getElementById('splash')?.remove(),350)},550);
+</script>
+</body>
+</html>
