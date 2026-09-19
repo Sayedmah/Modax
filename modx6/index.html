@@ -105,7 +105,7 @@
 <div class="splash" id="splash"><div class="splashbox"><div class="splashmark">M6</div><h2>MODX 6 Egypt</h2><p>Chat • Game • Video • Education • Browser</p></div></div>
 <div class="app">
   <header class="topbar">
-    <div class="brand"><div class="mark">M6</div><div><b>MODX 6 Egypt</b><div class="status">AUTO • Local / Paired / Cloud</div></div></div>
+    <div class="brand"><img class="mark" src="./face.svg" alt="وجه MODX"><div><b>MODX 6 Egypt</b><div class="status">AUTO • Local / Paired / Cloud</div></div></div>
     <div class="actions">
       <button class="pillbtn install-only" id="installBtn">تثبيت</button>
       <button class="iconbtn" id="fullBtn" title="ملء الشاشة">⛶</button>
@@ -118,7 +118,7 @@
 const main=document.getElementById('main'),toast=document.getElementById('toast');
 let deferredPrompt=null;
 const studios={
-  chat:{title:'Chat Studio',icon:'💬',subtitle:'Gemini chat with microphone input.'},
+  chat:{title:'بربمدز + MODAX',icon:'🧠',subtitle:'شات ذكاء اصطناعي بوجه ومايك ووضع مراجعة إضافية، وMODAX الأصلي في نفس التطبيق.'},
   game:{title:'Game Studio',icon:'🎮',subtitle:'Build and repair games from any device.'},
   video:{title:'Video Studio',icon:'🎬',subtitle:'Create video with AUTO model routing.'},
   education:{title:'Education Studio',icon:'🎓',subtitle:'Learn with an adaptive tutor.'},
@@ -174,9 +174,9 @@ try{chatHistory=JSON.parse(localStorage.getItem(CHAT_STORE)||'[]')}catch{chatHis
 function saveChat(){localStorage.setItem(CHAT_STORE,JSON.stringify(chatHistory.slice(-40)))}
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function notify(msg){toast.textContent=msg;toast.classList.add('show');clearTimeout(window.__toast);window.__toast=setTimeout(()=>toast.classList.remove('show'),2600)}
-function nav(to){location.hash=to==='home'?'#home':'#'+to}
+function nav(to){if(to==='chat'){location.href='./assistant.html';return;}location.hash=to==='home'?'#home':'#'+to}
 function home(){
- main.innerHTML=`<section class="hero"><h1>كل أدوات MODX في واجهة واحدة</h1><p>نفس تجربة التطبيق على الموبايل والكمبيوتر. تظهر لك نفس الاستوديوهات، ويقرر AUTO أين تُنفذ المهمة حسب الجهاز والقدرات المتاحة.</p><div class="routebar"><span class="chip">AUTO routing</span><span class="chip">Local</span><span class="chip">Paired Device</span><span class="chip">Cloud Worker</span></div></section>
+ main.innerHTML=`<section class="hero"><h1>كل أدوات MODX في واجهة واحدة</h1><p>نفس تجربة التطبيق على الموبايل والكمبيوتر. تظهر لك نفس الاستوديوهات، ويقرر AUTO أين تُنفذ المهمة حسب الجهاز والقدرات المتاحة.</p><div class="routebar"><button class="chip" style="cursor:pointer" onclick="nav('chat')">✦ اتكلم مع بربمدز أو MODAX 🎤</button><span class="chip">AUTO routing</span><span class="chip">Local</span><span class="chip">Paired Device</span><span class="chip">Cloud Worker</span></div></section>
  <section class="grid">
  ${Object.entries(studios).map(([k,s])=>`<button class="card" onclick="nav('${k}')"><div class="cardicon">${s.icon}</div><h2>${s.title}</h2><p>${s.subtitle}</p><div class="open">فتح الاستوديو ←</div></button>`).join('')}
  </section>`;
@@ -288,7 +288,7 @@ function browserAgent(){
  </div></div>
  <div class="tiles"><div class="tile"><b>🛡️ Permission boundary</b><span>Submitting forms or entering credentials pauses for your approval.</span></div><div class="tile"><b>📋 Action log</b><span>Browser actions and extracted results appear here.</span></div></div>`);
 }
-function render(){const r=(location.hash||'#home').slice(1);({home,chat,game,video,education,browser:browserAgent}[r]||home)();main.scrollTo(0,0)}
+function render(){const r=(location.hash||'#home').slice(1);if(r==='chat'){location.replace('./assistant.html');return;}({home,game,video,education,browser:browserAgent}[r]||home)();main.scrollTo(0,0)}
 window.addEventListener('hashchange',render);render();
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e});
 document.getElementById('installBtn').addEventListener('click',async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null}else{notify('على iPhone: مشاركة ← إضافة إلى الشاشة الرئيسية. على الكمبيوتر استخدم Install App من المتصفح.')}});
