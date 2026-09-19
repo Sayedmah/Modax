@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0c0c1c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>بربمدز و MODAX — MODX 6 Egypt</title>
+<link rel="icon" href="./face.svg" type="image/svg+xml">
+<link rel="manifest" href="./manifest.webmanifest">
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif;color-scheme:dark;--base:#0c0c1c;--panel:#18162a;--line:#332c4d;--ink:#f6f5ff;--sub:#bab6d2;--violet:#8a72ff;--turq:#76f6e5;--safe:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--base);color:var(--ink);overflow:hidden}
+button,textarea,input{font:inherit}button{cursor:pointer;color:inherit}button:disabled{opacity:.5;cursor:not-allowed}
+a{color:#cac0ff}.app{height:100dvh;display:flex;flex-direction:column;min-height:0;background:radial-gradient(ellipse 80% 70% at 50% -25%,#372765,transparent 70%),var(--base)}
+.header{display:flex;align-items:center;gap:12px;padding:calc(8px + env(safe-area-inset-top,0px)) 12px 9px;min-height:64px;border-bottom:1px solid #ffffff12;background:#101024c9}
+.goBack{border:1px solid var(--line);border-radius:12px;padding:10px 11px;background:#201c34;text-decoration:none;font-size:14px}
+.logo{width:37px;height:37px;border:1px solid #6553af;border-radius:13px;background:#241947;object-fit:cover}
+.heading{min-width:0;flex:1}.heading b{display:block;font-size:15px}.heading small{display:block;font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.header button{border:1px solid var(--line);border-radius:12px;background:#201c34;padding:10px;font-size:12px}
+.workspace{width:min(1040px,100%);margin:auto;flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.modebar{display:flex;align-items:center;gap:7px;overflow:auto;padding:10px 12px;border-bottom:1px solid #ffffff10;scrollbar-width:none;flex-shrink:0}
+.modebar button{background:#201d34;border:1px solid var(--line);border-radius:999px;padding:9px 13px;white-space:nowrap;font-size:12px}
+.modebar button.active{background:#5c45b4;border-color:#a38bff;box-shadow:0 0 20px #7e64ef2e}
+.modebar .spacer{flex:1}.modebar .new{border-radius:12px}
+.hero{padding:14px 15px;display:flex;align-items:center;gap:15px;border-bottom:1px solid #ffffff0e;background:linear-gradient(135deg,#1b1735,#101021)}
+.facewrap{position:relative;flex:0 0 73px;width:73px;height:73px;border-radius:50%;background:radial-gradient(circle,#5146aa,#17142c);border:1px solid #8f83ff77;box-shadow:0 0 28px #7964fe26}
+.facewrap:before{content:"";position:absolute;inset:-4px;border:2px solid transparent;border-top-color:#7ff4e1;border-right-color:#9a81ff;border-radius:50%;animation:orbit 7s linear infinite}
+.facewrap img{width:100%;height:100%;border-radius:50%}
+.facewrap.working{box-shadow:0 0 35px #896fffb5;animation:pulse 1.2s ease-in-out infinite}
+.facewrap.listening{box-shadow:0 0 36px #f765b4ba;animation:pulse .65s ease-in-out infinite}
+.facewrap.speaking{box-shadow:0 0 40px #68fbe0ba;animation:pulse .85s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.045)}}@keyframes orbit{to{transform:rotate(360deg)}}
+.heroText{min-width:0;flex:1}.heroText h1{margin:0 0 5px;font-size:20px}.heroText p{margin:0;font-size:12px;color:var(--sub);line-height:1.6}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border:1px solid #59517b;border-radius:999px;font-size:10px;color:#dfdaff;margin-top:7px}
+.dot{width:6px;height:6px;border-radius:50%;background:#7fdfcb}
+.tools{display:flex;align-items:center;gap:8px;padding:8px 13px;background:#121125;border-bottom:1px solid #ffffff0c}
+.tools label{display:flex;align-items:center;gap:6px;color:var(--sub);font-size:12px}
+.tools button{border:1px solid var(--line);border-radius:9px;background:#211d32;padding:7px 10px;font-size:11px}
+.tools .grow{flex:1}
+.messages{flex:1;min-height:0;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px;overscroll-behavior:contain}
+.msg{max-width:min(88%,730px);padding:12px 14px;border-radius:18px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;font-size:14px}
+.msg.user{align-self:flex-start;background:linear-gradient(140deg,#6950d3,#44318b);border-bottom-left-radius:5px}
+.msg.ai{align-self:flex-end;background:#1c1b30;border:1px solid #37314d;border-bottom-right-radius:5px}
+.msg.pending{opacity:.74}.msg small{display:block;color:#bfb6ec;font-size:10px;margin-bottom:3px}
+.welcome{margin:auto;max-width:620px;text-align:center;color:var(--sub);line-height:1.8;font-size:14px;padding:14px}.welcome h2{color:white;margin:0 0 8px}
+.suggestions{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:15px}.suggestions button{font-size:12px;background:#22203a;border:1px solid #3d365c;border-radius:13px;padding:9px 11px}
+.composer{border-top:1px solid var(--line);padding:10px 12px calc(10px + var(--safe));background:#101022}
+.status{font-size:11px;color:var(--sub);min-height:16px;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inputrow{display:flex;align-items:flex-end;gap:8px}.inputrow textarea{resize:none;flex:1;min-width:0;min-height:47px;max-height:115px;background:#1c1a2e;border:1px solid #4a3f69;border-radius:16px;color:var(--ink);outline:none;padding:12px 13px;line-height:1.55}.inputrow textarea:focus{border-color:#9b83ff}
+.iconbtn{border:1px solid #554875;background:#27213d;width:45px;height:45px;min-width:45px;border-radius:15px;font-size:19px}
+.iconbtn.active{border-color:#ff91bd;background:#6c315a}.iconbtn.send{background:linear-gradient(135deg,#8e6aff,#5d43ca);border:0}
+.hint{font-size:10px;color:#9290ac;margin-top:7px}
+.classic{display:none;flex:1;min-height:0;flex-direction:column}.classic iframe{width:100%;flex:1;min-height:0;border:0;background:#0c0c1c}.classicinfo{padding:9px 12px;color:var(--sub);font-size:11px;border-bottom:1px solid var(--line)}
+.authShade{position:fixed;inset:0;z-index:30;background:#05040dc7;display:none;place-items:center;padding:16px}
+.authShade.open{display:grid}.authBox{width:min(420px,100%);background:#1c1931;border:1px solid #625292;border-radius:23px;padding:23px;box-shadow:0 35px 100px #0009}
+.authBox h2{margin:0 0 8px}.authBox p{color:var(--sub);line-height:1.6;font-size:13px}
+.authBox input{display:block;width:100%;margin:9px 0;padding:13px;background:#0f0e20;color:var(--ink);border:1px solid #50436a;border-radius:12px;outline:none}
+.authBox .authAction{width:100%;background:#7156d4;border:0;border-radius:12px;padding:13px;margin-top:6px}
+.authLink{border:0;background:transparent;color:#c9baff;padding:12px 0;font-size:12px}
+.authError{font-size:12px;min-height:19px;color:#ffb8c6;line-height:1.6}
+@media(max-width:620px){.hero{padding:10px}.facewrap{width:60px;height:60px;flex-basis:60px}.heroText h1{font-size:17px}.msg{max-width:94%}.header{gap:7px}.header button{padding:9px}.modebar{gap:5px;padding:8px}.modebar button{padding:8px 10px}.messages{padding:10px}.composer{padding:8px 9px calc(8px + var(--safe))}.iconbtn{height:43px;width:43px;min-width:43px}}
+</style>
+</head>
+<body>
+<div class="app">
+ <header class="header">
+  <a class="goBack" href="./" aria-label="الصفحة الرئيسية">←</a>
+  <img class="logo" src="./face.svg" alt="MODX">
+  <div class="heading"><b>MODX 6 Egypt</b><small>مساعدك الذكي • شات وصوت • داخل التطبيق</small></div>
+  <button id="authBtn" type="button">تسجيل الدخول</button>
+ </header>
+ <main class="workspace">
+  <nav class="modebar" aria-label="اختر المساعد">
+   <button class="active" id="barbmdzBtn" type="button">✦ بربمدز</button>
+   <button id="modaxBtn" type="button">💬 MODAX</button>
+   <button id="classicBtn" type="button">↗ MODAX الأصلي</button>
+   <span class="spacer"></span><button class="new" id="newChat" type="button">＋ جديد</button>
+  </nav>
+  <div id="assistantView" style="display:flex;flex:1;min-height:0;flex-direction:column">
+   <section class="hero">
+    <div class="facewrap" id="faceWrap"><img src="./face.svg" alt="وجه مساعد MODX"></div>
+    <div class="heroText"><h1 id="faceName">بربمدز</h1><p id="faceDesc">للتفكير المتأنّي والبرمجة وحل المشكلات — مبني على Gemini، وليس نموذجًا مدرّبًا من الصفر.</p><span class="badge"><span class="dot" id="healthDot"></span><span id="healthText">جارٍ فحص الاتصال</span></span></div>
+   </section>
+   <div class="tools"><label id="deepLabel"><input type="checkbox" id="deepCheck"> مراجعة إضافية للإجابة</label><label><input type="checkbox" id="speakCheck"> قراءة الرد بصوت</label><span class="grow"></span><button type="button" id="copyBtn">نسخ آخر رد</button></div>
+   <div class="messages" id="messages" role="log" aria-live="polite"></div>
+   <div class="composer"><div class="status" id="status">اكتب رسالتك أو اضغط 🎤 لبدء الكلام</div><div class="inputrow"><textarea id="chatInput" rows="1" placeholder="اسأل بربمدز أو اتكلم بالمايك…" aria-label="رسالتك"></textarea><button class="iconbtn" id="micBtn" type="button" aria-label="تسجيل الصوت">🎤</button><button class="iconbtn send" id="sendBtn" type="button" aria-label="إرسال">➤</button></div><div class="hint">الصوت يتحول إلى نص عبر المتصفح أو Gemini حسب دعم جهازك. راجع النص قبل الإرسال.</div></div>
+  </div>
+  <section class="classic" id="classicView"><div class="classicinfo">نسخة MODAX الأصلية داخل MODX 6. هي تستخدم إعداداتها وخادمها المستقل عن بربمدز. <a href="../" target="_blank" rel="noopener">فتحها مباشرة ↗</a></div><iframe title="MODAX الأصلي" loading="lazy" id="modaxFrame" referrerpolicy="strict-origin-when-cross-origin"></iframe></section>
+ </main>
+</div>
+<div class="authShade" id="authShade" role="dialog" aria-modal="true" aria-label="تسجيل الدخول">
+ <div class="authBox"><h2>تسجيل دخول MODX</h2><p>لإرسال رسائل Gemini وحماية استخدام المفتاح، ادخل بحسابك على MODX/Modax. التسجيل الجديد قد يتطلب تأكيد البريد.</p>
+  <form id="authForm"><input required id="email" type="email" autocomplete="email" placeholder="البريد الإلكتروني"><input required id="password" type="password" autocomplete="current-password" minlength="6" placeholder="كلمة المرور"><div class="authError" id="authError"></div><button class="authAction" id="loginBtn" type="submit">دخول</button></form>
+  <button class="authLink" id="signupBtn" type="button">إنشاء حساب جديد</button> · <button class="authLink" id="authClose" type="button">إغلاق</button>
+ </div>
+</div>
+<script>
+const SUPABASE_URL='https://ctjklckrcredhjtflddn.supabase.co';
+const PUBLIC_KEY='sb_publishable_gov96yUbBNbqSFlfutN2kA_2229xEBr';
+const EDGE=SUPABASE_URL+'/functions/v1/modx6-gateway';
+const SESSION_KEY='modx6_user_session_v1';
+const byId=id=>document.getElementById(id);
+let assistant='barbmdz', messagesByMode={barbmdz:[],modax:[]}, busy=false;
+let authSession=null, recognizer=null, recorder=null, recordingStream=null, timer=null, lastReply='';
+const safeText=(x)=>String(x==null?'':x);
+function setStatus(text){byId('status').textContent=text;}
+function setFace(state){byId('faceWrap').className='facewrap'+(state?' '+state:'');}
+function showAuth(){byId('authError').textContent='';byId('authShade').classList.add('open');byId('email').focus();}
+function hideAuth(){byId('authShade').classList.remove('open');}
+function applySession(value){authSession=value&&value.access_token?value:null;if(authSession)sessionStorage.setItem(SESSION_KEY,JSON.stringify(authSession));else sessionStorage.removeItem(SESSION_KEY);byId('authBtn').textContent=authSession?'خروج':'تسجيل الدخول';}
+try{applySession(JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null'));}catch{applySession(null);}
+async function readJson(response){const body=await response.json().catch(()=>({}));if(!response.ok)throw new Error(safeText(body.error_description||body.msg||body.error||body.message||'HTTP '+response.status));return body;}
+async function authRequest(path,data){
+ const res=await fetch(SUPABASE_URL+'/auth/v1/'+path,{method:'POST',headers:{'apikey':PUBLIC_KEY,'content-type':'application/json'},body:JSON.stringify(data)});
+ return readJson(res);
+}
+async function ensureToken(){
+ if(!authSession||!authSession.access_token){showAuth();throw new Error('سجّل الدخول أولاً ثم أرسل الرسالة');}
+ if((authSession.expires_at||0)>Math.floor(Date.now()/1000)+45)return authSession.access_token;
+ if(!authSession.refresh_token){applySession(null);showAuth();throw new Error('انتهت جلسة الدخول. سجّل الدخول مجددًا');}
+ try{
+  const data=await authRequest('token?grant_type=refresh_token',{refresh_token:authSession.refresh_token});
+  applySession(data);return data.access_token;
+ }catch{applySession(null);showAuth();throw new Error('انتهت جلسة الدخول. سجّل الدخول مجددًا');}
+}
+byId('authBtn').onclick=()=>{if(authSession){applySession(null);messagesByMode={barbmdz:[],modax:[]};renderMessages();setStatus('تم تسجيل الخروج من MODX')}else showAuth();};
+byId('authClose').onclick=hideAuth;
+byId('authForm').onsubmit=async(e)=>{
+ e.preventDefault();const button=byId('loginBtn');button.disabled=true;byId('authError').textContent='';
+ try{const data=await authRequest('token?grant_type=password',{email:byId('email').value.trim(),password:byId('password').value});if(!data.access_token)throw new Error('لم يصل رمز دخول');applySession(data);byId('password').value='';hideAuth();setStatus('تم تسجيل الدخول. جاهز للمحادثة.');}
+ catch(err){byId('authError').textContent=err.message;}
+ finally{button.disabled=false;}
+};
+byId('signupBtn').onclick=async()=>{
+ const email=byId('email').value.trim(),password=byId('password').value;
+ if(!email||password.length<6){byId('authError').textContent='اكتب البريد وكلمة مرور لا تقل عن 6 أحرف';return;}
+ const btn=byId('signupBtn');btn.disabled=true;
+ try{const data=await authRequest('signup',{email,password});if(data.access_token){applySession(data);byId('password').value='';hideAuth();setStatus('تم إنشاء الحساب وتسجيل الدخول');}else byId('authError').textContent='تم إرسال طلب التسجيل. أكد بريدك الإلكتروني ثم سجّل الدخول.';}
+ catch(err){byId('authError').textContent=err.message;}finally{btn.disabled=false;}
+};
+function historyKey(){return 'modx6_assistant_'+(authSession&&authSession.user&&authSession.user.id||'visitor')+'_'+assistant;}
+function loadHistory(){try{const data=JSON.parse(sessionStorage.getItem(historyKey())||'[]');messagesByMode[assistant]=Array.isArray(data)?data.filter(x=>x&&['user','assistant'].includes(x.role)&&typeof x.content==='string').slice(-30):[];}catch{messagesByMode[assistant]=[];}}
+function saveHistory(){sessionStorage.setItem(historyKey(),JSON.stringify(messagesByMode[assistant].slice(-30)));}
+function addBubble(role,text,pending=false){const d=document.createElement('div');d.className='msg '+(role==='user'?'user':'ai')+(pending?' pending':'');if(role!=='user'){const t=document.createElement('small');t.textContent=assistant==='barbmdz'?'بربمدز':'MODAX';d.appendChild(t);}const p=document.createElement('span');p.textContent=text;d.appendChild(p);byId('messages').appendChild(d);byId('messages').scrollTop=byId('messages').scrollHeight;return p;}
+function renderMessages(){const box=byId('messages');box.replaceChildren();const h=messagesByMode[assistant];if(!h.length){const welcome=document.createElement('div');welcome.className='welcome';welcome.innerHTML='<h2>أهلاً بيك 👋</h2><p>ابدأ بسؤال، فكرة مشروع، أو مشكلة برمجية. المايك جاهز لما تسمح له بالوصول.</p><div class="suggestions"><button type="button" data-prompt="راجع لي منطق اللعبة واقترح اختبارات">🎮 مراجعة لعبة</button><button type="button" data-prompt="ساعدني أكتب كود آمن ومرتب">💻 كتابة كود</button><button type="button" data-prompt="اشرح لي موضوعًا مع أمثلة">🎓 شرح مفصل</button></div>';box.appendChild(welcome);welcome.querySelectorAll('button').forEach(b=>b.onclick=()=>{byId('chatInput').value=b.dataset.prompt;byId('chatInput').focus();});}else h.forEach(m=>addBubble(m.role,m.content));box.scrollTop=box.scrollHeight;}
+function stopVoice(){if(window.speechSynthesis)window.speechSynthesis.cancel();setFace('');}
+function selectMode(next){if(busy)return;stopVoice();if(recognizer)try{recognizer.stop()}catch{}if(recorder&&recorder.state==='recording')recorder.stop();assistant=next;byId('barbmdzBtn').classList.toggle('active',next==='barbmdz');byId('modaxBtn').classList.toggle('active',next==='modax');byId('classicBtn').classList.toggle('active',next==='classic');byId('assistantView').style.display=next==='classic'?'none':'flex';byId('classicView').style.display=next==='classic'?'flex':'none';if(next==='classic'){if(!byId('modaxFrame').src)byId('modaxFrame').src='../';return;}byId('faceName').textContent=next==='barbmdz'?'بربمدز':'MODAX';byId('faceDesc').textContent=next==='barbmdz'?'مساعد للبرمجة وحل المشكلات، مع خيار مراجعة ثانية للإجابة. يعمل بمحرك Gemini.':'MODAX للمحادثة اليومية داخل MODX 6 Egypt، بواجهة وصوت موحّدين.';byId('chatInput').placeholder=next==='barbmdz'?'اسأل بربمدز أو اتكلم بالمايك…':'اتكلم مع MODAX…';byId('deepLabel').style.display=next==='barbmdz'?'flex':'none';loadHistory();renderMessages();setStatus('جاهز • '+(next==='barbmdz'?'بربمدز':'MODAX'));}
+byId('barbmdzBtn').onclick=()=>selectMode('barbmdz');
+byId('modaxBtn').onclick=()=>selectMode('modax');
+byId('classicBtn').onclick=()=>selectMode('classic');
+byId('newChat').onclick=()=>{if(busy)return;if(assistant==='classic'){byId('modaxFrame').src='../';return;}stopVoice();messagesByMode[assistant]=[];sessionStorage.removeItem(historyKey());lastReply='';renderMessages();setStatus('محادثة جديدة');};
+byId('copyBtn').onclick=async()=>{if(!lastReply){setStatus('مافيش رد لنسخه لسه');return;}try{await navigator.clipboard.writeText(lastReply);setStatus('تم نسخ آخر رد');}catch{setStatus('لم يمكن النسخ من المتصفح');}};
+async function api(path,body){const jwt=await ensureToken();const res=await fetch(EDGE+path,{method:'POST',headers:{'apikey':PUBLIC_KEY,'authorization':'Bearer '+jwt,'content-type':'application/json'},body:JSON.stringify(body)});return readJson(res);}
+function readAloud(text){if(!byId('speakCheck').checked||!('speechSynthesis' in window))return;stopVoice();const utter=new SpeechSynthesisUtterance(text.slice(0,4000));utter.lang=/[\u0600-\u06ff]/.test(text)?'ar-EG':'en-US';utter.rate=1;utter.onstart=()=>setFace('speaking');utter.onend=()=>setFace('');utter.onerror=()=>setFace('');window.speechSynthesis.speak(utter);}
+async function sendChat(){if(busy||assistant==='classic')return;const input=byId('chatInput'),text=input.value.trim();if(!text)return;if(text.length>15000){setStatus('الحد الأقصى 15 ألف حرف للرسالة');return;}try{await ensureToken();}catch(err){setStatus(err.message);return;}
+busy=true;byId('sendBtn').disabled=true;input.value='';const h=messagesByMode[assistant];h.push({role:'user',content:text});renderMessages();const placeholder=addBubble('assistant','جارٍ إعداد الرد...',true);setFace('working');setStatus('جاري التواصل مع '+(assistant==='barbmdz'?'بربمدز':'MODAX')+'…');try{const result=await api('/v1/modx/chat',{assistant,depth:assistant==='barbmdz'&&byId('deepCheck').checked?'deep':'standard',messages:h.slice(-24)});const answer=safeText(result.response||result.text).trim();if(!answer)throw new Error('لم يصل رد من الخادم');placeholder.textContent=answer;placeholder.parentElement.classList.remove('pending');h.push({role:'assistant',content:answer});saveHistory();lastReply=answer;setStatus('جاهز • '+(result.model||'Gemini'));readAloud(answer);}catch(err){placeholder.textContent='تعذر الحصول على رد: '+err.message;placeholder.parentElement.classList.remove('pending');setStatus(err.message);}finally{busy=false;byId('sendBtn').disabled=false;if(!window.speechSynthesis||!window.speechSynthesis.speaking)setFace('');}}
+byId('sendBtn').onclick=sendChat;byId('chatInput').onkeydown=(e)=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}};
+function clearMic(){byId('micBtn').classList.remove('active');if(timer)clearTimeout(timer);timer=null;setFace('');}
+async function sendAudio(blob){if(blob.size>5*1024*1024){setStatus('التسجيل كبير جدًا. حاول أقل من 30 ثانية');return;}setFace('working');setStatus('جارٍ تحويل الصوت إلى نص…');try{const reader=new FileReader();const base64=await new Promise((resolve,reject)=>{reader.onload=()=>resolve(String(reader.result).split(',')[1]);reader.onerror=reject;reader.readAsDataURL(blob);});let mime=blob.type.split(';')[0];if(mime==='audio/x-m4a')mime='audio/mp4';const result=await api('/v1/modx/audio/transcribe',{audioBase64:base64,mimeType:mime});byId('chatInput').value=(byId('chatInput').value+' '+result.text).trim();setStatus('تم تحويل الصوت إلى نص. راجعه واضغط إرسال.');}catch(err){setStatus('تعذّر تحويل الصوت: '+err.message);}finally{clearMic();}}
+async function micClick(){if(busy)return;if(recognizer){recognizer.stop();return;}if(recorder&&recorder.state==='recording'){recorder.stop();return;}stopVoice();const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(SR){recognizer=new SR();recognizer.lang='ar-EG';recognizer.interimResults=true;recognizer.continuous=false;let stable='',base=byId('chatInput').value.trim();recognizer.onstart=()=>{byId('micBtn').classList.add('active');setFace('listening');setStatus('Listening… اتكلم دلوقتي');};recognizer.onresult=(event)=>{let tmp='';for(let i=0;i<event.results.length;i++){const value=event.results[i][0].transcript;if(event.results[i].isFinal)stable+=value+' ';else tmp+=value;}byId('chatInput').value=(base+' '+stable+tmp).trim();};recognizer.onerror=(event)=>setStatus('المايك: '+event.error);recognizer.onend=()=>{recognizer=null;clearMic();setStatus('راجع الكلام المكتوب واضغط إرسال.');};try{recognizer.start();}catch(err){recognizer=null;clearMic();setStatus('تعذّر بدء المايك: '+err.message);}return;}
+if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){setStatus('المتصفح لا يدعم التسجيل هنا. جرّب Safari/Chrome أو إملاء لوحة المفاتيح.');return;}
+try{await ensureToken();recordingStream=await navigator.mediaDevices.getUserMedia({audio:true});const supported=['audio/webm','audio/mp4','audio/ogg'].find(x=>MediaRecorder.isTypeSupported(x));if(!supported){recordingStream.getTracks().forEach(t=>t.stop());setStatus('صيغة تسجيل الصوت غير مدعومة على الجهاز');return;}let chunks=[];recorder=new MediaRecorder(recordingStream,{mimeType:supported});recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};recorder.onstop=()=>{if(recordingStream)recordingStream.getTracks().forEach(t=>t.stop());recordingStream=null;const blob=new Blob(chunks,{type:supported});recorder=null;clearMic();if(blob.size)sendAudio(blob);};recorder.start();byId('micBtn').classList.add('active');setFace('listening');setStatus('Recording… اضغط 🎤 للإيقاف (30 ثانية بحد أقصى)');timer=setTimeout(()=>{if(recorder&&recorder.state==='recording')recorder.stop();},30000);}catch(err){if(recordingStream)recordingStream.getTracks().forEach(t=>t.stop());clearMic();setStatus('فشل بدء التسجيل: '+err.message);}}
+byId('micBtn').onclick=micClick;
+async function checkHealth(){try{const res=await fetch(EDGE+'/health',{cache:'no-store'});const data=await readJson(res);byId('healthDot').style.background=data.chat?'#6be9b4':'#e7ac62';byId('healthText').textContent=data.chat?'الخادم متصل • Gemini مفعّل':'الخادم متصل • مفتاح Gemini غير مفعّل';}catch{byId('healthDot').style.background='#f78195';byId('healthText').textContent='تعذّر التحقق من الخادم';}}
+loadHistory();renderMessages();checkHealth();if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body>
+</html>
