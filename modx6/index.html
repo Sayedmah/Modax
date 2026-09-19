@@ -133,13 +133,13 @@ function gatewayUrl(){
   if(!chatBackend)throw new Error('MODX Gateway غير موصول بعد. أضف رابط خادم MODX أولاً.');
   const u=new URL(chatBackend);
   if(u.username||u.password||u.search||u.hash||u.protocol!=='https:')throw new Error('رابط الخادم لازم يبدأ بـ HTTPS.');
-  return u.href.replace(/\\/$/,'');
+  return u.href.replace(/\/$/,'');
 }
 function configureGateway(){
  const next=prompt('عنوان MODX Gateway المستقل (HTTPS):',chatBackend);
  if(next===null)return;
  if(!next.trim()){chatBackend='';localStorage.removeItem(CHAT_BACKEND_KEY);notify('تم إلغاء ربط الخادم');return}
- try{const u=new URL(next.trim());if(u.protocol!=='https:'||u.username||u.password||u.search||u.hash)throw new Error();chatBackend=u.href.replace(/\\/$/,'');localStorage.setItem(CHAT_BACKEND_KEY,chatBackend);notify('تم حفظ عنوان خادم MODX')}catch{notify('اكتب رابط HTTPS صحيحًا، من دون بيانات دخول أو معاملات')}
+ try{const u=new URL(next.trim());if(u.protocol!=='https:'||u.username||u.password||u.search||u.hash)throw new Error();chatBackend=u.href.replace(/\/$/,'');localStorage.setItem(CHAT_BACKEND_KEY,chatBackend);notify('تم حفظ عنوان خادم MODX')}catch{notify('اكتب رابط HTTPS صحيحًا، من دون بيانات دخول أو معاملات')}
 }
 function uploadMime(name){
  const ext=name.split('.').pop().toLowerCase();
@@ -202,7 +202,7 @@ async function sendChat(){
  try{endpoint=gatewayUrl()+'/v1/modx/chat'}catch(e){notify(e.message);return}
  const text=raw||'حلّل الملفات المرفقة.';
  const files=chatFiles.slice();
- const display=text+(files.length?'\\n'+files.map(f=>'📎 '+f.name).join(' · '):'');
+ const display=text+(files.length?'\n'+files.map(f=>'📎 '+f.name).join(' · '):'');
  chatHistory.push({role:'user',content:display});renderChatMessages();
  chatSending=true;
  const state=document.getElementById('chatState');if(state)state.textContent='Processing…';
