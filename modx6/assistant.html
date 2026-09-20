@@ -86,7 +86,7 @@ a{color:#cac0ff}.app{height:100dvh;display:flex;flex-direction:column;min-height
    </section>
    <div class="tools"><label id="deepLabel"><input type="checkbox" id="deepCheck"> مراجعة إضافية للإجابة</label><label><input type="checkbox" id="speakCheck"> قراءة الرد بصوت</label><span class="grow"></span><button type="button" id="copyBtn">نسخ آخر رد</button></div>
    <div class="messages" id="messages" role="log" aria-live="polite"></div>
-   <div class="composer"><div class="status" id="status">اكتب رسالتك أو اضغط 🎤 لبدء الكلام</div><div class="inputrow"><textarea id="chatInput" rows="1" placeholder="اسأل بربمدز أو اتكلم بالمايك…" aria-label="رسالتك"></textarea><button class="iconbtn" id="micBtn" type="button" aria-label="تسجيل الصوت">🎤</button><button class="iconbtn send" id="sendBtn" type="button" aria-label="إرسال">➤</button></div><div class="hint">الصوت يتحول إلى نص عبر المتصفح أو Gemini حسب دعم جهازك. راجع النص قبل الإرسال.</div></div>
+   <div class="composer"><div class="status" id="status">اكتب رسالتك أو اضغط 🎤 لبدء الكلام</div><div class="inputrow"><textarea id="chatInput" rows="1" placeholder="اسأل بربمدز أو اتكلم بالمايك…" aria-label="رسالتك"></textarea><button class="iconbtn" id="micBtn" type="button" aria-label="تسجيل الصوت">🎤</button><button class="iconbtn send" id="sendBtn" type="button" aria-label="إرسال">➤</button></div><div class="hint">الصوت يتحول إلى نص عبر المتصفح إذا كان مدعومًا. راجع النص قبل الإرسال.</div></div>
   </div>
   <section class="classic" id="classicView"><div class="classicinfo">نسخة MODAX الأصلية داخل MODX 6. هي تستخدم إعداداتها وخادمها المستقل عن بربمدز. <a href="../" target="_blank" rel="noopener">فتحها مباشرة ↗</a></div><iframe title="MODAX الأصلي" loading="lazy" id="modaxFrame" referrerpolicy="strict-origin-when-cross-origin"></iframe></section>
  </main>
@@ -100,6 +100,7 @@ a{color:#cac0ff}.app{height:100dvh;display:flex;flex-direction:column;min-height
 <script>
 const SUPABASE_URL='https://ctjklckrcredhjtflddn.supabase.co';
 const PUBLIC_KEY='sb_publishable_gov96yUbBNbqSFlfutN2kA_2229xEBr';
+const RENDER_BACKEND='https://modaxai.onrender.com'; // Uses the server's existing GEMINI_API_KEY; never put it in this page.
 const EDGE=SUPABASE_URL+'/functions/v1/modx6-gateway';
 const SESSION_KEY='modx6_user_session_v1';
 const byId=id=>document.getElementById(id);
@@ -153,18 +154,60 @@ byId('modaxBtn').onclick=()=>selectMode('modax');
 byId('classicBtn').onclick=()=>selectMode('classic');
 byId('newChat').onclick=()=>{if(busy)return;if(assistant==='classic'){byId('modaxFrame').src='../';return;}stopVoice();messagesByMode[assistant]=[];sessionStorage.removeItem(historyKey());lastReply='';renderMessages();setStatus('محادثة جديدة');};
 byId('copyBtn').onclick=async()=>{if(!lastReply){setStatus('مافيش رد لنسخه لسه');return;}try{await navigator.clipboard.writeText(lastReply);setStatus('تم نسخ آخر رد');}catch{setStatus('لم يمكن النسخ من المتصفح');}};
-async function api(path,body){const jwt=await ensureToken();const res=await fetch(EDGE+path,{method:'POST',headers:{'apikey':PUBLIC_KEY,'authorization':'Bearer '+jwt,'content-type':'application/json'},body:JSON.stringify(body)});return readJson(res);}
+const MODX_PROMPTS={
+ barbmdz:'أنت بربمدز، مساعد برمجة وتحليل داخل MODX 6 Egypt يعمل عبر Gemini. قدّم حلولًا عملية مع مراعاة الأمان والاختبارات وحالات الخطأ. راجع الاتساق والافتراضات، وصرّح بما لا تعرفه. أنت شخصية مساعد مبنية على Gemini، ولست نموذجًا أساسًا دُرّب من الصفر. لا تدّع تنفيذ كود أو الوصول لملفات أو إنجاز خطوات خارج المحادثة.',
+ modax:'أنت MODAX، مساعد محادثة ودود داخل MODX 6 Egypt يعمل عبر Gemini. جاوب بلغة المستخدم بشكل مباشر وواضح، واحتفظ بسياق المحادثة، ولا تدّع أنك نموذج مستقل أو أنك نفذت خطوات لم تنفذها.'
+};
+async function api(path,body){
+ const jwt=await ensureToken();
+ if(path==='/v1/modx/chat'){
+  const persona=body.assistant==='modax'?'modax':'barbmdz';
+  const history=(Array.isArray(body.messages)?body.messages:[]).filter(m=>m&&['user','assistant'].includes(m.role)&&typeof m.content==='string').slice(-24);
+  const system={role:'system',content:MODX_PROMPTS[persona]};
+  const request=async(messages)=>{
+   const res=await fetch(RENDER_BACKEND+'/v1/chat',{method:'POST',headers:{'authorization':'Bearer '+jwt,'content-type':'application/json'},body:JSON.stringify({provider:'google',model:'auto',messages:[system,...messages],max_output_tokens:4096})});
+   return readJson(res);
+  };
+  let result=await request(history);
+  const firstText=safeText(result.response||result.text).trim();
+  if(!firstText)throw new Error('لم يصل رد من Render');
+  if(persona==='barbmdz'&&body.depth==='deep'){
+   setStatus('مراجعة إضافية للإجابة…');
+   const review=[
+    ...history,
+    {role:'assistant',content:firstText},
+    {role:'user',content:'راجع إجابتك السابقة بحثًا عن أخطاء في المنطق أو الكود أو الافتراضات، وأعطني الجواب النهائي المحسّن فقط، من دون الادعاء بتنفيذ اختبار لم يتم.'}
+   ];
+   result=await request(review);
+  }
+  return result;
+ }
+ throw new Error('هذه الخدمة غير متاحة على Render بعد');
+}
 function readAloud(text){if(!byId('speakCheck').checked||!('speechSynthesis' in window))return;stopVoice();const utter=new SpeechSynthesisUtterance(text.slice(0,4000));utter.lang=/[\u0600-\u06ff]/.test(text)?'ar-EG':'en-US';utter.rate=1;utter.onstart=()=>setFace('speaking');utter.onend=()=>setFace('');utter.onerror=()=>setFace('');window.speechSynthesis.speak(utter);}
 async function sendChat(){if(busy||assistant==='classic')return;const input=byId('chatInput'),text=input.value.trim();if(!text)return;if(text.length>15000){setStatus('الحد الأقصى 15 ألف حرف للرسالة');return;}try{await ensureToken();}catch(err){setStatus(err.message);return;}
 busy=true;byId('sendBtn').disabled=true;input.value='';const h=messagesByMode[assistant];h.push({role:'user',content:text});renderMessages();const placeholder=addBubble('assistant','جارٍ إعداد الرد...',true);setFace('working');setStatus('جاري التواصل مع '+(assistant==='barbmdz'?'بربمدز':'MODAX')+'…');try{const result=await api('/v1/modx/chat',{assistant,depth:assistant==='barbmdz'&&byId('deepCheck').checked?'deep':'standard',messages:h.slice(-24)});const answer=safeText(result.response||result.text).trim();if(!answer)throw new Error('لم يصل رد من الخادم');placeholder.textContent=answer;placeholder.parentElement.classList.remove('pending');h.push({role:'assistant',content:answer});saveHistory();lastReply=answer;setStatus('جاهز • '+(result.model||'Gemini'));readAloud(answer);}catch(err){placeholder.textContent='تعذر الحصول على رد: '+err.message;placeholder.parentElement.classList.remove('pending');setStatus(err.message);}finally{busy=false;byId('sendBtn').disabled=false;if(!window.speechSynthesis||!window.speechSynthesis.speaking)setFace('');}}
 byId('sendBtn').onclick=sendChat;byId('chatInput').onkeydown=(e)=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}};
-function clearMic(){byId('micBtn').classList.remove('active');if(timer)clearTimeout(timer);timer=null;setFace('');}
-async function sendAudio(blob){if(blob.size>5*1024*1024){setStatus('التسجيل كبير جدًا. حاول أقل من 30 ثانية');return;}setFace('working');setStatus('جارٍ تحويل الصوت إلى نص…');try{const reader=new FileReader();const base64=await new Promise((resolve,reject)=>{reader.onload=()=>resolve(String(reader.result).split(',')[1]);reader.onerror=reject;reader.readAsDataURL(blob);});let mime=blob.type.split(';')[0];if(mime==='audio/x-m4a')mime='audio/mp4';const result=await api('/v1/modx/audio/transcribe',{audioBase64:base64,mimeType:mime});byId('chatInput').value=(byId('chatInput').value+' '+result.text).trim();setStatus('تم تحويل الصوت إلى نص. راجعه واضغط إرسال.');}catch(err){setStatus('تعذّر تحويل الصوت: '+err.message);}finally{clearMic();}}
-async function micClick(){if(busy)return;if(recognizer){recognizer.stop();return;}if(recorder&&recorder.state==='recording'){recorder.stop();return;}stopVoice();const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(SR){recognizer=new SR();recognizer.lang='ar-EG';recognizer.interimResults=true;recognizer.continuous=false;let base=byId('chatInput').value.trim();recognizer.onstart=()=>{byId('micBtn').classList.add('active');setFace('listening');setStatus('Listening… اتكلم دلوقتي');};recognizer.onresult=(event)=>{let spoken='';for(let i=0;i<event.results.length;i++){spoken+=event.results[i][0].transcript+' ';}byId('chatInput').value=(base+' '+spoken).trim();};recognizer.onerror=(event)=>setStatus('المايك: '+event.error);recognizer.onend=()=>{recognizer=null;clearMic();setStatus('راجع الكلام المكتوب واضغط إرسال.');};try{recognizer.start();}catch(err){recognizer=null;clearMic();setStatus('تعذّر بدء المايك: '+err.message);}return;}
-if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){setStatus('المتصفح لا يدعم التسجيل هنا. جرّب Safari/Chrome أو إملاء لوحة المفاتيح.');return;}
-try{await ensureToken();recordingStream=await navigator.mediaDevices.getUserMedia({audio:true});const supported=['audio/webm','audio/mp4','audio/ogg'].find(x=>MediaRecorder.isTypeSupported(x));if(!supported){recordingStream.getTracks().forEach(t=>t.stop());setStatus('صيغة تسجيل الصوت غير مدعومة على الجهاز');return;}let chunks=[];recorder=new MediaRecorder(recordingStream,{mimeType:supported});recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};recorder.onstop=()=>{if(recordingStream)recordingStream.getTracks().forEach(t=>t.stop());recordingStream=null;const blob=new Blob(chunks,{type:supported});recorder=null;clearMic();if(blob.size)sendAudio(blob);};recorder.start();byId('micBtn').classList.add('active');setFace('listening');setStatus('Recording… اضغط 🎤 للإيقاف (30 ثانية بحد أقصى)');timer=setTimeout(()=>{if(recorder&&recorder.state==='recording')recorder.stop();},30000);}catch(err){if(recordingStream)recordingStream.getTracks().forEach(t=>t.stop());clearMic();setStatus('فشل بدء التسجيل: '+err.message);}}
+function clearMic(){byId('micBtn').classList.remove('active');setFace('');}
+function micClick(){
+ if(busy)return;
+ if(recognizer){try{recognizer.stop()}catch{}return;}
+ stopVoice();
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){setStatus('التعرف الصوتي غير مدعوم في المتصفح الحالي. استخدم إملاء لوحة المفاتيح أو متصفحًا يدعم التعرف الصوتي.');return;}
+ recognizer=new SR();
+ recognizer.lang='ar-EG';
+ recognizer.interimResults=true;
+ recognizer.continuous=false;
+ const base=byId('chatInput').value.trim();
+ recognizer.onstart=()=>{byId('micBtn').classList.add('active');setFace('listening');setStatus('Listening… اتكلم دلوقتي');};
+ recognizer.onresult=(event)=>{let spoken='';for(let i=0;i<event.results.length;i++)spoken+=event.results[i][0].transcript+' ';byId('chatInput').value=(base+' '+spoken).trim();};
+ recognizer.onerror=(event)=>setStatus('المايك: '+event.error);
+ recognizer.onend=()=>{recognizer=null;clearMic();setStatus('راجع الكلام المكتوب واضغط إرسال.');};
+ try{recognizer.start();}catch(err){recognizer=null;clearMic();setStatus('تعذّر بدء المايك: '+err.message);}
+}
 byId('micBtn').onclick=micClick;
-async function checkHealth(){try{const res=await fetch(EDGE+'/health',{cache:'no-store'});const data=await readJson(res);byId('healthDot').style.background=data.chat?'#6be9b4':'#e7ac62';byId('healthText').textContent=data.chat?'الخادم متصل • Gemini مفعّل':'الخادم متصل • مفتاح Gemini غير مفعّل';}catch{byId('healthDot').style.background='#f78195';byId('healthText').textContent='تعذّر التحقق من الخادم';}}
+async function checkHealth(){try{const res=await fetch(RENDER_BACKEND+'/health',{cache:'no-store'});const data=await readJson(res);const enabled=Array.isArray(data.providers)&&data.providers.includes('google');byId('healthDot').style.background=enabled?'#6be9b4':'#e7ac62';byId('healthText').textContent=enabled?'Render متصل • Gemini مفعّل':'Render متصل • لم أتأكد من تفعيل Gemini';}catch{byId('healthDot').style.background='#f78195';byId('healthText').textContent='تعذّر التحقق من خادم Render';}}
 loadHistory();renderMessages();checkHealth();if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
 </script>
 </body>
