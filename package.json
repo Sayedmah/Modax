@@ -1,0 +1,15 @@
+{
+  "name": "modax-render",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node backend/server.mjs",
+    "check": "node --check backend/server.mjs && node --check backend/bedrock-bridge.mjs"
+  },
+  "dependencies": {
+    "jose": "^6.1.0",
+    "ws": "^8.18.0"
+  }
+}
