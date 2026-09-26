@@ -4,7 +4,6 @@ import { routeGodotApi } from './godot-api.mjs';
 import { rankAvailableGeminiModels, shouldFallbackGeminiError } from './gemini-auto-router.mjs';
 import { runStableAnswer } from './stable-answer-stream.mjs';
 import { requireUser, requireRole } from './auth.mjs';
-import { attachBedrockBridge } from './bedrock-bridge.mjs';
 
 const PORT=Number(process.env.PORT||8787);
 const TIMEOUT_MS=Number(process.env.MODY_PROVIDER_TIMEOUT_MS||60000);
@@ -118,5 +117,4 @@ async function handle(req,res){
  return sendJson(res,404,{error:'Not found'},origin);
 }
 const server=http.createServer((req,res)=>{handle(req,res).catch(err=>{const origin=req.headers.origin||'',status=Number(err.status)>=400&&Number(err.status)<600?Number(err.status):500;console.error(err);if(!res.headersSent)sendJson(res,status,{error:status===500?'Internal server error':err.message,attempts:err.attempts||undefined},origin);else res.end();});});
-attachBedrockBridge(server);
 server.listen(PORT,'0.0.0.0',()=>{console.log(`Modax AI Backend listening on :${PORT} — stable generateContent answer engine + Supabase auth enabled`);console.log('Configured providers:',Object.values(providers).filter(p=>process.env[p.keyEnv]).map(p=>p.id).join(', ')||'(none)');});
