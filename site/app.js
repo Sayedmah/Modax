@@ -5,6 +5,13 @@ const UA = navigator.userAgent;
 const IS_ANDROID = /Android/i.test(UA);
 const IS_IOS = /iPhone|iPad|iPod/i.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const IN_APP = /(FBAN|FBAV|Instagram|Line\/|wv\)|; wv|ChatGPT)/i.test(UA);
+const KNOWN_USB_UARTS = [
+  {vendorId:0x1A86, name:'WCH CH340/CH341/CH9102'},
+  {vendorId:0x10C4, name:'Silicon Labs CP210x'},
+  {vendorId:0x0403, name:'FTDI FT232'},
+  {vendorId:0x303A, name:'Espressif USB/JTAG'},
+  {vendorId:0x067B, name:'Prolific PL2303'}
+];
 const IS_SMART_DISPLAY = /(SmartTV|SMART-TV|Tizen|Web0S|NetCast|HbbTV|AFT|CrKey|BRAVIA)/i.test(UA) || (!IS_IOS && matchMedia?.('(pointer: coarse)').matches && Math.min(screen.width, screen.height) >= 600 && innerWidth >= 700);
 
 const state = {
@@ -220,13 +227,33 @@ const terminal={
   }
 };
 
+async function detectUsbBoard(){
+  if(!navigator.usb) throw new Error('WebUSB غير متاح في هذا المتصفح');
+  const filters = KNOWN_USB_UARTS.map(x=>({vendorId:x.vendorId}));
+  const dev = await navigator.usb.requestDevice({filters});
+  const info = {
+    vendorId: dev.vendorId,
+    productId: dev.productId,
+    productName: dev.productName || 'USB device',
+    manufacturerName: dev.manufacturerName || ''
+  };
+  const family = KNOWN_USB_UARTS.find(x=>x.vendorId===dev.vendorId)?.name || 'Unknown USB-UART';
+  if($('usbInfo')) $('usbInfo').textContent =
+    family+' — '+hex4(dev.vendorId)+':'+hex4(dev.productId);
+  log('USB FOUND: '+family+' '+hex4(dev.vendorId)+':'+hex4(dev.productId)+' '+info.productName);
+  return {dev, family, info};
+}
+
 async function requestPort(){
   if(state.mode==='webusb-ch340'){
-    log('Opening Android WebUSB picker for WCH CH340/CH341…');
-    const adapter=await state.esptool.WebUSBSerialPort.requestPort();
+    log('Searching for ESP32 USB-UART…');
+    const found = await detectUsbBoard();
+    if(found.info.vendorId!==0x1A86){
+      throw new Error('تم العثور على '+found.family+' لكن التفليش من Android WebUSB مهيأ حاليًا لـWCH CH340/CH341. VID:PID '+hex4(found.info.vendorId)+':'+hex4(found.info.productId));
+    }
+    const adapter=new state.esptool.WebUSBSerialPort(found.dev);
     const info=adapter.getInfo?.()||{};
-    $('usbInfo').textContent=hex4(info.usbVendorId)+':'+hex4(info.usbProductId);
-    log('USB adapter: '+hex4(info.usbVendorId)+':'+hex4(info.usbProductId));
+    log('Using WCH WebUSB adapter: '+hex4(info.usbVendorId)+':'+hex4(info.usbProductId));
     return adapter.asSerialPort();
   }
   if(state.mode==='webserial'){
@@ -415,6 +442,25 @@ async function askAI(){
   }catch(e){ answer.textContent='خطأ: '+(e.message||e); }
 }
 
+async function searchBoardOnly(){
+  clearInstallError();
+  try{
+    if(!navigator.usb){
+      showInstallError('WebUSB غير متاح. افتح الموقع في Google Chrome على Android.');
+      return;
+    }
+    status('جاري البحث عن USB…');
+    const found=await detectUsbBoard();
+    status('تم العثور على USB');
+    if($('boardMatch')) $('boardMatch').textContent =
+      found.info.vendorId===0x1A86 ? 'USB مناسب لـCH340/CH341' : 'تم العثور على USB — يحتاج مسار مختلف';
+  }catch(e){
+    const msg=friendlyError(e);
+    showInstallError(msg);
+    status('لم يتم اختيار USB');
+  }
+}
+
 async function oneClickFlash(){
   clearInstallError();
   if(IS_IOS){
@@ -473,6 +519,7 @@ $('flashBtn')?.addEventListener('click',()=>flash(false,null,'MODAX'));
 $('oneClickFlashBtn')?.addEventListener('click',oneClickFlash);
 $('oneClickFlashBtn2')?.addEventListener('click',oneClickFlash);
 $('oneClickFlashBtn3')?.addEventListener('click',oneClickFlash);
+$('searchBoardBtn')?.addEventListener('click',searchBoardOnly);
 $('cameraBtn')?.addEventListener('click',startCamera);
 $('stopCameraBtn')?.addEventListener('click',stopCamera);
 $('micBtn')?.addEventListener('click',voiceInput);
