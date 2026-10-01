@@ -3,6 +3,7 @@ import { serial as webSerialPolyfill } from 'https://cdn.jsdelivr.net/npm/web-se
 
 const $ = (id) => document.getElementById(id);
 const serialApi = navigator.serial || (navigator.usb ? webSerialPolyfill : null);
+const FIRMWARE_URL = './firmware/modax-esp32-wroom32-full.bin';
 const state = { port:null, transport:null, loader:null, chip:'', flashSize:'', firmware:null, stream:null };
 
 function log(line='') { const el=$('terminal'); el.textContent += line + '\n'; el.scrollTop=el.scrollHeight; }
@@ -19,6 +20,29 @@ function updateBoardMatch(){
   $('boardMatch').textContent = isClassicEsp32() ? 'مطابق لملف ESP32-WROOM-32' : 'غير مطابق — التفليش محظور';
 }
 function updateFlashButton(){ $('flashBtn').disabled = !(state.loader && state.firmware && isClassicEsp32()); }
+
+async function loadFirmware(){
+  state.firmware = null;
+  updateFlashButton();
+  $('firmwareStatus').textContent = 'جاري تحميل Firmware…';
+  $('firmwareRetryBtn').disabled = true;
+  try{
+    const r = await fetch(FIRMWARE_URL + '?v=' + Date.now(), {cache:'no-store'});
+    if(!r.ok) throw new Error('Firmware غير متاح بعد — HTTP ' + r.status);
+    const bytes = new Uint8Array(await r.arrayBuffer());
+    if(bytes.length < 150000) throw new Error('ملف Firmware غير مكتمل');
+    state.firmware = {name:'modax-esp32-wroom32-full.bin', bytes, address:0x0};
+    $('firmwareStatus').textContent = 'جاهز تلقائيًا — ' + Math.round(bytes.length/1024) + ' KB';
+    setProgress(0,'Firmware جاهز');
+    log('Firmware loaded automatically: ' + Math.round(bytes.length/1024) + ' KB');
+  }catch(e){
+    $('firmwareStatus').textContent = 'Firmware غير جاهز: ' + (e.message||e);
+    log('Firmware load: ' + (e.message||e));
+  }finally{
+    $('firmwareRetryBtn').disabled = false;
+    updateFlashButton();
+  }
+}
 
 function browserCheck(){
   const secure = window.isSecureContext;
@@ -52,16 +76,16 @@ async function connect(){
     log('Detected: '+state.chip);
     try{
       const s = await state.loader.detectFlashSize?.();
-      state.flashSize = s || 'غير متاح';
-    }catch(e){ state.flashSize='غير متاح'; log('Flash size detect: '+(e.message||e)); }
+      state.flashSize = s || '4MB';
+    }catch(e){ state.flashSize='4MB'; log('Flash size detect fallback: 4MB'); }
     $('flashSize').textContent=state.flashSize;
     updateBoardMatch();
     if(isClassicEsp32()){
       status('متصل — البورد متوافقة');
       log('Board profile accepted: classic ESP32 / ESP-WROOM-32 DevKit.');
     }else{
-      status('متصل — لكن الشريحة غير متوافقة مع هذا الملف');
-      log('SAFETY BLOCK: this package only flashes classic ESP32, not S2/S3/C-series.');
+      status('متصل — الشريحة غير متوافقة');
+      log('SAFETY BLOCK: only classic ESP32 is allowed.');
     }
     $('connectBtn').disabled=true; $('disconnectBtn').disabled=false;
     updateFlashButton();
@@ -75,29 +99,25 @@ async function disconnect(){
   $('chipName').textContent='—'; $('flashSize').textContent='—'; status('غير متصل');
   $('connectBtn').disabled=!serialApi; $('disconnectBtn').disabled=true; updateBoardMatch(); updateFlashButton();
 }
-async function fileToFirmware(file){
-  if(!file) return null;
-  const bytes=new Uint8Array(await file.arrayBuffer());
-  return {name:file.name,bytes,address:0x0};
-}
 async function flash(){
-  if(!state.loader || !state.firmware) return;
+  if(!state.loader) return alert('وصل البورد أولًا.');
+  if(!state.firmware) return alert('Firmware لم يكتمل تحميله بعد.');
   if(!isClassicEsp32()) return alert('تم منع التفليش: الشريحة ليست Classic ESP32 المتوقعة لهذه البورد.');
-  if(!/\.bin$/i.test(state.firmware.name)) return alert('اختر ملف BIN صحيح.');
-  if(!confirm('سيتم استبدال البرنامج الحالي على البورد. متابعة؟')) return;
+  if(!confirm('سيتم استبدال البرنامج الحالي على البورد ببرنامج MODAX. متابعة؟')) return;
   try{
-    $('flashBtn').disabled=true; setProgress(0,'بدء التفليش…');
-    const flashSize = state.flashSize && state.flashSize!=='غير متاح' ? state.flashSize : 'detect';
+    $('flashBtn').disabled=true; setProgress(0,'بدء التثبيت…');
+    const flashSize = state.flashSize || '4MB';
     await state.loader.writeFlash({
       fileArray:[{data:state.firmware.bytes,address:0x0}],
       flashMode:'dio', flashFreq:'40m', flashSize, eraseAll:false, compress:true,
       reportProgress:(_idx,written,total)=>setProgress(total?written/total*100:0,Math.round(written/1024)+' / '+Math.round(total/1024)+' KB')
     });
-    setProgress(100,'اكتمل التفليش — إعادة تشغيل…');
+    setProgress(100,'اكتمل التثبيت — إعادة تشغيل…');
     try{ await state.loader.after('hard_reset'); }catch{}
-    log('Flash complete. Wait for MODAX-XXXX if no saved Wi-Fi exists.');
+    log('Install complete. Wait for MODAX-XXXX if no saved Wi-Fi exists.');
+    status('تم تثبيت MODAX');
   }catch(e){
-    log('FLASH ERROR: '+(e.message||e)); setProgress(0,'فشل التفليش — راجع السجل');
+    log('FLASH ERROR: '+(e.message||e)); setProgress(0,'فشل التثبيت — راجع السجل');
   }finally{ updateFlashButton(); }
 }
 async function startCamera(){
@@ -142,16 +162,14 @@ async function askAI(){
 
 $('connectBtn').addEventListener('click',connect);
 $('disconnectBtn').addEventListener('click',disconnect);
-$('firmwareFile').addEventListener('change',async(e)=>{
-  state.firmware=await fileToFirmware(e.target.files[0]);
-  $('firmwareStatus').textContent = state.firmware ? 'جاهز: '+state.firmware.name+' — '+Math.round(state.firmware.bytes.length/1024)+' KB' : 'لم يتم اختيار ملف.';
-  updateFlashButton();
-});
+$('firmwareRetryBtn').addEventListener('click',loadFirmware);
 $('flashBtn').addEventListener('click',flash);
 $('cameraBtn').addEventListener('click',startCamera);
 $('stopCameraBtn').addEventListener('click',stopCamera);
 $('micBtn').addEventListener('click',voiceInput);
 $('askBtn').addEventListener('click',askAI);
 
-browserCheck(); updateBoardMatch();
+browserCheck();
+updateBoardMatch();
+loadFirmware();
 if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
