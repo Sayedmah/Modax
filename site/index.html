@@ -22,8 +22,8 @@
     <header class="hero card">
       <div>
         <div class="eyebrow">MODAX × ESP32-WROOM-32</div>
-        <h1>نسخة مضبوطة للبورد الموجودة في الصورة</h1>
-        <p>الملف التعريفي هنا مخصص للـ ESP32 الكلاسيكي DevKit ذي 30 pin. لا نحاول تشغيل شاشة أو كاميرا غير موجودة؛ الهاتف نفسه يصبح الشاشة والمايك والسماعة والكاميرا.</p>
+        <h1>ثبّت MODAX مباشرة من الموبايل</h1>
+        <p>الموقع يحمل الـFirmware تلقائيًا من نفس الموقع. كل ما عليك: افتح الصفحة من Android، وصل البورد بكابل USB Data + OTG، اضغط توصيل، ثم اضغط تثبيت MODAX.</p>
       </div>
       <div id="browserBadge" class="badge">جاري فحص المتصفح…</div>
     </header>
@@ -31,7 +31,7 @@
     <section class="grid two">
       <article class="card">
         <h2>1) وصل البورد وافحصها</h2>
-        <p class="muted">استخدم كابل USB-C Data مع OTG على Android. الموقع يقرأ الشريحة من bootloader قبل السماح بالتفليش.</p>
+        <p class="muted">الموقع يقرأ نوع الشريحة من bootloader قبل السماح بالتفليش، ويمنع تلقائيًا S2 / S3 / C3 / C6 وغيرها.</p>
         <div class="row wrap">
           <button id="connectBtn" class="primary">توصيل البورد</button>
           <button id="disconnectBtn" disabled>فصل</button>
@@ -46,21 +46,23 @@
       </article>
 
       <article class="card">
-        <h2>2) فلّش MODAX للبورد دي</h2>
-        <p>اختر ملف <code>modax-esp32-wroom32-full.bin</code>. الموقع يمنع هذا الملف لو الشريحة المكتشفة ليست Classic ESP32.</p>
-        <input id="firmwareFile" type="file" accept=".bin,application/octet-stream" />
-        <div id="firmwareStatus" class="muted small">لم يتم اختيار ملف.</div>
+        <h2>2) Firmware تلقائي</h2>
+        <p>لا تحتاج تنزيل أو اختيار أي ملف. الموقع يحمل النسخة المخصصة لـ <strong>ESP32-WROOM-32</strong> تلقائيًا.</p>
+        <div class="row wrap">
+          <div id="firmwareStatus" class="muted small">جاري تحميل Firmware…</div>
+          <button id="firmwareRetryBtn">إعادة التحميل</button>
+        </div>
         <div class="progress"><div id="progressBar"></div></div>
         <div id="progressText" class="muted small">0%</div>
-        <button id="flashBtn" class="danger" disabled>تفليش MODAX</button>
-        <p class="warn small">لو الاتصال لم يدخل وضع التفليش تلقائيًا: اضغط BOOT باستمرار، اضغط EN/RST ضغطة، ثم اترك BOOT وجرّب اتصال مرة أخرى.</p>
+        <button id="flashBtn" class="danger" disabled>ثبّت MODAX على البورد</button>
+        <p class="warn small">لو لم يدخل وضع التفليش تلقائيًا: اضغط BOOT باستمرار، اضغط EN/RST ضغطة، اترك EN ثم اترك BOOT بعد ثانية، وجرّب التوصيل مرة أخرى.</p>
       </article>
     </section>
 
     <section class="grid two">
       <article class="card">
         <h2>3) أول تشغيل وWi-Fi</h2>
-        <p>بعد التفليش، إذا لم تجد اللوحة شبكة محفوظة ستنشئ شبكة باسم <code>MODAX-XXXX</code>.</p>
+        <p>بعد التثبيت، إذا لم تجد اللوحة شبكة محفوظة ستنشئ شبكة إعداد تلقائيًا.</p>
         <div class="cap-grid">
           <div><strong>الشبكة</strong><span>MODAX-XXXX</span></div>
           <div><strong>كلمة المرور</strong><span>modax1234</span></div>
@@ -68,7 +70,7 @@
           <div><strong>إعادة Wi-Fi</strong><span>BOOT لمدة 3 ثوانٍ أثناء التشغيل</span></div>
         </div>
         <div class="row wrap"><a class="button" href="http://192.168.4.1" target="_blank" rel="noopener">فتح بوابة الإعداد</a></div>
-        <p class="muted small">على iPhone: بعد تفليش البورد، اتصل بشبكة MODAX من إعدادات Wi-Fi ثم افتح 192.168.4.1.</p>
+        <p class="muted small">على iPhone/iPad: لا يتم التفليش من Safari. بعد تفليش البورد من Android، يمكنك الاتصال بشبكة MODAX وفتح بوابة الإعداد من iOS.</p>
       </article>
 
       <article class="card">
@@ -93,7 +95,7 @@
 
     <section class="card">
       <h2>البورد المستهدفة</h2>
-      <p>المشروع مخصص لـ <strong>ESP-WROOM-32 / ESP32-WROOM-32 DevKit الكلاسيكي</strong>. التأكيد النهائي يتم من bootloader قبل التفليش.</p>
+      <p>هذه النسخة مخصصة لـ <strong>ESP-WROOM-32 / ESP32-WROOM-32 DevKit الكلاسيكي</strong>. التأكيد النهائي يتم من الشريحة نفسها قبل أي كتابة للفلاش.</p>
     </section>
   </main>
   <script type="module" src="./app.js"></script>
