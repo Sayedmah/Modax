@@ -310,10 +310,19 @@ async function detectUsbBoard(){
   return {dev, family, info};
 }
 
-async function requestPort(){
+async function requestPort(preselectedUsb=null){
   if(state.mode==='webusb-ch340'){
-    log('Searching for ESP32 USB-UART…');
-    const found = await detectUsbBoard();
+    log('Opening ESP32 USB-UART…');
+    const found = preselectedUsb ? {
+      dev: preselectedUsb,
+      family: KNOWN_USB_UARTS.find(x=>x.vendorId===preselectedUsb.vendorId)?.name || 'Unknown USB-UART',
+      info: {
+        vendorId: preselectedUsb.vendorId,
+        productId: preselectedUsb.productId,
+        productName: preselectedUsb.productName || 'USB device',
+        manufacturerName: preselectedUsb.manufacturerName || ''
+      }
+    } : await detectUsbBoard();
     if(found.info.vendorId!==0x1A86){
       throw new Error('تم العثور على '+found.family+' لكن التفليش من Android WebUSB مهيأ حاليًا لـWCH CH340/CH341. VID:PID '+hex4(found.info.vendorId)+':'+hex4(found.info.productId));
     }
@@ -334,19 +343,19 @@ async function requestPort(){
 
 function friendlyError(e){
   const s=String(e?.message||e||'');
-  if(/No device selected|NotFoundError|user cancelled/i.test(s)) return 'لم يتم اختيار جهاز USB. لو القائمة فاضية فغالبًا الكابل ليس Data/OTG أو شريحة USB ليست CH340/CH341.';
+  if(/No device selected|NotFoundError|user cancelled/i.test(s)) return 'Chrome لم يستلم جهاز USB من نافذة الاختيار. اضغط تثبيت مرة أخرى واختر WCH/CH340 إذا ظهر.';
   if(/CH343|55d3/i.test(s)) return 'المحول CH343 وليس CH340؛ هذه النسخة تحتاج مسار USB مختلف.';
   if(/Couldn't sync|Failed to connect|sync/i.test(s)) return 'تم فتح USB لكن ESP32 لم تدخل وضع التحميل. استخدم BOOT + EN ثم أعد التوصيل.';
   if(/claim|interface|Access denied|permission/i.test(s)) return 'Android لم يسمح بالوصول إلى USB. افصل البورد، أعد توصيلها، وافق على إذن USB لـChrome ثم جرّب مرة أخرى.';
   return s;
 }
 
-async function connect(){
+async function connect(preselectedUsb=null, rethrow=false){
   try{
     $('terminal').textContent='';
     if(installStartedAt) updateInstallProgress(25,'البحث عن البوردة','افتح نافذة USB واختر ESP32');
     status('طلب إذن USB…');
-    state.port=await requestPort();
+    state.port=await requestPort(preselectedUsb);
     state.transport=new state.esptool.Transport(state.port,true);
     state.loader=new state.esptool.ESPLoader({
       transport:state.transport,
@@ -388,6 +397,7 @@ async function connect(){
     $('disconnectBtn').disabled=true;
     updateBoardMatch();
     updateFlashButton();
+    if(rethrow) throw e;
   }
 }
 
@@ -571,9 +581,8 @@ async function searchBoardOnly(){
 
 async function oneClickFlash(){
   clearInstallError();
-  installStartedAt=0;
   startInstallTimer();
-  updateInstallProgress(1,'بدء العملية','فحص المتصفح وUSB…');
+  updateInstallProgress(1,'اختيار البوردة','فتح نافذة USB الآن…');
 
   if(IS_IOS){
     const elapsed=stopInstallTimer();
@@ -594,42 +603,63 @@ async function oneClickFlash(){
     return;
   }
 
+  let selectedUsb=null;
   try{
+    if(IS_ANDROID){
+      // MUST be the first async browser permission call after the user's click.
+      // This preserves Chrome's transient user activation.
+      updateInstallProgress(3,'اختيار البوردة','اختر WCH / CH340 الخاص بالـESP32');
+      selectedUsb=await navigator.usb.requestDevice({
+        filters:[
+          {vendorId:0x1A86}, // WCH CH340/CH341/CH910x
+          {vendorId:0x10C4}, // CP210x (shown for diagnosis)
+          {vendorId:0x0403}, // FTDI
+          {vendorId:0x303A}  // Espressif native USB
+        ]
+      });
+
+      const family=KNOWN_USB_UARTS.find(x=>x.vendorId===selectedUsb.vendorId)?.name || 'USB غير معروف';
+      if($('usbInfo')) $('usbInfo').textContent=family+' — '+hex4(selectedUsb.vendorId)+':'+hex4(selectedUsb.productId);
+      updateInstallProgress(8,'تم اختيار USB',family+' '+hex4(selectedUsb.vendorId)+':'+hex4(selectedUsb.productId));
+
+      if(selectedUsb.vendorId!==0x1A86){
+        throw new Error('تم العثور على '+family+' '+hex4(selectedUsb.vendorId)+':'+hex4(selectedUsb.productId)+'، لكن مسار Android الحالي مخصص لـCH340/CH341.');
+      }
+    }
+
+    // Tooling can now load AFTER permission has been granted.
     if(!state.esptool){
-      updateInstallProgress(3,'تحميل أداة التفليش','جاري تجهيز Flasher…');
+      updateInstallProgress(10,'تحميل أداة التفليش','جاري تحميل esptool…');
       await loadEsptool();
       if(!state.esptool) throw new Error('أداة التفليش لم تتحمل');
     }
-    updateInstallProgress(5,'أداة التفليش جاهزة','Flasher ✓');
 
     if(!state.captiveFirmware){
+      updateInstallProgress(15,'تحميل Firmware','جاري التحميل…');
       await loadCaptiveFirmware(true);
-      if(!state.captiveFirmware) return;
+      if(!state.captiveFirmware) throw new Error('Firmware لم يتحمل');
     }else{
       updateInstallProgress(20,'Firmware جاهز',Math.round(state.captiveFirmware.bytes.length/1024)+' KB');
     }
 
     if(IS_ANDROID){
-      if(!navigator.usb || !state.esptool?.WebUSBSerialPort){
-        throw new Error('Android WebUSB غير متاح');
-      }
+      if(!state.esptool?.WebUSBSerialPort) throw new Error('دعم CH340 WebUSB غير موجود في أداة التفليش');
       state.mode='webusb-ch340';
       if($('connectionMode')) $('connectionMode').textContent='Android WebUSB — CH340/CH341';
     }else if(navigator.serial){
       state.mode='webserial';
+    }else if(navigator.usb && state.esptool?.WebUSBSerialPort){
+      state.mode='webusb-ch340';
+    }else{
+      throw new Error('لا توجد طريقة USB متاحة');
     }
 
-    if(!state.loader) await connect();
-    if(!state.loader) throw new Error('لم يتم فتح ESP32');
+    updateInstallProgress(25,'الاتصال بالبوردة','جاري إدخال ESP32 إلى وضع التحميل…');
+    if(!state.loader) await connect(selectedUsb,true);
+    if(!state.loader) throw new Error('تعذر الاتصال بالـESP32');
     if(!isClassicEsp32()) throw new Error('الشريحة المكتشفة ليست ESP32 الكلاسيكي');
 
-    updateInstallProgress(40,'جاهز للتثبيت','تم اكتشاف '+(state.chip||'ESP32'));
-    if(!confirm('تم اكتشاف ESP32. هل تريد تثبيت MODY Captive Portal الآن؟')){
-      const elapsed=stopInstallTimer();
-      updateInstallProgress(40,'تم الإلغاء','ألغيت العملية بعد '+formatElapsed(elapsed),'fail');
-      return;
-    }
-
+    updateInstallProgress(40,'تم اكتشاف ESP32','بدء التثبيت تلقائيًا…');
     await flash(true,state.captiveFirmware,'MODY Captive Portal');
   }catch(e){
     const msg=friendlyError(e);
@@ -637,6 +667,7 @@ async function oneClickFlash(){
     updateInstallProgress(0,'فشل التثبيت ❌',msg+' — بعد '+formatElapsed(elapsed),'fail');
     showInstallError(msg);
     log('ONE CLICK ERROR: '+msg);
+    log('RAW: '+String(e?.stack||e));
   }
 }
 
