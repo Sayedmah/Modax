@@ -59,13 +59,25 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p /tmp/modax-publish
+          cp site/firmware/modax-esp32-wroom32-full.bin /tmp/modax-publish/
+          cp site/firmware/modax-esp32-wroom32-full.bin.sha256 /tmp/modax-publish/
+          cp site/firmware/modax-esp32-wroom32-ota.bin /tmp/modax-publish/
+          cp site/firmware/modax-esp32-wroom32-ota.bin.sha256 /tmp/modax-publish/
+          cp site/firmware/version.json /tmp/modax-publish/
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin esp32-flasher-site
+          git reset --hard origin/esp32-flasher-site
+
+          mkdir -p site/firmware
+          cp /tmp/modax-publish/* site/firmware/
           git add site/firmware
+
           if git diff --cached --quiet; then
             echo "No firmware changes"
           else
             git commit -m "Publish latest MODAX ESP32 firmware"
-            git pull --rebase origin esp32-flasher-site
             git push origin HEAD:esp32-flasher-site
           fi
