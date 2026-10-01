@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#101318">
+  <title>MODAX Qwen Offline</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<main class="shell">
+  <header class="hero card">
+    <div>
+      <div class="eyebrow">MODAX × Qwen Offline</div>
+      <h1>ذكاء محلي على الموبايل بدون إنترنت</h1>
+      <p>Qwen يعمل داخل المتصفح على الموبايل باستخدام llama.cpp/WASM. أول مرة فقط يحتاج تنزيل النموذج؛ بعدها يُعاد استخدام النسخة المخزنة محليًا بدون API.</p>
+    </div>
+    <div id="offlineBadge" class="badge">غير محمّل</div>
+  </header>
+
+  <section class="grid two">
+    <article class="card">
+      <h2>1) حمّل Qwen على الموبايل</h2>
+      <p class="muted">النموذج: <strong>Qwen2.5 0.5B Instruct Q4_K_M</strong> بصيغة GGUF. حجمه حوالي 491 MB، لذلك تأكد من وجود مساحة خالية واتصال جيد أول مرة.</p>
+      <button id="loadModelBtn" class="primary">تنزيل وتشغيل Qwen Offline</button>
+      <div class="progress"><div id="modelProgressBar"></div></div>
+      <div id="modelProgressText" class="muted small">لم يبدأ</div>
+      <pre id="offlineLog" class="terminal"></pre>
+    </article>
+
+    <article class="card">
+      <h2>2) محادثة أوف لاين</h2>
+      <p class="muted">بعد ظهور «جاهز أوف لاين» يمكنك فصل الإنترنت. السؤال والرد يظلان على الهاتف.</p>
+      <textarea id="offlinePrompt" rows="5" placeholder="اكتب سؤالك بالعربية..."></textarea>
+      <div class="row wrap">
+        <button id="offlineMicBtn">🎙️ إملاء</button>
+        <button id="offlineAskBtn" class="primary" disabled>اسأل Qwen</button>
+      </div>
+      <div id="offlineAnswer" class="answer"></div>
+    </article>
+  </section>
+
+  <section class="card">
+    <h2>علاقته بالـESP32</h2>
+    <p>الـESP32 مسؤول عن الشبكة والبوابة والأجهزة، لكن تشغيل نموذج Qwen يتم على الهاتف لأن ESP32-WROOM-32 لا يملك RAM كافية لتشغيل نموذج لغوي بهذا الحجم. الهاتف هو عقل MODAX المحلي، والـESP32 هو وحدة التحكم.</p>
+    <div class="row wrap">
+      <a class="button" href="./">الرجوع إلى التفليش</a>
+      <a class="button" href="http://192.168.4.1" target="_blank" rel="noopener">فتح بوابة ESP32</a>
+    </div>
+  </section>
+</main>
+<script type="module" src="./offline.js"></script>
+</body>
+</html>
