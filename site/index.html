@@ -7,13 +7,13 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <title>MODAX ESP32 Flasher + iOS OTA</title>
   <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="stylesheet" href="./styles.css?v=17" />
+  <link rel="stylesheet" href="./styles.css?v=18" />
 </head>
 <body>
   <main class="shell">
     <header class="hero card">
       <div>
-        <div class="eyebrow">MODAX × ESP32-WROOM-32</div><div class="muted small">نسخة الموقع: v17</div>
+        <div class="eyebrow">MODAX × ESP32-WROOM-32</div><div class="muted small">نسخة الموقع: v18</div>
         <h1>تثبيت MODAX من الموبايل</h1>
         <p>واجهة واحدة تعمل على Android وiPhone/iPad والشاشات الذكية. التفليش المباشر عبر USB يظهر فقط إذا كان المتصفح يدعم WebUSB/Web Serial؛ وiOS يستخدم OTA/تنزيل الملف.</p>
       </div>
@@ -145,7 +145,7 @@
         <div><b>Buzzer</b><span>GPIO 14</span></div>
       </div>
       <button id="oneClickFlashBtn3" class="primary direct-flash visible-install">⚡ تثبيت Firmware على ESP32 مباشرة من Chrome</button>
-      <div class="install-tip"><strong>Android:</strong> الزر يستخدم مسار CH340 الرسمي من esptool-js. لما تظهر نافذة Chrome اختر <b>USB Serial</b> ثم <b>اتصال</b>، وبعدها يبدأ Detect/Flash تلقائيًا.</div>
+      <div class="install-tip"><strong>Android v18:</strong> بعد أول موافقة على <b>USB Serial</b>، الموقع يعيد استخدام الإذن تلقائيًا ويجرب طريقتين للـRESET/SYNC قبل التثبيت.</div>
       <button id="searchBoardBtn" class="button">🔎 بحث عن البوردة / USB فقط</button>
       <button id="searchAnyUsbBtn" class="button">🔌 فحص أي جهاز USB بدون فلتر</button>
       <div id="usbDiag" class="usb-diag">
@@ -198,6 +198,6 @@ Portal: 192.168.4.1</pre>
       <div class="row wrap"><a class="button" href="./offline.html">فتح Qwen Offline</a></div>
     </section>
   </main>
-  <script type="module" src="./app.js?v=17"></script>
+  <script type="module" src="./app.js?v=18"></script>
 </body>
 </html>
