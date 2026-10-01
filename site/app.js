@@ -37,7 +37,12 @@ function updateBoardMatch(){
     : 'غير مطابق — التفليش محظور';
 }
 function updateFlashButton(){
-  if($('flashBtn')) $('flashBtn').disabled=!(state.loader && state.firmware && isClassicEsp32());
+  const ready = !!(state.loader && state.firmware && isClassicEsp32());
+  if($('flashBtn')) $('flashBtn').disabled=!ready;
+  const directSupported = !IS_IOS && window.isSecureContext &&
+    ((IS_ANDROID && navigator.usb && state.esptool?.WebUSBSerialPort) ||
+     (!IS_ANDROID && (navigator.serial || (navigator.usb && state.esptool?.WebUSBSerialPort))));
+  if($('oneClickFlashBtn2')) $('oneClickFlashBtn2').disabled=!directSupported || !state.firmware || !state.esptool;
 }
 
 function showIosMode(){
@@ -111,6 +116,7 @@ async function loadEsptool(){
       throw new Error('esptool-js لم يتم تحميله بالشكل الصحيح');
     }
     browserCheck();
+    updateFlashButton();
     log('esptool-js 0.7.0 loaded.');
   }catch(e){
     $('browserBadge').textContent='فشل تحميل أداة التفليش';
@@ -243,11 +249,11 @@ async function disconnect(){
   updateFlashButton();
 }
 
-async function flash(){
+async function flash(skipConfirm=false){
   if(!state.loader) return alert('وصل البورد أولًا.');
   if(!state.firmware) return alert('Firmware لم يكتمل تحميله.');
   if(!isClassicEsp32()) return alert('تم منع التفليش لأن الشريحة ليست ESP32 الكلاسيكي.');
-  if(!confirm('سيتم استبدال البرنامج الحالي على البورد ببرنامج MODAX. متابعة؟')) return;
+  if(!skipConfirm && !confirm('سيتم استبدال البرنامج الحالي على البورد ببرنامج MODAX. متابعة؟')) return;
   try{
     $('flashBtn').disabled=true;
     setProgress(0,'بدء التثبيت…');
@@ -348,10 +354,36 @@ async function askAI(){
   }catch(e){ answer.textContent='خطأ: '+(e.message||e); }
 }
 
+async function oneClickFlash(){
+  if(IS_IOS){
+    alert('iPhone/iPad لا يدعم التفليش USB المباشر من Chrome. استخدم OTA بعد أول تثبيت.');
+    return;
+  }
+  try{
+    if(!state.firmware){
+      await loadFirmware();
+      if(!state.firmware) return alert('تعذر تحميل Firmware.');
+    }
+    if(!state.esptool){
+      await loadEsptool();
+      if(!state.esptool) return alert('تعذر تحميل أداة التفليش.');
+    }
+    if(!confirm('سيتم توصيل ESP32 وفحص نوع الشريحة ثم تثبيت Firmware مباشرة من Chrome. متابعة؟')) return;
+    if(!state.loader) await connect();
+    if(!state.loader) return;
+    if(!isClassicEsp32()) return alert('تم منع التفليش لأن الشريحة ليست ESP32 الكلاسيكي.');
+    await flash(true);
+  }catch(e){
+    log('ONE CLICK ERROR: '+friendlyError(e));
+  }
+}
+
 $('connectBtn')?.addEventListener('click',connect);
 $('disconnectBtn')?.addEventListener('click',disconnect);
 $('firmwareRetryBtn')?.addEventListener('click',loadFirmware);
 $('flashBtn')?.addEventListener('click',flash);
+$('oneClickFlashBtn')?.addEventListener('click',oneClickFlash);
+$('oneClickFlashBtn2')?.addEventListener('click',oneClickFlash);
 $('cameraBtn')?.addEventListener('click',startCamera);
 $('stopCameraBtn')?.addEventListener('click',stopCamera);
 $('micBtn')?.addEventListener('click',voiceInput);
