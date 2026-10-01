@@ -17,3 +17,10 @@
 
 .direct-flash{width:100%;margin-top:10px;font-weight:800;font-size:1.05rem}
 #oneClickFlashBtn{min-height:58px;font-weight:900}
+
+.usb-diag{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:12px 0}
+.usb-diag div{background:#0f141b;border:1px solid #2f3a49;border-radius:12px;padding:9px;text-align:center}
+.usb-diag span{display:block;color:#94a3b8;font-size:.78rem;margin-bottom:4px}
+.usb-diag b{font-size:1rem}.diag-ok{color:#4ade80}.diag-bad{color:#f87171}
+.install-error{background:#3b1117;border:1px solid #7f1d1d;color:#fecaca;border-radius:12px;padding:11px;margin:10px 0;line-height:1.6}
+@media(max-width:600px){.usb-diag{grid-template-columns:repeat(2,1fr)}}
