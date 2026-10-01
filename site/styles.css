@@ -10,3 +10,7 @@
 .source-details{margin-top:14px}.source-details summary{cursor:pointer;color:#9fd2ff}.codebox{direction:ltr;text-align:left;background:#080b0f;border:1px solid #242d39;border-radius:12px;padding:12px;overflow:auto;color:#b8e3bc}
 @media(max-width:800px){.platform-grid{grid-template-columns:1fr}.pin-grid{grid-template-columns:repeat(2,1fr)}.section-title-row{flex-direction:column}}
 @media(min-width:1000px) and (pointer:coarse){body{font-size:20px}.shell{width:min(1400px,96vw)}button,.button{min-height:58px;padding:14px 20px}.card{padding:26px}.platform-card{padding:22px}.pin-grid{gap:14px}}
+
+.hero-actions{display:flex;flex-direction:column;gap:10px;align-items:stretch;min-width:min(320px,100%)}
+.big-download{font-size:1.05rem;font-weight:800;text-align:center;background:#1769e0;border-color:#2f7df0}
+@media(max-width:800px){.hero-actions{width:100%}.big-download{width:100%;padding:15px}}
