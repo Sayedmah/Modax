@@ -44,6 +44,8 @@ function updateFlashButton(){
     ((IS_ANDROID && navigator.usb && state.esptool?.WebUSBSerialPort) ||
      (!IS_ANDROID && (navigator.serial || (navigator.usb && state.esptool?.WebUSBSerialPort))));
   if($('oneClickFlashBtn2')) $('oneClickFlashBtn2').disabled=!directSupported || !state.captiveFirmware || !state.esptool;
+  if($('oneClickFlashBtn3')) $('oneClickFlashBtn3').disabled=!directSupported || !state.captiveFirmware || !state.esptool;
+  if($('directInstallHint')) $('directInstallHint').textContent = directSupported ? 'جاهز للتثبيت المباشر من Chrome عبر USB.' : (IS_IOS ? 'iPhone/iPad: استخدم OTA بعد أول تثبيت.' : 'المتصفح/الهاتف لا يوفّر WebUSB المناسب للتثبيت المباشر.');
 }
 
 function showIosMode(){
@@ -404,6 +406,7 @@ $('firmwareRetryBtn')?.addEventListener('click',loadFirmware);
 $('flashBtn')?.addEventListener('click',()=>flash(false,null,'MODAX'));
 $('oneClickFlashBtn')?.addEventListener('click',oneClickFlash);
 $('oneClickFlashBtn2')?.addEventListener('click',oneClickFlash);
+$('oneClickFlashBtn3')?.addEventListener('click',oneClickFlash);
 $('cameraBtn')?.addEventListener('click',startCamera);
 $('stopCameraBtn')?.addEventListener('click',stopCamera);
 $('micBtn')?.addEventListener('click',voiceInput);
