@@ -118,18 +118,17 @@ function browserCheck(){
     return;
   }
   if(IS_ANDROID){
-    if(navigator.serial){
-      state.mode='webserial';
-      $('connectionMode').textContent='Android Web Serial';
-      $('browserBadge').textContent='Android جاهز — Web Serial';
-      $('connectBtn').disabled=false;
-    }else if(navigator.usb && state.esptool?.WebUSBSerialPort){
+    // Android must use WebUSB here. Some Chrome builds expose navigator.serial
+    // but the native serial picker cannot enumerate this ESP32 USB-UART.
+    if(navigator.usb && state.esptool?.WebUSBSerialPort){
       state.mode='webusb-ch340';
       $('connectionMode').textContent='Android WebUSB — CH340/CH341';
       $('browserBadge').textContent='Android جاهز — WebUSB';
       $('connectBtn').disabled=false;
     }else{
-      $('browserBadge').textContent='USB من Chrome غير متاح';
+      state.mode='';
+      $('connectionMode').textContent='WebUSB غير متاح';
+      $('browserBadge').textContent='Google Chrome + WebUSB مطلوب';
       $('connectBtn').disabled=true;
     }
     return;
@@ -497,8 +496,12 @@ async function oneClickFlash(){
     showInstallError('افتح الموقع عبر HTTPS.');
     return;
   }
-  if(!navigator.usb && !navigator.serial){
-    showInstallError('USB غير متاح في هذا المتصفح. استخدم Google Chrome الحقيقي.');
+  if(IS_ANDROID && !navigator.usb){
+    showInstallError('WebUSB غير متاح في Chrome على هذا الهاتف.');
+    return;
+  }
+  if(!IS_ANDROID && !navigator.usb && !navigator.serial){
+    showInstallError('USB غير متاح في هذا المتصفح. استخدم Google Chrome أو Edge.');
     return;
   }
 
@@ -510,10 +513,11 @@ async function oneClickFlash(){
   }
 
   try{
-    if(IS_ANDROID && navigator.serial){
-      state.mode='webserial';
-      if($('connectionMode')) $('connectionMode').textContent='Android Web Serial';
-    }else if(IS_ANDROID && navigator.usb && state.esptool?.WebUSBSerialPort){
+    if(IS_ANDROID){
+      if(!navigator.usb || !state.esptool?.WebUSBSerialPort){
+        showInstallError('Android لازم يستخدم WebUSB هنا، لكن WebUSB غير متاح في هذا المتصفح.');
+        return;
+      }
       state.mode='webusb-ch340';
       if($('connectionMode')) $('connectionMode').textContent='Android WebUSB — CH340/CH341';
     }else if(navigator.serial){
