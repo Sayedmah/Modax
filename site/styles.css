@@ -24,3 +24,14 @@
 .usb-diag b{font-size:1rem}.diag-ok{color:#4ade80}.diag-bad{color:#f87171}
 .install-error{background:#3b1117;border:1px solid #7f1d1d;color:#fecaca;border-radius:12px;padding:11px;margin:10px 0;line-height:1.6}
 @media(max-width:600px){.usb-diag{grid-template-columns:repeat(2,1fr)}}
+
+.install-progress-card{margin:12px 0;padding:14px;border:1px solid #334155;border-radius:14px;background:#0f172a}
+.install-progress-head,.install-progress-foot{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.install-progress-head strong{font-size:1rem}.install-progress-head span,.install-progress-foot{color:#94a3b8;font-size:.88rem}
+.install-progress-track{height:12px;background:#1e293b;border-radius:999px;overflow:hidden;margin:10px 0}
+.install-progress-bar{height:100%;width:0%;background:#3b82f6;transition:width .2s ease}
+.install-progress-card.progress-running .install-progress-bar{background:#3b82f6}
+.install-progress-card.progress-success{border-color:#166534;background:#092b1b}
+.install-progress-card.progress-success .install-progress-bar{background:#22c55e}
+.install-progress-card.progress-fail{border-color:#7f1d1d;background:#321015}
+.install-progress-card.progress-fail .install-progress-bar{background:#ef4444}
