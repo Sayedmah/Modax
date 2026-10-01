@@ -1,0 +1,79 @@
+name: Build MODY Captive Portal Firmware
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - esp32-flasher-site
+    paths:
+      - 'firmware/captive-portal/**'
+      - '.github/workflows/build-captive-portal.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: esp32-flasher-site
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build tools
+        run: python -m pip install --upgrade platformio esptool
+
+      - name: Build captive portal firmware
+        run: pio run -d firmware/captive-portal
+
+      - name: Build full and OTA images
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p site/firmware
+
+          python -m esptool --chip esp32 merge_bin             -o site/firmware/mody-captive-portal-full.bin             --flash_mode dio --flash_freq 40m --flash_size 4MB             0x1000 firmware/captive-portal/.pio/build/esp32dev/bootloader.bin             0x8000 firmware/captive-portal/.pio/build/esp32dev/partitions.bin             0x10000 firmware/captive-portal/.pio/build/esp32dev/firmware.bin
+
+          cp firmware/captive-portal/.pio/build/esp32dev/firmware.bin             site/firmware/mody-captive-portal-ota.bin
+
+          sha256sum site/firmware/mody-captive-portal-full.bin             > site/firmware/mody-captive-portal-full.bin.sha256
+          sha256sum site/firmware/mody-captive-portal-ota.bin             > site/firmware/mody-captive-portal-ota.bin.sha256
+
+          printf '{"build":"%s","commit":"%s","target":"mody-captive-portal","ota":true}\n'             "$GITHUB_RUN_NUMBER" "$GITHUB_SHA" > site/firmware/mody-captive-portal-version.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mody-captive-portal
+          path: |
+            site/firmware/mody-captive-portal-full.bin
+            site/firmware/mody-captive-portal-full.bin.sha256
+            site/firmware/mody-captive-portal-ota.bin
+            site/firmware/mody-captive-portal-ota.bin.sha256
+            site/firmware/mody-captive-portal-version.json
+
+      - name: Publish firmware into site
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/captive-publish
+          cp site/firmware/mody-captive-portal-* /tmp/captive-publish/
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin esp32-flasher-site
+          git reset --hard origin/esp32-flasher-site
+
+          mkdir -p site/firmware
+          cp /tmp/captive-publish/* site/firmware/
+          git add site/firmware
+
+          if git diff --cached --quiet; then
+            echo "No firmware changes"
+          else
+            git commit -m "Publish MODY captive portal firmware"
+            git push origin HEAD:esp32-flasher-site
+          fi
