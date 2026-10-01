@@ -8,7 +8,8 @@
 static WebServer server(80);
 static DNSServer dns;
 static Preferences prefs;
-static bool portalMode = false;
+static bool portalMode = true;
+static bool staConnected = false;
 static String deviceId;
 static String apName;
 static unsigned long bootPressedAt = 0;
@@ -88,13 +89,14 @@ static void installRoutes(){
   });
 
   server.on("/api/info", HTTP_GET, [](){
-    String ip = portalMode ? "192.168.4.1" : WiFi.localIP().toString();
     String body = "{";
     body += "\"device_id\":\""+jsonEscape(deviceId)+"\",";
     body += "\"board_profile\":\"esp32-wroom-32-devkit-30pin\",";
     body += "\"chip_family\":\"ESP32\",";
-    body += "\"mode\":\""+String(portalMode?"setup_ap":"wifi_sta")+"\",";
-    body += "\"ip\":\""+ip+"\",";
+    body += "\"mode\":\"ap_sta\",";
+    body += "\"ap_ip\":\"192.168.4.1\",";
+    body += "\"sta_connected\":"+String(staConnected?"true":"false")+",";
+    body += "\"sta_ip\":\""+String(staConnected?WiFi.localIP().toString():"")+"\",";
     body += "\"ota\":true,\"phone_is_ui\":true";
     body += "}";
     server.send(200,"application/json",body);
@@ -207,15 +209,15 @@ static void installRoutes(){
   server.on("/success.txt", HTTP_GET, captivePage);
   server.on("/connecttest.txt", HTTP_GET, captivePage);
   server.on("/ncsi.txt", HTTP_GET, captivePage);
-  server.onNotFound([](){ if(portalMode) captivePage(); else server.send(404,"text/plain","not found"); });
+  // Any unknown HTTP request is treated as a captive-portal request.
+  server.onNotFound(captivePage);
 }
 
 static void startPortal(){
   portalMode=true;
-  WiFi.disconnect(true,true);
-  delay(150);
   WiFi.mode(WIFI_AP_STA);
   WiFi.setSleep(false);
+  delay(150);
 
   IPAddress apIP(192,168,4,1);
   IPAddress gateway(192,168,4,1);
@@ -237,7 +239,8 @@ static bool connectSaved(){
   prefs.end();
   if(ssid.length()==0) return false;
 
-  WiFi.mode(WIFI_STA);
+  // Keep the MODAX access point alive while connecting to the router.
+  WiFi.mode(WIFI_AP_STA);
   WiFi.setSleep(false);
   WiFi.begin(ssid.c_str(),pass.c_str(),0,nullptr,true);
   Serial.printf("Connecting to %s%s",ssid.c_str(),hidden?" (hidden)":"");
@@ -247,11 +250,15 @@ static bool connectSaved(){
   }
   Serial.println();
   if(WiFi.status()==WL_CONNECTED){
-    portalMode=false;
-    Serial.print("Connected, IP: "); Serial.println(WiFi.localIP());
+    staConnected=true;
+    Serial.print("STA connected, IP: "); Serial.println(WiFi.localIP());
+    Serial.printf("MODAX AP remains active: %s at 192.168.4.1\n",apName.c_str());
     return true;
   }
-  WiFi.disconnect(true);
+  staConnected=false;
+  // Stop only the STA connection; keep the AP and captive portal running.
+  WiFi.disconnect(false,false);
+  Serial.println("STA not connected; MODAX AP remains active.");
   return false;
 }
 
@@ -270,14 +277,21 @@ void setup(){
   pinMode(0,INPUT_PULLUP);
   makeId();
   installRoutes();
-  if(!connectSaved()) startPortal();
+
+  // Start the MODAX AP first and keep it available permanently.
+  startPortal();
+
+  // Then try the saved router credentials without shutting down the AP.
+  connectSaved();
+
   server.begin();
   Serial.printf("MODAX ready: %s\n",deviceId.c_str());
 }
 
 void loop(){
   server.handleClient();
-  if(portalMode) dns.processNextRequest();
+  // Wildcard DNS must keep running even when STA is connected.
+  dns.processNextRequest();
 
   bool pressed=digitalRead(0)==LOW;
   if(pressed && bootPressedAt==0) bootPressedAt=millis();
