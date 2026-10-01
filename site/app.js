@@ -318,22 +318,6 @@ async function detectUsbBoard(){
   return {dev, family, info};
 }
 
-async function prepareEsp32Bootloader(port){
-  if(!port?.open || !port?.setSignals || !port?.close) return;
-  updateInstallProgress(27,'تجهيز وضع التحميل','BOOT/EN تلقائيًا…');
-  try{
-    await withTimeout(port.open({baudRate:115200}),3000,'فتح USB استغرق وقتًا طويلًا');
-    await port.setSignals({dataTerminalReady:false,requestToSend:true});
-    await sleepMs(120);
-    await port.setSignals({dataTerminalReady:true,requestToSend:false});
-    await sleepMs(120);
-    await port.setSignals({dataTerminalReady:false,requestToSend:false});
-    await sleepMs(150);
-  }finally{
-    try{ await withTimeout(port.close(),2500,'إغلاق USB مؤقتًا'); }catch(_){}
-  }
-}
-
 async function requestPort(preselectedUsb=null){
   if(state.mode==='webusb-ch340'){
     log('Opening ESP32 USB-UART…');
@@ -369,7 +353,7 @@ function friendlyError(e){
   const s=String(e?.message||e||'');
   if(/No device selected|NotFoundError|user cancelled/i.test(s)) return 'Chrome لم يستلم جهاز USB من نافذة الاختيار. اضغط تثبيت مرة أخرى واختر WCH/CH340 إذا ظهر.';
   if(/CH343|55d3/i.test(s)) return 'المحول CH343 وليس CH340؛ هذه النسخة تحتاج مسار USB مختلف.';
-  if(/Couldn't sync|Failed to connect|sync|مهلة الاتصال|Connect بعد/i.test(s)) return 'USB اتفتح لكن SYNC لم يكتمل. الموقع عمل BOOT/EN تلقائيًا وأوقف الاتصال بعد المهلة بدل التعليق. افصل البوردة ووصلها مرة واحدة ثم جرّب ثانية.';
+  if(/Couldn't sync|Failed to connect|sync|مهلة الاتصال|Connect timeout/i.test(s)) return 'USB اتفتح لكن ESP32 لم تكمل RESET/SYNC خلال المهلة. الموقع وقف المحاولة تلقائيًا بدل التعليق.';
   if(/claim|interface|Access denied|permission/i.test(s)) return 'Android لم يسمح بالوصول إلى USB. افصل البورد، أعد توصيلها، وافق على إذن USB لـChrome ثم جرّب مرة أخرى.';
   return s;
 }
@@ -377,17 +361,10 @@ function friendlyError(e){
 async function connect(preselectedUsb=null, rethrow=false){
   try{
     $('terminal').textContent='';
-    if(installStartedAt) updateInstallProgress(25,'فتح USB','جاري تجهيز البوردة…');
+    if(installStartedAt) updateInstallProgress(25,'فتح USB','فتح جلسة USB واحدة…');
     status('فتح USB…');
 
     state.port=await requestPort(preselectedUsb);
-
-    // For Android CH340 boards, force the classic ESP32 BOOT/EN sequence once
-    // before esptool starts syncing. This avoids getting stuck at Connect.
-    if(state.mode==='webusb-ch340'){
-      await prepareEsp32Bootloader(state.port);
-    }
-
     state.transport=new state.esptool.Transport(state.port,true);
     state.loader=new state.esptool.ESPLoader({
       transport:state.transport,
@@ -397,15 +374,14 @@ async function connect(preselectedUsb=null, rethrow=false){
       debugLogging:false
     });
 
-    if(installStartedAt) updateInstallProgress(31,'الاتصال بالـESP32','SYNC…');
+    if(installStartedAt) updateInstallProgress(30,'الاتصال بالـESP32','RESET + SYNC…');
     status('الاتصال بالـESP32…');
 
-    // Use the official esptool flow, but skip another reset because the
-    // board was already put in ROM download mode above.
+    // One USB session only. Let esptool drive DTR/RTS itself.
     state.chip=await withTimeout(
-      state.loader.main(state.mode==='webusb-ch340' ? 'no_reset' : 'default_reset'),
-      16000,
-      'انتهت مهلة Connect بعد 16 ثانية'
+      state.loader.main('default_reset'),
+      18000,
+      'Connect timeout بعد 18 ثانية'
     );
 
     $('chipName').textContent=state.chip||'غير معروف';
@@ -425,7 +401,7 @@ async function connect(preselectedUsb=null, rethrow=false){
       throw new Error('الشريحة غير متوافقة مع Firmware الحالي: '+state.chip);
     }
 
-    if(installStartedAt) updateInstallProgress(40,'تم الاتصال ✅','ESP32 جاهز للكتابة');
+    if(installStartedAt) updateInstallProgress(40,'تم الاتصال ✅','ESP32 جاهز للتثبيت');
     status('متصل — جاهز للتثبيت');
     $('connectBtn').disabled=true;
     $('disconnectBtn').disabled=false;
@@ -434,11 +410,10 @@ async function connect(preselectedUsb=null, rethrow=false){
   }catch(e){
     const msg=friendlyError(e);
 
-    // IMPORTANT on Android: do not await Transport.disconnect() here.
-    // esptool-js can block waiting for a locked reader after a failed connect.
+    // Break any pending WebUSB operation without waiting indefinitely.
     try{
-      const p=state.port?.close?.();
-      if(p?.catch) p.catch(()=>{});
+      const closePromise=state.port?.close?.();
+      if(closePromise?.catch) closePromise.catch(()=>{});
     }catch(_){}
 
     state.port=state.transport=state.loader=null;
