@@ -2,8 +2,9 @@ const $ = (id) => document.getElementById(id);
 const FIRMWARE_URL = './firmware/modax-esp32-wroom32-full.bin';
 const UA = navigator.userAgent;
 const IS_ANDROID = /Android/i.test(UA);
-const IS_IOS = /iPhone|iPad|iPod/i.test(UA);
+const IS_IOS = /iPhone|iPad|iPod/i.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const IN_APP = /(FBAN|FBAV|Instagram|Line\/|wv\)|; wv|ChatGPT)/i.test(UA);
+const IS_SMART_DISPLAY = /(SmartTV|SMART-TV|Tizen|Web0S|NetCast|HbbTV|AFT|CrKey|BRAVIA)/i.test(UA) || (!IS_IOS && matchMedia?.('(pointer: coarse)').matches && Math.min(screen.width, screen.height) >= 600 && innerWidth >= 700);
 
 const state = {
   port:null, transport:null, loader:null, chip:'', flashSize:'4MB',
@@ -46,7 +47,17 @@ function showIosMode(){
   if($('connectionMode')) $('connectionMode').textContent='OTA عبر Wi-Fi';
 }
 
+function markPlatform(){
+  const android=$('androidCard'), ios=$('iosCard'), smart=$('smartCard');
+  [android,ios,smart].forEach(x=>x?.classList.remove('active'));
+  let label='كمبيوتر / متصفح';
+  if(IS_IOS){ ios?.classList.add('active'); label='iPhone / iPad — OTA'; }
+  else if(IS_SMART_DISPLAY){ smart?.classList.add('active'); label='Smart Screen'; }
+  else if(IS_ANDROID){ android?.classList.add('active'); label='Android'; }
+  if($('platformModeBadge')) $('platformModeBadge').textContent=label;
+}
 function browserCheck(){
+  markPlatform();
   const secure=window.isSecureContext;
   if(IS_IOS){
     showIosMode();
@@ -353,3 +364,15 @@ if(IS_IOS){
   loadEsptool();
 }
 if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+
+$('copyPinsBtn')?.addEventListener('click', async ()=>{
+  const text='UP GPIO32\nDOWN GPIO33\nLEFT GPIO25\nRIGHT GPIO26\nACTION GPIO27\nLED Red GPIO12 via 220Ω\nLED Green GPIO13 via 220Ω\nBuzzer GPIO14\nAll grounds -> ESP32 GND';
+  try{
+    await navigator.clipboard.writeText(text);
+    $('copyPinsBtn').textContent='تم النسخ ✓';
+    setTimeout(()=>$('copyPinsBtn').textContent='نسخ التوصيلات',1400);
+  }catch(e){
+    alert(text);
+  }
+});
+markPlatform();
