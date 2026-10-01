@@ -1,4 +1,4 @@
-const CACHE='modax-wroom32-v15';
+const CACHE='modax-wroom32-v16';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./offline.html','./offline.js','./manifest.webmanifest','./icon.svg'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)))});
 self.addEventListener('activate',e=>e.waitUntil(Promise.all([
