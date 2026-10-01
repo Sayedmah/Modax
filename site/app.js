@@ -111,13 +111,18 @@ function browserCheck(){
     return;
   }
   if(IS_ANDROID){
-    if(navigator.usb && state.esptool?.WebUSBSerialPort){
+    if(navigator.serial){
+      state.mode='webserial';
+      $('connectionMode').textContent='Android Web Serial';
+      $('browserBadge').textContent='Android جاهز — Web Serial';
+      $('connectBtn').disabled=false;
+    }else if(navigator.usb && state.esptool?.WebUSBSerialPort){
       state.mode='webusb-ch340';
       $('connectionMode').textContent='Android WebUSB — CH340/CH341';
-      $('browserBadge').textContent='Android جاهز — USB';
+      $('browserBadge').textContent='Android جاهز — WebUSB';
       $('connectBtn').disabled=false;
     }else{
-      $('browserBadge').textContent='Chrome Android + WebUSB مطلوب';
+      $('browserBadge').textContent='USB من Chrome غير متاح';
       $('connectBtn').disabled=true;
     }
     return;
@@ -412,58 +417,47 @@ async function askAI(){
 
 async function oneClickFlash(){
   clearInstallError();
-  updateUsbDiagnostics(false);
-
   if(IS_IOS){
-    showInstallError('iPhone/iPad: Chrome لا يدعم WebUSB للتفليش المباشر. استخدم OTA.');
+    showInstallError('iPhone/iPad لا يدعم التفليش USB المباشر من Chrome. استخدم OTA.');
     return;
   }
   if(!window.isSecureContext){
-    showInstallError('لازم تفتح الموقع عبر HTTPS.');
+    showInstallError('افتح الموقع عبر HTTPS.');
     return;
   }
   if(!navigator.usb && !navigator.serial){
-    showInstallError('WebUSB/Web Serial غير متاح. تأكد أنك تستخدم Google Chrome الحقيقي وليس Samsung Internet أو متصفح داخل تطبيق.');
+    showInstallError('USB غير متاح في هذا المتصفح. استخدم Google Chrome الحقيقي.');
+    return;
+  }
+
+  if(!state.esptool || !state.captiveFirmware){
+    showInstallError('جاري تجهيز Flasher وFirmware. انتظر حتى يصبحا ✓ ثم اضغط الزر مرة ثانية.');
+    if(!state.esptool) loadEsptool();
+    if(!state.captiveFirmware) loadCaptiveFirmware();
     return;
   }
 
   try{
-    if(!state.captiveFirmware){
-      await loadCaptiveFirmware();
-      if(!state.captiveFirmware){
-        showInstallError('Firmware لم يتحمل. اعمل Refresh وتأكد أن الإنترنت شغال.');
-        return;
-      }
-    }
-    if(!state.esptool){
-      await loadEsptool();
-      if(!state.esptool){
-        showInstallError('أداة التفليش لم تتحمل.');
-        return;
-      }
-    }
-
-    // Force the Android CH340 WebUSB path when available.
-    if(IS_ANDROID && navigator.usb && state.esptool?.WebUSBSerialPort){
+    if(IS_ANDROID && navigator.serial){
+      state.mode='webserial';
+      if($('connectionMode')) $('connectionMode').textContent='Android Web Serial';
+    }else if(IS_ANDROID && navigator.usb && state.esptool?.WebUSBSerialPort){
       state.mode='webusb-ch340';
-      $('connectionMode').textContent='Android WebUSB — CH340/CH341';
+      if($('connectionMode')) $('connectionMode').textContent='Android WebUSB — CH340/CH341';
     }else if(navigator.serial){
       state.mode='webserial';
     }
 
-    updateUsbDiagnostics(true);
-    status('اختر ESP32 من نافذة USB…');
-
     if(!state.loader) await connect();
     if(!state.loader){
-      showInstallError('لم يتم فتح ESP32. لو لم تظهر نافذة USB: جرّب كابل Data/OTG آخر، وافصل وأعد توصيل البورد.');
+      showInstallError('لم يظهر ESP32. جرّب كابل Data/OTG، وافصل البورد ثم أعد توصيلها.');
       return;
     }
     if(!isClassicEsp32()){
-      showInstallError('الشريحة التي اكتشفها الموقع ليست ESP32 الكلاسيكي، لذلك أوقف التفليش للحماية.');
+      showInstallError('الشريحة المكتشفة ليست ESP32 الكلاسيكي.');
       return;
     }
-
+    if(!confirm('تم اكتشاف ESP32. هل تريد تثبيت MODY Captive Portal الآن؟')) return;
     await flash(true,state.captiveFirmware,'MODY Captive Portal');
   }catch(e){
     const msg=friendlyError(e);
