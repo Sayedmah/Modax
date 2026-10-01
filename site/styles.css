@@ -14,3 +14,6 @@
 .hero-actions{display:flex;flex-direction:column;gap:10px;align-items:stretch;min-width:min(320px,100%)}
 .big-download{font-size:1.05rem;font-weight:800;text-align:center;background:#1769e0;border-color:#2f7df0}
 @media(max-width:800px){.hero-actions{width:100%}.big-download{width:100%;padding:15px}}
+
+.direct-flash{width:100%;margin-top:10px;font-weight:800;font-size:1.05rem}
+#oneClickFlashBtn{min-height:58px;font-weight:900}
