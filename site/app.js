@@ -302,6 +302,12 @@ const terminal={
   }
 };
 
+async function getGrantedWchDevice(){
+  if(!navigator.usb?.getDevices) return null;
+  const devices=await navigator.usb.getDevices();
+  return devices.find(d=>d.vendorId===0x1A86) || null;
+}
+
 async function detectUsbBoard(){
   if(!navigator.usb) throw new Error('WebUSB غير متاح في هذا المتصفح');
   const filters = KNOWN_USB_UARTS.map(x=>({vendorId:x.vendorId}));
@@ -354,7 +360,7 @@ function friendlyError(e){
   const s=String(e?.message||e||'');
   if(/No device selected|NotFoundError|user cancelled/i.test(s)) return 'لم يتم اختيار الجهاز. افتح التثبيت مرة أخرى، اضغط على سطر USB Serial أولًا، وبعدها اضغط «اتصال».';
   if(/CH343|55d3/i.test(s)) return 'المحول CH343 وليس CH340؛ هذه النسخة تحتاج مسار USB مختلف.';
-  if(/Couldn't sync|Failed to connect|sync|مهلة الاتصال|Connect timeout/i.test(s)) return 'USB اتفتح لكن ESP32 لم تكمل RESET/SYNC خلال المهلة. الموقع وقف المحاولة تلقائيًا بدل التعليق.';
+  if(/Couldn't sync|Failed to connect|sync|مهلة الاتصال|Connect timeout|لم تستجب/i.test(s)) return 'تم أخذ إذن USB، لكن ESP32 لم تدخل وضع التحميل بعد محاولتي RESET/SYNC. جرّب ضغطة مطولة على BOOT أثناء بدء Connect.';
   if(/claim|interface|Access denied|permission/i.test(s)) return 'Android لم يسمح بالوصول إلى USB. افصل البورد، أعد توصيلها، وافق على إذن USB لـChrome ثم جرّب مرة أخرى.';
   return s;
 }
@@ -610,6 +616,64 @@ async function searchBoardOnly(){
   }
 }
 
+async function connectSelectedWch(device){
+  const infoText=hex4(device.vendorId)+':'+hex4(device.productId);
+  if($('usbInfo')) $('usbInfo').textContent='WCH USB Serial — '+infoText;
+  updateInstallProgress(10,'USB متصل ✅',infoText);
+  log('USB PERMISSION OK: '+infoText+' '+(device.productName||'USB Serial'));
+
+  let lastError=null;
+  const modes=['default_reset','no_reset'];
+
+  for(let attempt=0; attempt<modes.length; attempt++){
+    const mode=modes[attempt];
+    updateInstallProgress(16+attempt*8,'Connect '+(attempt+1)+'/2',
+      mode==='default_reset'?'RESET + SYNC تلقائي':'محاولة SYNC بدون Reset');
+    try{
+      const adapter=new state.esptool.WebUSBSerialPort(device);
+      const port=adapter.asSerialPort();
+      const transport=new state.esptool.Transport(port,true);
+      const loader=new state.esptool.ESPLoader({
+        transport,
+        baudrate:115200,
+        romBaudrate:115200,
+        terminal,
+        debugLogging:false
+      });
+
+      state.port=port;
+      state.transport=transport;
+      state.loader=loader;
+      state.mode='webusb-ch340';
+
+      const chip=await withTimeout(loader.main(mode),12000,
+        'محاولة '+(attempt+1)+' لم تستجب خلال 12 ثانية');
+
+      state.chip=chip;
+      $('chipName').textContent=chip||'غير معروف';
+      log('CONNECTED: '+chip+' mode='+mode);
+
+      if(!isClassicEsp32()) throw new Error('الشريحة ليست ESP32 الكلاسيكي: '+chip);
+
+      updateBoardMatch();
+      updateInstallProgress(40,'تم الاتصال ✅',chip);
+      status('متصل — جاهز للتثبيت');
+      return true;
+    }catch(e){
+      lastError=e;
+      log('CONNECT ATTEMPT '+(attempt+1)+' FAILED: '+String(e?.message||e));
+      try{
+        const p=state.port?.close?.();
+        if(p?.catch) await Promise.race([p.catch(()=>{}),sleepMs(500)]);
+      }catch(_){}
+      state.port=state.transport=state.loader=null;
+      state.chip='';
+      await sleepMs(250);
+    }
+  }
+  throw lastError || new Error('تعذر الاتصال بالـESP32');
+}
+
 async function oneClickFlash(){
   clearInstallError();
 
@@ -621,63 +685,37 @@ async function oneClickFlash(){
     showInstallError('افتح الموقع عبر HTTPS.');
     return;
   }
-
-  // All asynchronous assets are preloaded on page load. Do not do any await
-  // before the USB chooser or Chrome may drop the user-gesture permission.
   if(!state.esptool?.WebUSBSerialPort || !state.captiveFirmware){
-    showInstallError('الموقع ما زال يجهز Flasher/Firmware. انتظر حتى يظهر Flasher ✓ وFirmware ✓ ثم اضغط مرة ثانية.');
+    showInstallError('انتظر حتى يظهر Flasher ✓ وFirmware ✓ ثم اضغط التثبيت.');
     return;
   }
 
   startInstallTimer();
-  updateInstallProgress(2,'اختيار USB','اضغط USB Serial ثم اتصال');
+  updateInstallProgress(2,'تجهيز USB','البحث عن إذن سابق…');
 
   try{
     if(IS_ANDROID){
-      // Official esptool-js CH340 WebUSB path.
-      const adapter=await state.esptool.WebUSBSerialPort.requestPort();
-      const info=adapter.getInfo?.()||{};
-      if($('usbInfo')) $('usbInfo').textContent=hex4(info.usbVendorId)+':'+hex4(info.usbProductId);
-      log('WebUSB selected: '+hex4(info.usbVendorId)+':'+hex4(info.usbProductId));
+      let device=await getGrantedWchDevice();
 
-      const port=adapter.asSerialPort();
-      const transport=new state.esptool.Transport(port,true);
-      const loader=new state.esptool.ESPLoader({
-        transport,
-        baudrate:115200,
-        terminal,
-        debugLogging:false
-      });
-
-      state.port=port;
-      state.transport=transport;
-      state.loader=loader;
-      state.mode='webusb-ch340';
-
-      updateInstallProgress(15,'الاتصال بالـESP32','RESET + SYNC…');
-      status('الاتصال بالـESP32…');
-
-      const chip=await withTimeout(
-        loader.main(),
-        18000,
-        'Connect timeout بعد 18 ثانية'
-      );
-      state.chip=chip;
-      $('chipName').textContent=chip||'غير معروف';
-      log('Detected chip: '+chip);
-
-      if(!isClassicEsp32()){
-        throw new Error('الشريحة المكتشفة ليست ESP32 الكلاسيكي: '+chip);
+      if(!device){
+        updateInstallProgress(4,'اختيار USB','اختر USB Serial ثم اضغط اتصال');
+        device=await navigator.usb.requestDevice({filters:[{vendorId:0x1A86}]});
+      }else{
+        updateInstallProgress(5,'تم العثور على USB سابق ✅',
+          hex4(device.vendorId)+':'+hex4(device.productId));
       }
 
-      updateBoardMatch();
-      updateInstallProgress(40,'تم الاتصال ✅','بدء تثبيت Firmware…');
-      status('متصل — جاري التثبيت');
+      if(!device) throw new Error('لم يتم اختيار USB');
+      if(device.productId===0x55D3) throw new Error('CH343 يحتاج مسار مختلف');
+
+      const connected=await connectSelectedWch(device);
+      if(!connected) throw new Error('تعذر الاتصال');
+
+      updateInstallProgress(42,'بدء التثبيت','كتابة Firmware…');
       await flash(true,state.captiveFirmware,'MODY Captive Portal');
       return;
     }
 
-    // Desktop keeps the existing connector path.
     if(!state.loader) await connect(null,true);
     if(!state.loader) throw new Error('تعذر الاتصال بالـESP32');
     if(!isClassicEsp32()) throw new Error('الشريحة المكتشفة ليست ESP32 الكلاسيكي');
@@ -685,14 +723,10 @@ async function oneClickFlash(){
   }catch(e){
     const msg=friendlyError(e);
     const elapsed=stopInstallTimer();
-    updateInstallProgress(0,'فشل التثبيت ❌',msg+' — بعد '+formatElapsed(elapsed),'fail');
+    updateInstallProgress(0,'فشل الاتصال/التثبيت ❌',msg+' — بعد '+formatElapsed(elapsed),'fail');
     showInstallError(msg);
     log('ONE CLICK ERROR: '+msg);
     log('RAW: '+String(e?.stack||e));
-    try{
-      const p=state.port?.close?.();
-      if(p?.catch) p.catch(()=>{});
-    }catch(_){}
     state.port=state.transport=state.loader=null;
     state.chip='';
     updateBoardMatch();
