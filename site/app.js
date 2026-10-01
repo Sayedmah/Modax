@@ -442,6 +442,32 @@ async function askAI(){
   }catch(e){ answer.textContent='خطأ: '+(e.message||e); }
 }
 
+async function searchAnyUsb(){
+  clearInstallError();
+  if(!navigator.usb){
+    showInstallError('WebUSB غير متاح في هذا المتصفح.');
+    return;
+  }
+  try{
+    status('جاري فحص كل أجهزة USB…');
+    // Empty filter object asks Chrome to show any selectable USB device.
+    const dev=await navigator.usb.requestDevice({filters:[{}]});
+    const family=KNOWN_USB_UARTS.find(x=>x.vendorId===dev.vendorId)?.name || 'USB غير معروف';
+    if($('usbInfo')) $('usbInfo').textContent=family+' — '+hex4(dev.vendorId)+':'+hex4(dev.productId);
+    status('تم العثور على USB');
+    log('ANY USB FOUND: '+family+' '+hex4(dev.vendorId)+':'+hex4(dev.productId)+' '+(dev.productName||''));
+    showInstallError('تم العثور على USB: '+family+' '+hex4(dev.vendorId)+':'+hex4(dev.productId)+'. لو مش CH340/CH341 ابعتلي VID:PID.');
+  }catch(e){
+    const msg=friendlyError(e);
+    status('لا يوجد USB ظاهر');
+    if(/No device selected|NotFoundError|user cancelled/i.test(String(e?.message||e))){
+      showInstallError('Android لم يرَ أي جهاز USB Data. لمبة البوردة ممكن تنور لأن الكهرباء فقط واصلة. استخدم OTG حقيقي + كابل بيانات.');
+    }else{
+      showInstallError(msg);
+    }
+  }
+}
+
 async function searchBoardOnly(){
   clearInstallError();
   try{
@@ -520,6 +546,7 @@ $('oneClickFlashBtn')?.addEventListener('click',oneClickFlash);
 $('oneClickFlashBtn2')?.addEventListener('click',oneClickFlash);
 $('oneClickFlashBtn3')?.addEventListener('click',oneClickFlash);
 $('searchBoardBtn')?.addEventListener('click',searchBoardOnly);
+$('searchAnyUsbBtn')?.addEventListener('click',searchAnyUsb);
 $('cameraBtn')?.addEventListener('click',startCamera);
 $('stopCameraBtn')?.addEventListener('click',stopCamera);
 $('micBtn')?.addEventListener('click',voiceInput);
