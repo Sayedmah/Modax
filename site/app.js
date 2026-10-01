@@ -43,9 +43,9 @@ function updateFlashButton(){
   const directSupported = !IS_IOS && window.isSecureContext &&
     ((IS_ANDROID && navigator.usb && state.esptool?.WebUSBSerialPort) ||
      (!IS_ANDROID && (navigator.serial || (navigator.usb && state.esptool?.WebUSBSerialPort))));
-  if($('oneClickFlashBtn2')) $('oneClickFlashBtn2').disabled=!directSupported || !state.captiveFirmware || !state.esptool;
-  if($('oneClickFlashBtn3')) $('oneClickFlashBtn3').disabled=!directSupported || !state.captiveFirmware || !state.esptool;
-  if($('directInstallHint')) $('directInstallHint').textContent = directSupported ? 'جاهز للتثبيت المباشر من Chrome عبر USB.' : (IS_IOS ? 'iPhone/iPad: استخدم OTA بعد أول تثبيت.' : 'المتصفح/الهاتف لا يوفّر WebUSB المناسب للتثبيت المباشر.');
+  if($('oneClickFlashBtn2')) $('oneClickFlashBtn2').disabled=false;
+  if($('oneClickFlashBtn3')) $('oneClickFlashBtn3').disabled=false;
+  updateUsbDiagnostics(directSupported);
 }
 
 function showIosMode(){
@@ -63,6 +63,34 @@ function markPlatform(){
   else if(IS_SMART_DISPLAY){ smart?.classList.add('active'); label='Smart Screen'; }
   else if(IS_ANDROID){ android?.classList.add('active'); label='Android'; }
   if($('platformModeBadge')) $('platformModeBadge').textContent=label;
+}
+function setDiag(id,ok,label){
+  const el=$(id); if(!el) return;
+  el.textContent=label ?? (ok?'✓':'✕');
+  el.classList.toggle('diag-ok',!!ok);
+  el.classList.toggle('diag-bad',!ok);
+}
+function showInstallError(message){
+  const el=$('directInstallError');
+  if(!el) return;
+  el.textContent=message;
+  el.classList.remove('hidden');
+}
+function clearInstallError(){
+  $('directInstallError')?.classList.add('hidden');
+}
+function updateUsbDiagnostics(directSupported=false){
+  setDiag('diagAndroid',IS_ANDROID,IS_ANDROID?'✓':'—');
+  setDiag('diagHttps',window.isSecureContext,window.isSecureContext?'✓':'✕');
+  setDiag('diagUsb',!!navigator.usb,navigator.usb?'✓':'✕');
+  setDiag('diagTool',!!state.esptool,state.esptool?'✓':'…');
+  setDiag('diagFw',!!state.captiveFirmware,state.captiveFirmware?'✓':'…');
+  if($('directInstallHint')){
+    if(IS_IOS) $('directInstallHint').textContent='iPhone/iPad لا يسمح بالتفليش USB المباشر من Chrome؛ استخدم OTA.';
+    else if(directSupported && state.captiveFirmware && state.esptool) $('directInstallHint').textContent='جاهز. اضغط التثبيت واختر USB الخاص بالـESP32.';
+    else if(!navigator.usb) $('directInstallHint').textContent='Chrome لا يعرض WebUSB على هذا الجهاز/المتصفح.';
+    else $('directInstallHint').textContent='جاري تجهيز أداة التفليش وFirmware…';
+  }
 }
 function browserCheck(){
   markPlatform();
@@ -120,8 +148,11 @@ async function loadEsptool(){
     }
     browserCheck();
     updateFlashButton();
+    updateUsbDiagnostics(true);
     log('esptool-js 0.7.0 loaded.');
   }catch(e){
+    updateUsbDiagnostics(false);
+    showInstallError('فشل تحميل أداة التفليش من الإنترنت: '+(e.message||e));
     $('browserBadge').textContent='فشل تحميل أداة التفليش';
     log('TOOL ERROR: '+(e.message||e));
     if($('connectBtn')) $('connectBtn').disabled=true;
@@ -162,8 +193,11 @@ async function loadCaptiveFirmware(){
     const bytes=new Uint8Array(await r.arrayBuffer());
     if(bytes.length<100000) throw new Error('Captive Portal firmware غير مكتمل');
     state.captiveFirmware={name:'mody-captive-portal-full.bin',bytes,address:0x0};
+    updateUsbDiagnostics(true);
     log('Captive Portal firmware ready: '+Math.round(bytes.length/1024)+' KB');
   }catch(e){
+    updateUsbDiagnostics(false);
+    showInstallError('تعذر تحميل Firmware: '+(e.message||e));
     log('CAPTIVE FIRMWARE: '+(e.message||e));
   }finally{
     updateFlashButton();
@@ -202,10 +236,10 @@ async function requestPort(){
 
 function friendlyError(e){
   const s=String(e?.message||e||'');
-  if(/No device selected|NotFoundError|user cancelled/i.test(s)) return 'لم يتم اختيار جهاز USB.';
+  if(/No device selected|NotFoundError|user cancelled/i.test(s)) return 'لم يتم اختيار جهاز USB. لو القائمة فاضية فغالبًا الكابل ليس Data/OTG أو شريحة USB ليست CH340/CH341.';
   if(/CH343|55d3/i.test(s)) return 'المحول CH343 وليس CH340؛ هذه النسخة تحتاج مسار USB مختلف.';
   if(/Couldn't sync|Failed to connect|sync/i.test(s)) return 'تم فتح USB لكن ESP32 لم تدخل وضع التحميل. استخدم BOOT + EN ثم أعد التوصيل.';
-  if(/claim|interface|Access denied|permission/i.test(s)) return 'Android لم يسمح بالوصول إلى USB. افصل الكابل، أعد توصيله ووافق على إذن Chrome.';
+  if(/claim|interface|Access denied|permission/i.test(s)) return 'Android لم يسمح بالوصول إلى USB. افصل البورد، أعد توصيلها، وافق على إذن USB لـChrome ثم جرّب مرة أخرى.';
   return s;
 }
 
@@ -377,26 +411,64 @@ async function askAI(){
 }
 
 async function oneClickFlash(){
+  clearInstallError();
+  updateUsbDiagnostics(false);
+
   if(IS_IOS){
-    alert('iPhone/iPad لا يدعم التفليش USB المباشر من Chrome. استخدم OTA بعد أول تثبيت.');
+    showInstallError('iPhone/iPad: Chrome لا يدعم WebUSB للتفليش المباشر. استخدم OTA.');
     return;
   }
+  if(!window.isSecureContext){
+    showInstallError('لازم تفتح الموقع عبر HTTPS.');
+    return;
+  }
+  if(!navigator.usb && !navigator.serial){
+    showInstallError('WebUSB/Web Serial غير متاح. تأكد أنك تستخدم Google Chrome الحقيقي وليس Samsung Internet أو متصفح داخل تطبيق.');
+    return;
+  }
+
   try{
     if(!state.captiveFirmware){
       await loadCaptiveFirmware();
-      if(!state.captiveFirmware) return alert('تعذر تحميل Firmware الـCaptive Portal.');
+      if(!state.captiveFirmware){
+        showInstallError('Firmware لم يتحمل. اعمل Refresh وتأكد أن الإنترنت شغال.');
+        return;
+      }
     }
     if(!state.esptool){
       await loadEsptool();
-      if(!state.esptool) return alert('تعذر تحميل أداة التفليش.');
+      if(!state.esptool){
+        showInstallError('أداة التفليش لم تتحمل.');
+        return;
+      }
     }
-    if(!confirm('سيتم توصيل ESP32 وفحص نوع الشريحة ثم تثبيت Firmware مباشرة من Chrome. متابعة؟')) return;
+
+    // Force the Android CH340 WebUSB path when available.
+    if(IS_ANDROID && navigator.usb && state.esptool?.WebUSBSerialPort){
+      state.mode='webusb-ch340';
+      $('connectionMode').textContent='Android WebUSB — CH340/CH341';
+    }else if(navigator.serial){
+      state.mode='webserial';
+    }
+
+    updateUsbDiagnostics(true);
+    status('اختر ESP32 من نافذة USB…');
+
     if(!state.loader) await connect();
-    if(!state.loader) return;
-    if(!isClassicEsp32()) return alert('تم منع التفليش لأن الشريحة ليست ESP32 الكلاسيكي.');
+    if(!state.loader){
+      showInstallError('لم يتم فتح ESP32. لو لم تظهر نافذة USB: جرّب كابل Data/OTG آخر، وافصل وأعد توصيل البورد.');
+      return;
+    }
+    if(!isClassicEsp32()){
+      showInstallError('الشريحة التي اكتشفها الموقع ليست ESP32 الكلاسيكي، لذلك أوقف التفليش للحماية.');
+      return;
+    }
+
     await flash(true,state.captiveFirmware,'MODY Captive Portal');
   }catch(e){
-    log('ONE CLICK ERROR: '+friendlyError(e));
+    const msg=friendlyError(e);
+    showInstallError(msg);
+    log('ONE CLICK ERROR: '+msg);
   }
 }
 
@@ -432,6 +504,7 @@ $('copyPinsBtn')?.addEventListener('click', async ()=>{
   }
 });
 markPlatform();
+updateUsbDiagnostics(false);
 
 function forceDownload(url,name){
   const a=document.createElement('a');
