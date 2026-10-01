@@ -144,8 +144,10 @@
         <div><b>LED Green</b><span>GPIO 13</span></div>
         <div><b>Buzzer</b><span>GPIO 14</span></div>
       </div>
+      <button id="oneClickFlashBtn3" class="primary direct-flash visible-install">⚡ تثبيت Firmware على ESP32 مباشرة من Chrome</button>
+      <p id="directInstallHint" class="muted small">Android Chrome + كابل USB بيانات/OTG: اضغط الزر، اختر ESP32 من نافذة USB، ثم وافق على التثبيت.</p>
       <div class="row wrap">
-        <a id="directDownloadBtn2" class="button primary" href="./firmware/mody-captive-portal-5buttons.ino" download="mody-captive-portal-5buttons.ino">⬇ تنزيل مباشر من الموقع</a>
+        <a id="directDownloadBtn2" class="button" href="./firmware/mody-captive-portal-5buttons.ino" download="mody-captive-portal-5buttons.ino">تنزيل الكود .INO فقط</a>
         <a class="button" href="http://192.168.4.1" target="_blank" rel="noopener">فتح Captive Portal</a>
         <button id="copyPinsBtn">نسخ التوصيلات</button>
       </div>
@@ -163,7 +165,7 @@ BUZZER = 14
 Wi-Fi: MODY-ESP32
 Portal: 192.168.4.1</pre>
       </details>
-      <p class="warn small">ملاحظة: زر التفليش الأحمر أعلى الصفحة يثبت Firmware MODAX الكامل الحالي. ملف .INO هنا هو كود الـCaptive Portal الخاص بتوصيلك الحالي.</p>
+      <p class="warn small">زر التثبيت الأزرق أعلاه يثبت Firmware الـMODY Captive Portal الخاص بتوصيلك الحالي مباشرة. زر MODAX الأحمر في قسم آخر يثبت Firmware مختلف.</p>
     </section>
 
     <section class="card">
