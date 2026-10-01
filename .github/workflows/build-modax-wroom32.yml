@@ -56,5 +56,6 @@ jobs:
             echo "No firmware changes"
           else
             git commit -m "Publish latest MODAX ESP32 firmware"
+            git pull --rebase origin esp32-flasher-site
             git push origin HEAD:esp32-flasher-site
           fi
