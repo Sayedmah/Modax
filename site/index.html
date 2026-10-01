@@ -15,10 +15,25 @@
       <div>
         <div class="eyebrow">MODAX × ESP32-WROOM-32</div>
         <h1>تثبيت MODAX من الموبايل</h1>
-        <p>Android يستخدم USB مباشرة. iPhone/iPad يستخدم OTA عبر Wi-Fi بعد تثبيت MODAX على البورد مرة واحدة.</p>
+        <p>واجهة واحدة تعمل على Android وiPhone/iPad والشاشات الذكية. التفليش المباشر عبر USB يظهر فقط إذا كان المتصفح يدعم WebUSB/Web Serial؛ وiOS يستخدم OTA/تنزيل الملف.</p>
       </div>
       <div id="browserBadge" class="badge">جاري اكتشاف جهازك…</div>
     </header>
+
+    <section class="platform-grid" aria-label="دعم الأجهزة">
+      <article id="androidCard" class="platform-card">
+        <strong>Android</strong>
+        <span>Chrome + USB OTG: تفليش مباشر عندما WebUSB متاح.</span>
+      </article>
+      <article id="iosCard" class="platform-card">
+        <strong>iPhone / iPad</strong>
+        <span>OTA عبر Wi‑Fi + تنزيل BIN. لا نعتمد على USB من المتصفح.</span>
+      </article>
+      <article id="smartCard" class="platform-card">
+        <strong>Smart Screen</strong>
+        <span>واجهة كبيرة ولمس كامل. USB فقط إذا كان متصفح الشاشة يدعمه.</span>
+      </article>
+    </section>
 
     <section id="iosSection" class="card hidden">
       <h2>وضع iPhone / iPad — Google Chrome</h2>
@@ -103,6 +118,46 @@
         <button id="askBtn" class="primary">اسأل MODAX</button>
         <div id="answer" class="answer"></div>
       </article>
+    </section>
+
+    <section class="card" id="deviceCodeSection">
+      <div class="section-title-row">
+        <div>
+          <h2>كود جهازك الحالي — بدون شاشة</h2>
+          <p class="muted">ESP32 Captive Portal مع 5 أزرار + LED أحمر + LED أخضر + Buzzer. الشبكة: <strong>MODY-ESP32</strong> والبوابة: <strong>192.168.4.1</strong>.</p>
+        </div>
+        <span class="badge" id="platformModeBadge">جاري تحديد الجهاز…</span>
+      </div>
+      <div class="pin-grid">
+        <div><b>UP</b><span>GPIO 32</span></div>
+        <div><b>DOWN</b><span>GPIO 33</span></div>
+        <div><b>LEFT</b><span>GPIO 25</span></div>
+        <div><b>RIGHT</b><span>GPIO 26</span></div>
+        <div><b>ACTION</b><span>GPIO 27</span></div>
+        <div><b>LED Red</b><span>GPIO 12</span></div>
+        <div><b>LED Green</b><span>GPIO 13</span></div>
+        <div><b>Buzzer</b><span>GPIO 14</span></div>
+      </div>
+      <div class="row wrap">
+        <a class="button primary" href="./firmware/mody-captive-portal-5buttons.ino" download="mody-captive-portal-5buttons.ino">تنزيل الكود .INO</a>
+        <a class="button" href="http://192.168.4.1" target="_blank" rel="noopener">فتح Captive Portal</a>
+        <button id="copyPinsBtn">نسخ التوصيلات</button>
+      </div>
+      <details class="source-details">
+        <summary>عرض بداية الكود</summary>
+        <pre class="codebox">BTN_UP = 32
+BTN_DOWN = 33
+BTN_LEFT = 25
+BTN_RIGHT = 26
+BTN_ACTION = 27
+LED_RED = 12
+LED_GREEN = 13
+BUZZER = 14
+
+Wi-Fi: MODY-ESP32
+Portal: 192.168.4.1</pre>
+      </details>
+      <p class="warn small">ملاحظة: زر التفليش الأحمر أعلى الصفحة يثبت Firmware MODAX الكامل الحالي. ملف .INO هنا هو كود الـCaptive Portal الخاص بتوصيلك الحالي.</p>
     </section>
 
     <section class="card">
