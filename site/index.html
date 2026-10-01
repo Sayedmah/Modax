@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#101318" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <title>MODAX ESP32-WROOM-32 Flasher</title>
+  <title>MODAX ESP32 Flasher + iOS OTA</title>
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="stylesheet" href="./styles.css" />
 </head>
@@ -14,16 +14,32 @@
     <header class="hero card">
       <div>
         <div class="eyebrow">MODAX × ESP32-WROOM-32</div>
-        <h1>ثبّت MODAX مباشرة من Android</h1>
-        <p>تم تحديث طريقة الاتصال للبورد الموجودة في الصورة: Android يستخدم WebUSB مباشر لمحول WCH CH340/CH341، والكمبيوتر يستخدم Web Serial. الـFirmware يُحمّل تلقائيًا من نفس الموقع.</p>
+        <h1>تثبيت MODAX من الموبايل</h1>
+        <p>Android يستخدم USB مباشرة. iPhone/iPad يستخدم OTA عبر Wi-Fi بعد تثبيت MODAX على البورد مرة واحدة.</p>
       </div>
-      <div id="browserBadge" class="badge">جاري تجهيز أداة التفليش…</div>
+      <div id="browserBadge" class="badge">جاري اكتشاف جهازك…</div>
     </header>
 
-    <section class="grid two">
+    <section id="iosSection" class="card hidden">
+      <h2>وضع iPhone / iPad — Google Chrome</h2>
+      <p>Chrome على iOS لا يملك WebUSB/Web Serial، لذلك الموقع يستخدم <strong>OTA عبر Wi-Fi</strong>. بعد أول تثبيت لـMODAX، لا تحتاج كابل USB مرة أخرى.</p>
+      <div class="cap-grid">
+        <div><strong>1</strong><span>نزّل ملف OTA إلى تطبيق Files</span></div>
+        <div><strong>2</strong><span>اتصل بشبكة MODAX-XXXX</span></div>
+        <div><strong>3</strong><span>افتح 192.168.4.1/ota</span></div>
+        <div><strong>4</strong><span>اختر BIN من Files واضغط تثبيت</span></div>
+      </div>
+      <div class="row wrap">
+        <a id="iosDownloadOta" class="button" href="./firmware/modax-esp32-wroom32-ota.bin" download="modax-esp32-wroom32-ota.bin">تنزيل Firmware OTA للآيفون</a>
+        <a class="button" href="http://192.168.4.1/ota" target="_blank" rel="noopener">فتح مثبت OTA على البورد</a>
+      </div>
+      <p class="warn small"><strong>أول مرة فقط:</strong> إذا كانت البورد جديدة ولم يُثبت عليها MODAX من قبل، iPhone لا يستطيع تفليشها عبر USB من المتصفح. اعمل أول تثبيت مرة واحدة من Android/PC، وبعدها كل التحديثات من iPhone.</p>
+    </section>
+
+    <section id="usbSection" class="grid two">
       <article class="card">
-        <h2>1) وصل البورد</h2>
-        <p class="muted">استخدم كابل USB Data مع OTG. اضغط الزر ثم وافق على إذن USB الذي يظهر من Android.</p>
+        <h2>1) وصل البورد عبر USB</h2>
+        <p class="muted">هذا المسار لـAndroid Chrome أو الكمبيوتر. الموقع يقرأ نوع الشريحة قبل الكتابة.</p>
         <div class="row wrap">
           <button id="connectBtn" class="primary" disabled>توصيل البورد</button>
           <button id="disconnectBtn" disabled>فصل</button>
@@ -41,7 +57,7 @@
 
       <article class="card">
         <h2>2) Firmware تلقائي</h2>
-        <p>لا تختار أي ملف. الموقع يحمل <strong>MODAX ESP32-WROOM-32</strong> تلقائيًا ويتأكد من نوع ESP قبل الكتابة.</p>
+        <p>الموقع يحمل Full Firmware تلقائيًا لـESP32-WROOM-32.</p>
         <div class="row wrap">
           <div id="firmwareStatus" class="muted small">جاري تحميل Firmware…</div>
           <button id="firmwareRetryBtn">إعادة التحميل</button>
@@ -49,21 +65,24 @@
         <div class="progress"><div id="progressBar"></div></div>
         <div id="progressText" class="muted small">0%</div>
         <button id="flashBtn" class="danger" disabled>ثبّت MODAX على البورد</button>
-        <p class="warn small"><strong>لو ظهر Couldn't sync:</strong> اضغط BOOT باستمرار، اضغط EN/RST ضغطة، اترك EN ثم اترك BOOT بعد ثانية، وبعدها اضغط «توصيل البورد» مرة أخرى.</p>
+        <p class="warn small"><strong>لو ظهر Couldn't sync:</strong> اضغط BOOT باستمرار، اضغط EN/RST ضغطة، اترك EN ثم اترك BOOT بعد ثانية، وبعدها أعد التوصيل.</p>
       </article>
     </section>
 
     <section class="grid two">
       <article class="card">
-        <h2>3) أول تشغيل وWi-Fi</h2>
-        <p>بعد التثبيت، إذا لم توجد شبكة محفوظة ستنشئ البورد شبكة إعداد تلقائيًا.</p>
+        <h2>3) بوابة البورد</h2>
+        <p>بعد التشغيل، إذا لم توجد شبكة محفوظة ستنشئ البورد شبكة إعداد تلقائيًا.</p>
         <div class="cap-grid">
           <div><strong>الشبكة</strong><span>MODAX-XXXX</span></div>
           <div><strong>كلمة المرور</strong><span>modax1234</span></div>
-          <div><strong>بوابة الإعداد</strong><span>192.168.4.1</span></div>
-          <div><strong>إعادة Wi-Fi</strong><span>BOOT لمدة 3 ثوانٍ أثناء التشغيل</span></div>
+          <div><strong>الإعداد</strong><span>192.168.4.1</span></div>
+          <div><strong>OTA</strong><span>192.168.4.1/ota</span></div>
         </div>
-        <div class="row wrap"><a class="button" href="http://192.168.4.1" target="_blank" rel="noopener">فتح بوابة الإعداد</a></div>
+        <div class="row wrap">
+          <a class="button" href="http://192.168.4.1" target="_blank" rel="noopener">فتح بوابة الإعداد</a>
+          <a class="button" href="http://192.168.4.1/ota" target="_blank" rel="noopener">تثبيت BIN عبر Wi-Fi</a>
+        </div>
       </article>
 
       <article class="card">
@@ -88,13 +107,8 @@
 
     <section class="card">
       <h2>Qwen Offline</h2>
-      <p>أضفت نسخة ذكاء محلي تعمل على الموبايل بدون API. أول مرة تنزّل Qwen، وبعدها يمكن تشغيله من التخزين المحلي حتى بدون إنترنت.</p>
+      <p>Qwen يعمل محليًا على الموبايل بدون API بعد تنزيل النموذج أول مرة.</p>
       <div class="row wrap"><a class="button" href="./offline.html">فتح Qwen Offline</a></div>
-    </section>
-
-    <section class="card">
-      <h2>مهم قبل التوصيل</h2>
-      <p>على Android افتح الموقع في <strong>Google Chrome</strong> نفسه، وليس المتصفح الداخلي داخل ChatGPT أو Facebook أو أي WebView. البورد الموجودة في صورتك تبدو كـ ESP32-WROOM-32 DevKit بمحول USB-UART من عائلة CH340، لذلك وضع Android الجديد يستخدم WebUSB الخاص بـ CH340 مباشرة.</p>
     </section>
   </main>
   <script type="module" src="./app.js"></script>
