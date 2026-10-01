@@ -64,8 +64,9 @@ static String setupPage(){
 }
 
 static void redirectPortal(){
-  server.sendHeader("Location","http://192.168.4.1/",true);
-  server.send(302,"text/plain","");
+  // Captive portals are more reliable on Android/iOS when the probe itself
+  // receives the login page instead of a redirect loop.
+  server.send(200,"text/html; charset=utf-8",setupPage());
 }
 
 static void installRoutes(){
@@ -121,8 +122,17 @@ static void installRoutes(){
     ESP.restart();
   });
 
+  // Android / ChromeOS
   server.on("/generate_204", HTTP_GET, redirectPortal);
+  server.on("/gen_204", HTTP_GET, redirectPortal);
+  server.on("/connectivity-check.html", HTTP_GET, redirectPortal);
+  server.on("/redirect", HTTP_GET, redirectPortal);
+  // Apple captive-network assistant
   server.on("/hotspot-detect.html", HTTP_GET, redirectPortal);
+  server.on("/library/test/success.html", HTTP_GET, redirectPortal);
+  server.on("/canonical.html", HTTP_GET, redirectPortal);
+  server.on("/success.txt", HTTP_GET, redirectPortal);
+  // Windows NCSI
   server.on("/connecttest.txt", HTTP_GET, redirectPortal);
   server.on("/ncsi.txt", HTTP_GET, redirectPortal);
   server.onNotFound([](){ if(portalMode) redirectPortal(); else server.send(404,"text/plain","not found"); });
@@ -130,10 +140,22 @@ static void installRoutes(){
 
 static void startPortal(){
   portalMode=true;
+  WiFi.disconnect(true, true);
+  delay(150);
   WiFi.mode(WIFI_AP_STA);
-  WiFi.softAP(apName.c_str(),"modax1234");
-  dns.start(53,"*",WiFi.softAPIP());
-  Serial.printf("Setup AP: %s  URL: http://192.168.4.1\n",apName.c_str());
+  WiFi.setSleep(false);
+
+  IPAddress apIP(192,168,4,1);
+  IPAddress gateway(192,168,4,1);
+  IPAddress subnet(255,255,255,0);
+  WiFi.softAPConfig(apIP,gateway,subnet);
+
+  bool apOk=WiFi.softAP(apName.c_str(),"modax1234",6,false,4);
+  delay(100);
+  dns.start(53,"*",apIP);
+
+  Serial.printf("Captive portal AP: %s (%s) URL: http://192.168.4.1\n",
+                apName.c_str(),apOk?"started":"FAILED");
 }
 
 static bool connectSaved(){
