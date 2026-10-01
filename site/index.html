@@ -155,6 +155,19 @@
         <div><span>Firmware</span><b id="diagFw">…</b></div>
       </div>
       <p id="directInstallHint" class="muted small">اضغط الزر. لو USB لم يظهر، الموقع سيعرض السبب هنا بدل أن يبقى الزر بدون استجابة.</p>
+      <div id="installProgressCard" class="install-progress-card">
+        <div class="install-progress-head">
+          <strong id="installStage">جاهز للتثبيت</strong>
+          <span id="installElapsed">0.0 ثانية</span>
+        </div>
+        <div class="install-progress-track">
+          <div id="installProgressBar" class="install-progress-bar"></div>
+        </div>
+        <div class="install-progress-foot">
+          <span id="installProgressPct">0%</span>
+          <span id="installProgressDetail">لم يبدأ بعد</span>
+        </div>
+      </div>
       <div id="directInstallError" class="install-error hidden"></div>
       <div class="row wrap">
         <a id="directDownloadBtn2" class="button" href="./firmware/mody-captive-portal-5buttons.ino" download="mody-captive-portal-5buttons.ino">تنزيل الكود .INO فقط</a>
