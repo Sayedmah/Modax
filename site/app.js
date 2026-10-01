@@ -351,7 +351,7 @@ async function requestPort(preselectedUsb=null){
 
 function friendlyError(e){
   const s=String(e?.message||e||'');
-  if(/No device selected|NotFoundError|user cancelled/i.test(s)) return 'Chrome لم يستلم جهاز USB من نافذة الاختيار. اضغط تثبيت مرة أخرى واختر WCH/CH340 إذا ظهر.';
+  if(/No device selected|NotFoundError|user cancelled/i.test(s)) return 'لم يتم اختيار الجهاز. افتح التثبيت مرة أخرى، اضغط على سطر USB Serial أولًا، وبعدها اضغط «اتصال».';
   if(/CH343|55d3/i.test(s)) return 'المحول CH343 وليس CH340؛ هذه النسخة تحتاج مسار USB مختلف.';
   if(/Couldn't sync|Failed to connect|sync|مهلة الاتصال|Connect timeout/i.test(s)) return 'USB اتفتح لكن ESP32 لم تكمل RESET/SYNC خلال المهلة. الموقع وقف المحاولة تلقائيًا بدل التعليق.';
   if(/claim|interface|Access denied|permission/i.test(s)) return 'Android لم يسمح بالوصول إلى USB. افصل البورد، أعد توصيلها، وافق على إذن USB لـChrome ثم جرّب مرة أخرى.';
@@ -638,7 +638,8 @@ async function oneClickFlash(){
     if(IS_ANDROID){
       // MUST be the first async browser permission call after the user's click.
       // This preserves Chrome's transient user activation.
-      updateInstallProgress(3,'اختيار البوردة','اختر WCH / CH340 الخاص بالـESP32');
+      updateInstallProgress(3,'اختيار البوردة','في نافذة Chrome: اضغط USB Serial ثم اضغط اتصال');
+      alert('في النافذة التالية:\n1) اضغط على USB Serial\n2) بعد تحديده اضغط «اتصال»\n\nزر اتصال سيظل رماديًا لحد ما تختار USB Serial.');
       selectedUsb=await navigator.usb.requestDevice({
         filters:[
           {vendorId:0x1A86}, // WCH CH340/CH341/CH910x
