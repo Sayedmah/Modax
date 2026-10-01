@@ -27,8 +27,8 @@ jobs:
           rm -rf /tmp/wllama-pkg site/vendor/wllama
           mkdir -p /tmp/wllama-pkg site/vendor/wllama
           cd /tmp/wllama-pkg
-          npm pack @wllama/wllama@3.7.0
-          tar -xzf wllama-wllama-3.7.0.tgz
+          npm pack @wllama/wllama@3.6.1
+          tar -xzf wllama-wllama-3.6.1.tgz
           test -f package/esm/index.js
           test -f package/esm/wasm/wllama.wasm
           cp -R package/esm "$GITHUB_WORKSPACE/site/vendor/wllama/esm"
@@ -42,5 +42,6 @@ jobs:
             echo "No changes"
           else
             git commit -m "Vendor wllama runtime for offline Qwen"
+            git pull --rebase origin esp32-flasher-site
             git push origin HEAD:esp32-flasher-site
           fi
