@@ -18,7 +18,8 @@
         <p>واجهة واحدة تعمل على Android وiPhone/iPad والشاشات الذكية. التفليش المباشر عبر USB يظهر فقط إذا كان المتصفح يدعم WebUSB/Web Serial؛ وiOS يستخدم OTA/تنزيل الملف.</p>
       </div>
       <div class="hero-actions">
-        <a id="directDownloadBtn" class="button primary big-download" href="./firmware/mody-captive-portal-5buttons.ino" download="mody-captive-portal-5buttons.ino">⬇ تنزيل Captive Portal مباشرة</a>
+        <button id="oneClickFlashBtn" class="button primary big-download">⚡ تثبيت Firmware مباشرة من Chrome</button>
+        <a id="directDownloadBtn" class="button" href="./firmware/mody-captive-portal-5buttons.ino" download="mody-captive-portal-5buttons.ino">تنزيل الكود فقط</a>
         <div id="browserBadge" class="badge">جاري اكتشاف جهازك…</div>
       </div>
     </header>
@@ -83,6 +84,8 @@
         <div class="progress"><div id="progressBar"></div></div>
         <div id="progressText" class="muted small">0%</div>
         <button id="flashBtn" class="danger" disabled>ثبّت MODAX على البورد</button>
+        <button id="oneClickFlashBtn2" class="primary direct-flash" disabled>⚡ توصيل + فحص + تثبيت مباشرة</button>
+        <p class="muted small"><strong>Android Chrome:</strong> اضغط «تثبيت Firmware مباشرة»، اختر USB الخاص بـESP32 ووافق على الإذن؛ الموقع يفحص الشريحة ثم يبدأ التفليش.</p>
         <p class="warn small"><strong>لو ظهر Couldn't sync:</strong> اضغط BOOT باستمرار، اضغط EN/RST ضغطة، اترك EN ثم اترك BOOT بعد ثانية، وبعدها أعد التوصيل.</p>
       </article>
     </section>
