@@ -19,6 +19,41 @@ const state = {
   firmware:null, captiveFirmware:null, stream:null, mode:'', esptool:null
 };
 
+let installStartedAt=0;
+let installTimerId=null;
+
+function formatElapsed(ms){
+  const sec=Math.max(0,ms)/1000;
+  return sec<60 ? sec.toFixed(1)+' ثانية' : Math.floor(sec/60)+' د '+(sec%60).toFixed(0)+' ث';
+}
+function updateInstallProgress(pct,stage,detail='',kind='running'){
+  const p=Math.max(0,Math.min(100,Number(pct)||0));
+  if($('installProgressBar')) $('installProgressBar').style.width=p+'%';
+  if($('installProgressPct')) $('installProgressPct').textContent=Math.round(p)+'%';
+  if($('installStage')) $('installStage').textContent=stage||'جاري العمل…';
+  if($('installProgressDetail')) $('installProgressDetail').textContent=detail||'';
+  const card=$('installProgressCard');
+  if(card){
+    card.classList.toggle('progress-success',kind==='success');
+    card.classList.toggle('progress-fail',kind==='fail');
+    card.classList.toggle('progress-running',kind==='running');
+  }
+}
+function startInstallTimer(){
+  installStartedAt=performance.now();
+  if(installTimerId) clearInterval(installTimerId);
+  if($('installElapsed')) $('installElapsed').textContent='0.0 ثانية';
+  installTimerId=setInterval(()=>{
+    if($('installElapsed')) $('installElapsed').textContent=formatElapsed(performance.now()-installStartedAt);
+  },100);
+}
+function stopInstallTimer(){
+  if(installTimerId){clearInterval(installTimerId);installTimerId=null;}
+  const elapsed=installStartedAt ? performance.now()-installStartedAt : 0;
+  if($('installElapsed')) $('installElapsed').textContent=formatElapsed(elapsed);
+  return elapsed;
+}
+
 function log(line='') {
   const el=$('terminal');
   if(!el) return;
@@ -195,19 +230,51 @@ async function loadFirmware(){
 }
 
 
-async function loadCaptiveFirmware(){
+async function loadCaptiveFirmware(trackInstall=false){
   state.captiveFirmware=null;
   updateFlashButton();
   try{
+    if(trackInstall) updateInstallProgress(2,'تحميل Firmware','بدء التحميل…');
     const r=await fetch(CAPTIVE_FIRMWARE_URL+'?v='+Date.now(),{cache:'no-store'});
     if(!r.ok) throw new Error('HTTP '+r.status);
-    const bytes=new Uint8Array(await r.arrayBuffer());
+
+    const total=Number(r.headers.get('content-length'))||0;
+    let bytes;
+
+    if(r.body && total>0){
+      const reader=r.body.getReader();
+      const chunks=[];
+      let received=0;
+      while(true){
+        const {done,value}=await reader.read();
+        if(done) break;
+        chunks.push(value);
+        received+=value.length;
+        if(trackInstall){
+          const pct=2+(received/total)*18;
+          updateInstallProgress(pct,'تحميل Firmware',
+            Math.round(received/1024)+' / '+Math.round(total/1024)+' KB');
+        }
+      }
+      bytes=new Uint8Array(received);
+      let pos=0;
+      for(const chunk of chunks){bytes.set(chunk,pos);pos+=chunk.length;}
+    }else{
+      bytes=new Uint8Array(await r.arrayBuffer());
+      if(trackInstall) updateInstallProgress(20,'تحميل Firmware',Math.round(bytes.length/1024)+' KB تم التحميل');
+    }
+
     if(bytes.length<100000) throw new Error('Captive Portal firmware غير مكتمل');
     state.captiveFirmware={name:'mody-captive-portal-full.bin',bytes,address:0x0};
+    if(trackInstall) updateInstallProgress(20,'Firmware جاهز',Math.round(bytes.length/1024)+' KB');
     updateUsbDiagnostics(true);
     log('Captive Portal firmware ready: '+Math.round(bytes.length/1024)+' KB');
   }catch(e){
     updateUsbDiagnostics(false);
+    if(trackInstall){
+      const elapsed=stopInstallTimer();
+      updateInstallProgress(0,'فشل تحميل Firmware',(e.message||e)+' — '+formatElapsed(elapsed),'fail');
+    }
     showInstallError('تعذر تحميل Firmware: '+(e.message||e));
     log('CAPTIVE FIRMWARE: '+(e.message||e));
   }finally{
@@ -277,6 +344,7 @@ function friendlyError(e){
 async function connect(){
   try{
     $('terminal').textContent='';
+    if(installStartedAt) updateInstallProgress(25,'البحث عن البوردة','افتح نافذة USB واختر ESP32');
     status('طلب إذن USB…');
     state.port=await requestPort();
     state.transport=new state.esptool.Transport(state.port,true);
@@ -286,6 +354,7 @@ async function connect(){
       terminal,
       debugLogging:false
     });
+    if(installStartedAt) updateInstallProgress(32,'الاتصال بالبوردة','جاري اكتشاف شريحة ESP32…');
     status('جاري اكتشاف ESP32…');
     state.chip=await state.loader.main('default_reset');
     $('chipName').textContent=state.chip||'غير معروف';
@@ -299,6 +368,7 @@ async function connect(){
 
     updateBoardMatch();
     if(isClassicEsp32()){
+      if(installStartedAt) updateInstallProgress(40,'تم الاتصال','تم اكتشاف '+(state.chip||'ESP32'));
       status('متصل — جاهز للتثبيت');
       log('Board accepted: classic ESP32.');
     }else{
@@ -344,6 +414,7 @@ async function flash(skipConfirm=false, firmwareOverride=null, label='MODAX'){
   try{
     $('flashBtn').disabled=true;
     setProgress(0,'بدء التثبيت…');
+    if(installStartedAt) updateInstallProgress(42,'تثبيت Firmware','بدء الكتابة على الفلاش…');
     await state.loader.writeFlash({
       fileArray:[{data:targetFirmware.bytes,address:0x0}],
       flashMode:'dio',
@@ -354,18 +425,30 @@ async function flash(skipConfirm=false, firmwareOverride=null, label='MODAX'){
       reportProgress:(_idx,written,total)=>{
         const pct=total?written/total*100:0;
         setProgress(pct,Math.round(pct)+'% — '+Math.round(written/1024)+' / '+Math.round(total/1024)+' KB');
+        if(installStartedAt){
+          const overall=42+(pct*0.58);
+          updateInstallProgress(overall,'تثبيت Firmware',Math.round(written/1024)+' / '+Math.round(total/1024)+' KB');
+        }
       }
     });
     setProgress(100,'اكتمل التثبيت');
     status('تم تثبيت '+label);
     log('Flash complete.');
     try{ await state.loader.after('hard_reset'); }catch(e){ log('Reset note: '+(e.message||e)); }
+    if(installStartedAt){
+      const elapsed=stopInstallTimer();
+      updateInstallProgress(100,'تم التثبيت بنجاح ✅','المدة: '+formatElapsed(elapsed),'success');
+    }
     alert('تم تثبيت '+label+' بنجاح.');
   }catch(e){
     const msg=friendlyError(e);
     log('FLASH ERROR: '+msg);
     log('RAW: '+String(e?.stack||e));
     setProgress(0,'فشل التثبيت — راجع السجل');
+    if(installStartedAt){
+      const elapsed=stopInstallTimer();
+      updateInstallProgress(0,'فشل التثبيت ❌',msg+' — بعد '+formatElapsed(elapsed),'fail');
+    }
   }finally{
     updateFlashButton();
   }
@@ -488,35 +571,47 @@ async function searchBoardOnly(){
 
 async function oneClickFlash(){
   clearInstallError();
+  installStartedAt=0;
+  startInstallTimer();
+  updateInstallProgress(1,'بدء العملية','فحص المتصفح وUSB…');
+
   if(IS_IOS){
+    const elapsed=stopInstallTimer();
+    updateInstallProgress(0,'فشل ❌','iPhone/iPad يحتاج OTA — '+formatElapsed(elapsed),'fail');
     showInstallError('iPhone/iPad لا يدعم التفليش USB المباشر من Chrome. استخدم OTA.');
     return;
   }
   if(!window.isSecureContext){
+    const elapsed=stopInstallTimer();
+    updateInstallProgress(0,'فشل ❌','الموقع ليس HTTPS — '+formatElapsed(elapsed),'fail');
     showInstallError('افتح الموقع عبر HTTPS.');
     return;
   }
   if(IS_ANDROID && !navigator.usb){
+    const elapsed=stopInstallTimer();
+    updateInstallProgress(0,'فشل ❌','WebUSB غير متاح — '+formatElapsed(elapsed),'fail');
     showInstallError('WebUSB غير متاح في Chrome على هذا الهاتف.');
-    return;
-  }
-  if(!IS_ANDROID && !navigator.usb && !navigator.serial){
-    showInstallError('USB غير متاح في هذا المتصفح. استخدم Google Chrome أو Edge.');
-    return;
-  }
-
-  if(!state.esptool || !state.captiveFirmware){
-    showInstallError('جاري تجهيز Flasher وFirmware. انتظر حتى يصبحا ✓ ثم اضغط الزر مرة ثانية.');
-    if(!state.esptool) loadEsptool();
-    if(!state.captiveFirmware) loadCaptiveFirmware();
     return;
   }
 
   try{
+    if(!state.esptool){
+      updateInstallProgress(3,'تحميل أداة التفليش','جاري تجهيز Flasher…');
+      await loadEsptool();
+      if(!state.esptool) throw new Error('أداة التفليش لم تتحمل');
+    }
+    updateInstallProgress(5,'أداة التفليش جاهزة','Flasher ✓');
+
+    if(!state.captiveFirmware){
+      await loadCaptiveFirmware(true);
+      if(!state.captiveFirmware) return;
+    }else{
+      updateInstallProgress(20,'Firmware جاهز',Math.round(state.captiveFirmware.bytes.length/1024)+' KB');
+    }
+
     if(IS_ANDROID){
       if(!navigator.usb || !state.esptool?.WebUSBSerialPort){
-        showInstallError('Android لازم يستخدم WebUSB هنا، لكن WebUSB غير متاح في هذا المتصفح.');
-        return;
+        throw new Error('Android WebUSB غير متاح');
       }
       state.mode='webusb-ch340';
       if($('connectionMode')) $('connectionMode').textContent='Android WebUSB — CH340/CH341';
@@ -525,18 +620,21 @@ async function oneClickFlash(){
     }
 
     if(!state.loader) await connect();
-    if(!state.loader){
-      showInstallError('لم يظهر ESP32. جرّب كابل Data/OTG، وافصل البورد ثم أعد توصيلها.');
+    if(!state.loader) throw new Error('لم يتم فتح ESP32');
+    if(!isClassicEsp32()) throw new Error('الشريحة المكتشفة ليست ESP32 الكلاسيكي');
+
+    updateInstallProgress(40,'جاهز للتثبيت','تم اكتشاف '+(state.chip||'ESP32'));
+    if(!confirm('تم اكتشاف ESP32. هل تريد تثبيت MODY Captive Portal الآن؟')){
+      const elapsed=stopInstallTimer();
+      updateInstallProgress(40,'تم الإلغاء','ألغيت العملية بعد '+formatElapsed(elapsed),'fail');
       return;
     }
-    if(!isClassicEsp32()){
-      showInstallError('الشريحة المكتشفة ليست ESP32 الكلاسيكي.');
-      return;
-    }
-    if(!confirm('تم اكتشاف ESP32. هل تريد تثبيت MODY Captive Portal الآن؟')) return;
+
     await flash(true,state.captiveFirmware,'MODY Captive Portal');
   }catch(e){
     const msg=friendlyError(e);
+    const elapsed=stopInstallTimer();
+    updateInstallProgress(0,'فشل التثبيت ❌',msg+' — بعد '+formatElapsed(elapsed),'fail');
     showInstallError(msg);
     log('ONE CLICK ERROR: '+msg);
   }
@@ -577,6 +675,7 @@ $('copyPinsBtn')?.addEventListener('click', async ()=>{
 });
 markPlatform();
 updateUsbDiagnostics(false);
+updateInstallProgress(0,'جاهز للتثبيت','لم يبدأ بعد','idle');
 
 function forceDownload(url,name){
   const a=document.createElement('a');
