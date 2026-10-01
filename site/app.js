@@ -376,3 +376,21 @@ $('copyPinsBtn')?.addEventListener('click', async ()=>{
   }
 });
 markPlatform();
+
+function forceDownload(url,name){
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=name;
+  a.rel='noopener';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+['directDownloadBtn','directDownloadBtn2'].forEach(id=>{
+  $(id)?.addEventListener('click',(e)=>{
+    // Keep the native same-origin download flow; this works on Android/desktop
+    // and hands off to Files/Downloads on iOS according to the browser.
+    const a=e.currentTarget;
+    a.setAttribute('download','mody-captive-portal-5buttons.ino');
+  });
+});
