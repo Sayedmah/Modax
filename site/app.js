@@ -1,5 +1,6 @@
 const $ = (id) => document.getElementById(id);
 const FIRMWARE_URL = './firmware/modax-esp32-wroom32-full.bin';
+const CAPTIVE_FIRMWARE_URL = './firmware/mody-captive-portal-full.bin';
 const UA = navigator.userAgent;
 const IS_ANDROID = /Android/i.test(UA);
 const IS_IOS = /iPhone|iPad|iPod/i.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -8,7 +9,7 @@ const IS_SMART_DISPLAY = /(SmartTV|SMART-TV|Tizen|Web0S|NetCast|HbbTV|AFT|CrKey|
 
 const state = {
   port:null, transport:null, loader:null, chip:'', flashSize:'4MB',
-  firmware:null, stream:null, mode:'', esptool:null
+  firmware:null, captiveFirmware:null, stream:null, mode:'', esptool:null
 };
 
 function log(line='') {
@@ -42,7 +43,7 @@ function updateFlashButton(){
   const directSupported = !IS_IOS && window.isSecureContext &&
     ((IS_ANDROID && navigator.usb && state.esptool?.WebUSBSerialPort) ||
      (!IS_ANDROID && (navigator.serial || (navigator.usb && state.esptool?.WebUSBSerialPort))));
-  if($('oneClickFlashBtn2')) $('oneClickFlashBtn2').disabled=!directSupported || !state.firmware || !state.esptool;
+  if($('oneClickFlashBtn2')) $('oneClickFlashBtn2').disabled=!directSupported || !state.captiveFirmware || !state.esptool;
 }
 
 function showIosMode(){
@@ -149,6 +150,24 @@ async function loadFirmware(){
   }
 }
 
+
+async function loadCaptiveFirmware(){
+  state.captiveFirmware=null;
+  updateFlashButton();
+  try{
+    const r=await fetch(CAPTIVE_FIRMWARE_URL+'?v='+Date.now(),{cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const bytes=new Uint8Array(await r.arrayBuffer());
+    if(bytes.length<100000) throw new Error('Captive Portal firmware غير مكتمل');
+    state.captiveFirmware={name:'mody-captive-portal-full.bin',bytes,address:0x0};
+    log('Captive Portal firmware ready: '+Math.round(bytes.length/1024)+' KB');
+  }catch(e){
+    log('CAPTIVE FIRMWARE: '+(e.message||e));
+  }finally{
+    updateFlashButton();
+  }
+}
+
 const terminal={
   clean(){ if($('terminal')) $('terminal').textContent=''; },
   writeLine(data){ log(String(data)); },
@@ -249,16 +268,17 @@ async function disconnect(){
   updateFlashButton();
 }
 
-async function flash(skipConfirm=false){
+async function flash(skipConfirm=false, firmwareOverride=null, label='MODAX'){
   if(!state.loader) return alert('وصل البورد أولًا.');
-  if(!state.firmware) return alert('Firmware لم يكتمل تحميله.');
+  const targetFirmware=firmwareOverride || state.firmware;
+  if(!targetFirmware) return alert('Firmware لم يكتمل تحميله.');
   if(!isClassicEsp32()) return alert('تم منع التفليش لأن الشريحة ليست ESP32 الكلاسيكي.');
-  if(!skipConfirm && !confirm('سيتم استبدال البرنامج الحالي على البورد ببرنامج MODAX. متابعة؟')) return;
+  if(!skipConfirm && !confirm('سيتم استبدال البرنامج الحالي على البورد ببرنامج '+label+'. متابعة؟')) return;
   try{
     $('flashBtn').disabled=true;
     setProgress(0,'بدء التثبيت…');
     await state.loader.writeFlash({
-      fileArray:[{data:state.firmware.bytes,address:0x0}],
+      fileArray:[{data:targetFirmware.bytes,address:0x0}],
       flashMode:'dio',
       flashFreq:'40m',
       flashSize:'4MB',
@@ -270,10 +290,10 @@ async function flash(skipConfirm=false){
       }
     });
     setProgress(100,'اكتمل التثبيت');
-    status('تم تثبيت MODAX');
+    status('تم تثبيت '+label);
     log('Flash complete.');
     try{ await state.loader.after('hard_reset'); }catch(e){ log('Reset note: '+(e.message||e)); }
-    alert('تم تثبيت MODAX. بعد التشغيل يمكنك استخدام OTA من iPhone.');
+    alert('تم تثبيت '+label+' بنجاح.');
   }catch(e){
     const msg=friendlyError(e);
     log('FLASH ERROR: '+msg);
@@ -360,9 +380,9 @@ async function oneClickFlash(){
     return;
   }
   try{
-    if(!state.firmware){
-      await loadFirmware();
-      if(!state.firmware) return alert('تعذر تحميل Firmware.');
+    if(!state.captiveFirmware){
+      await loadCaptiveFirmware();
+      if(!state.captiveFirmware) return alert('تعذر تحميل Firmware الـCaptive Portal.');
     }
     if(!state.esptool){
       await loadEsptool();
@@ -372,7 +392,7 @@ async function oneClickFlash(){
     if(!state.loader) await connect();
     if(!state.loader) return;
     if(!isClassicEsp32()) return alert('تم منع التفليش لأن الشريحة ليست ESP32 الكلاسيكي.');
-    await flash(true);
+    await flash(true,state.captiveFirmware,'MODY Captive Portal');
   }catch(e){
     log('ONE CLICK ERROR: '+friendlyError(e));
   }
@@ -381,7 +401,7 @@ async function oneClickFlash(){
 $('connectBtn')?.addEventListener('click',connect);
 $('disconnectBtn')?.addEventListener('click',disconnect);
 $('firmwareRetryBtn')?.addEventListener('click',loadFirmware);
-$('flashBtn')?.addEventListener('click',flash);
+$('flashBtn')?.addEventListener('click',()=>flash(false,null,'MODAX'));
 $('oneClickFlashBtn')?.addEventListener('click',oneClickFlash);
 $('oneClickFlashBtn2')?.addEventListener('click',oneClickFlash);
 $('cameraBtn')?.addEventListener('click',startCamera);
@@ -393,6 +413,7 @@ if(IS_IOS){
   browserCheck();
 }else{
   loadFirmware();
+  loadCaptiveFirmware();
   loadEsptool();
 }
 if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
