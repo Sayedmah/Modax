@@ -1,0 +1,46 @@
+name: Vendor wllama for Offline Qwen
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [esp32-flasher-site]
+    paths:
+      - '.github/workflows/vendor-wllama.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  vendor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: esp32-flasher-site
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download wllama package
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/wllama-pkg site/vendor/wllama
+          mkdir -p /tmp/wllama-pkg site/vendor/wllama
+          cd /tmp/wllama-pkg
+          npm pack @wllama/wllama@3.7.0
+          tar -xzf wllama-wllama-3.7.0.tgz
+          test -f package/esm/index.js
+          test -f package/esm/wasm/wllama.wasm
+          cp -R package/esm "$GITHUB_WORKSPACE/site/vendor/wllama/esm"
+      - name: Publish vendored runtime
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/vendor/wllama
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Vendor wllama runtime for offline Qwen"
+            git push origin HEAD:esp32-flasher-site
+          fi
