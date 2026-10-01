@@ -3,6 +3,7 @@
 #include <WebServer.h>
 #include <DNSServer.h>
 #include <Preferences.h>
+#include <Update.h>
 
 static WebServer server(80);
 static DNSServer dns;
@@ -11,18 +12,8 @@ static bool portalMode = false;
 static String deviceId;
 static String apName;
 static unsigned long bootPressedAt = 0;
-
-static String htmlEscape(const String &s){
-  String o;
-  for(char c: s){
-    if(c=='&') o+="&amp;";
-    else if(c=='<') o+="&lt;";
-    else if(c=='>') o+="&gt;";
-    else if(c=='\"') o+="&quot;";
-    else o+=c;
-  }
-  return o;
-}
+static bool otaFailed = false;
+static size_t otaBytes = 0;
 
 static String jsonEscape(const String &s){
   String o;
@@ -35,44 +26,65 @@ static String jsonEscape(const String &s){
   return o;
 }
 
-static String setupPage(){
-  return String(
-    "<!doctype html><html lang='ar' dir='rtl'><meta charset='utf-8'>"
+static String pageHead(const String &title){
+  return String("<!doctype html><html lang='ar' dir='rtl'><meta charset='utf-8'>"
     "<meta name='viewport' content='width=device-width,initial-scale=1'>"
-    "<title>MODAX Setup</title><style>"
-    "body{font-family:system-ui;background:#0b0e12;color:#fff;margin:0;padding:20px}"
-    "main{max-width:620px;margin:auto;background:#151b24;border:1px solid #2d3746;border-radius:20px;padding:20px}"
+    "<title>")+title+"</title><style>"
+    "body{font-family:system-ui;background:#0b0e12;color:#fff;margin:0;padding:18px}"
+    "main{max-width:680px;margin:auto}.card{background:#151b24;border:1px solid #2d3746;border-radius:18px;padding:18px;margin:12px 0}"
     "input,button,select{font:inherit;width:100%;padding:12px;margin:7px 0;border-radius:12px;border:1px solid #455268;background:#0d1219;color:#fff;box-sizing:border-box}"
-    "button{background:#1769e0}.muted{color:#aab5c4;line-height:1.7}</style><main>"
-    "<h1>MODAX — ESP32-WROOM-32</h1>"
-    "<p class='muted'>اختر شبكة ظاهرة، أو فعّل «شبكة مخفية» واكتب اسم SSID يدويًا بالضبط كما هو في الراوتر.</p>"
-    "<label style='display:flex;gap:10px;align-items:center;margin:10px 0'><input id='hidden' type='checkbox' style='width:auto'> شبكتي مخفية</label>"
-    "<div id='scanbox'><button onclick='scan()'>بحث عن الشبكات الظاهرة</button><select id='nets'><option>اضغط بحث</option></select></div>"
-    "<input id='ssid' placeholder='اسم الشبكة SSID — اكتب الاسم يدويًا لو الشبكة مخفية'>"
-    "<input id='pass' type='password' placeholder='كلمة المرور'>"
-    "<button onclick='save()'>حفظ والاتصال</button><pre id='out'></pre>"
-    "<p class='muted'>للشبكة المخفية: لا تنتظر ظهورها في البحث. اكتب الاسم بنفس الحروف والمسافات ثم كلمة المرور. ESP32 يعمل على 2.4 GHz فقط.</p>"
-    "<p class='muted'>لإعادة الإعداد لاحقًا: اضغط BOOT لمدة 3 ثوانٍ أثناء التشغيل.</p>"
-    "<script>"
-    "const n=document.getElementById('nets'),s=document.getElementById('ssid'),p=document.getElementById('pass'),o=document.getElementById('out'),h=document.getElementById('hidden'),b=document.getElementById('scanbox');"
-    "h.onchange=()=>{b.style.display=h.checked?'none':'block';if(h.checked){n.selectedIndex=-1;s.value='';s.focus();o.textContent='اكتب اسم الشبكة المخفية يدويًا بالضبط.'}};"
-    "async function scan(){o.textContent='جاري البحث...';let r=await fetch('/api/scan');let j=await r.json();n.innerHTML='';j.networks.forEach(x=>{let q=document.createElement('option');q.value=x.ssid;q.textContent=x.ssid+' ('+x.rssi+' dBm)';n.appendChild(q)});if(j.networks[0]){n.selectedIndex=0;s.value=j.networks[0].ssid}o.textContent='تم العثور على '+j.networks.length+' شبكة ظاهرة. لو شبكتك مخفية فعّل الخيار بالأعلى.'}"
-    "n.onchange=()=>{if(!h.checked)s.value=n.value};"
-    "async function save(){let ss=s.value.trim();if(!ss){o.textContent='اكتب اسم الشبكة SSID';return}o.textContent=h.checked?'جاري حفظ الشبكة المخفية والاتصال...':'جاري الحفظ والاتصال...';let q=new URLSearchParams({ssid:ss,password:p.value,hidden:h.checked?'1':'0'});let r=await fetch('/save',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:q});o.textContent=await r.text()}"
-    "</script></main></html>"
-  );
+    "button,.button{display:block;background:#1769e0;color:white;text-decoration:none;text-align:center;padding:12px;border-radius:12px;border:0}"
+    ".danger{background:#963342}.muted{color:#aab5c4;line-height:1.7}.ok{color:#7fe29a}.warn{color:#ffd27d}"
+    "</style><main>";
 }
 
-static void redirectPortal(){
-  // Captive portals are more reliable on Android/iOS when the probe itself
-  // receives the login page instead of a redirect loop.
+static String setupPage(){
+  String h = pageHead("MODAX Setup");
+  h += "<section class='card'><h1>MODAX — ESP32-WROOM-32</h1>"
+       "<p class='muted'>إعداد Wi-Fi + تحديث OTA من iPhone/Android. لو شبكتك مخفية اكتب SSID يدويًا.</p>"
+       "<label style='display:flex;gap:10px;align-items:center'><input id='hidden' type='checkbox' style='width:auto'> شبكتي مخفية</label>"
+       "<div id='scanbox'><button onclick='scan()'>بحث عن الشبكات الظاهرة</button><select id='nets'><option>اضغط بحث</option></select></div>"
+       "<input id='ssid' placeholder='اسم الشبكة SSID'><input id='pass' type='password' placeholder='كلمة المرور'>"
+       "<button onclick='save()'>حفظ والاتصال</button><pre id='out'></pre>"
+       "<p class='muted'>ESP32-WROOM-32 يدعم Wi-Fi ‏2.4GHz فقط.</p></section>";
+  h += "<section class='card'><h2>تثبيت مشروع / Firmware من iPhone</h2>"
+       "<p class='muted'>اختر ملف <strong>.bin</strong> من تطبيق Files ثم اضغط تثبيت. هذه الصفحة تعمل من Chrome على iPhone لأنها ترسل الملف عبر Wi-Fi وليس USB.</p>"
+       "<a class='button' href='/ota'>فتح صفحة التحديث OTA</a>"
+       "<p class='warn'>استخدم ملف OTA المخصص للتطبيق، وليس Full Flash BIN.</p></section>";
+  h += "<section class='card'><p class='muted'>لإعادة إعداد Wi-Fi: اضغط BOOT لمدة 3 ثوانٍ أثناء التشغيل.</p></section>";
+  h += "<script>"
+       "const n=document.getElementById('nets'),s=document.getElementById('ssid'),p=document.getElementById('pass'),o=document.getElementById('out'),x=document.getElementById('hidden'),b=document.getElementById('scanbox');"
+       "x.onchange=()=>{b.style.display=x.checked?'none':'block';if(x.checked){s.value='';s.focus();o.textContent='اكتب SSID المخفي يدويًا'}};"
+       "async function scan(){o.textContent='جاري البحث...';let r=await fetch('/api/scan');let j=await r.json();n.innerHTML='';j.networks.forEach(v=>{let q=document.createElement('option');q.value=v.ssid;q.textContent=v.ssid+' ('+v.rssi+' dBm)';n.appendChild(q)});if(j.networks[0]){s.value=j.networks[0].ssid}o.textContent='تم العثور على '+j.networks.length+' شبكة ظاهرة'}"
+       "n.onchange=()=>{if(!x.checked)s.value=n.value};"
+       "async function save(){let ss=s.value.trim();if(!ss){o.textContent='اكتب اسم الشبكة';return}o.textContent='جاري الحفظ...';let q=new URLSearchParams({ssid:ss,password:p.value,hidden:x.checked?'1':'0'});let r=await fetch('/save',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:q});o.textContent=await r.text()}"
+       "</script></main></html>";
+  return h;
+}
+
+static String otaPage(){
+  String h = pageHead("MODAX OTA");
+  h += "<section class='card'><h1>تثبيت MODAX / مشروع BIN</h1>"
+       "<p class='muted'>متوافق مع iPhone/iPad وAndroid. اختر ملف Firmware <strong>.bin</strong> من Files ثم ثبته لاسلكيًا.</p>"
+       "<form method='POST' action='/update' enctype='multipart/form-data'>"
+       "<input type='file' name='firmware' accept='.bin,application/octet-stream' required>"
+       "<button class='danger' type='submit'>تثبيت على ESP32</button></form>"
+       "<p class='warn'>لا تفصل الكهرباء أثناء التحديث. عند النجاح ستعيد البورد التشغيل تلقائيًا.</p>"
+       "<a class='button' href='/'>رجوع</a></section></main></html>";
+  return h;
+}
+
+static void captivePage(){
   server.send(200,"text/html; charset=utf-8",setupPage());
 }
 
 static void installRoutes(){
   server.on("/", HTTP_GET, [](){
-    if(portalMode) server.send(200,"text/html; charset=utf-8",setupPage());
-    else server.send(200,"text/html; charset=utf-8","<h1>MODAX ESP32</h1><p>Connected. Open /api/info for device status.</p>");
+    server.send(200,"text/html; charset=utf-8",setupPage());
+  });
+
+  server.on("/ota", HTTP_GET, [](){
+    server.send(200,"text/html; charset=utf-8",otaPage());
   });
 
   server.on("/api/info", HTTP_GET, [](){
@@ -83,7 +95,7 @@ static void installRoutes(){
     body += "\"chip_family\":\"ESP32\",";
     body += "\"mode\":\""+String(portalMode?"setup_ap":"wifi_sta")+"\",";
     body += "\"ip\":\""+ip+"\",";
-    body += "\"has_display\":false,\"has_camera\":false,\"has_microphone\":false,\"has_speaker\":false,\"phone_is_ui\":true";
+    body += "\"ota\":true,\"phone_is_ui\":true";
     body += "}";
     server.send(200,"application/json",body);
   });
@@ -117,30 +129,90 @@ static void installRoutes(){
     prefs.putString("pass",pass);
     prefs.putBool("hidden",hidden);
     prefs.end();
-    server.send(200,"text/plain; charset=utf-8",hidden ? "تم حفظ الشبكة المخفية. البورد ستعيد التشغيل وتحاول الاتصال خلال 30 ثانية." : "تم الحفظ. البورد ستعيد التشغيل الآن.");
+    server.send(200,"text/plain; charset=utf-8","تم الحفظ. ستعيد البورد التشغيل وتحاول الاتصال.");
     delay(700);
     ESP.restart();
   });
 
-  // Android / ChromeOS
-  server.on("/generate_204", HTTP_GET, redirectPortal);
-  server.on("/gen_204", HTTP_GET, redirectPortal);
-  server.on("/connectivity-check.html", HTTP_GET, redirectPortal);
-  server.on("/redirect", HTTP_GET, redirectPortal);
-  // Apple captive-network assistant
-  server.on("/hotspot-detect.html", HTTP_GET, redirectPortal);
-  server.on("/library/test/success.html", HTTP_GET, redirectPortal);
-  server.on("/canonical.html", HTTP_GET, redirectPortal);
-  server.on("/success.txt", HTTP_GET, redirectPortal);
-  // Windows NCSI
-  server.on("/connecttest.txt", HTTP_GET, redirectPortal);
-  server.on("/ncsi.txt", HTTP_GET, redirectPortal);
-  server.onNotFound([](){ if(portalMode) redirectPortal(); else server.send(404,"text/plain","not found"); });
+  server.on("/update", HTTP_POST,
+    [](){
+      bool ok = !otaFailed && !Update.hasError() && otaBytes > 0;
+      server.sendHeader("Connection","close");
+      if(ok){
+        server.send(200,"text/html; charset=utf-8",
+          "<!doctype html><meta charset='utf-8'><meta name='viewport' content='width=device-width'>"
+          "<body style='font-family:system-ui;background:#101318;color:white;padding:24px;text-align:center'>"
+          "<h1>تم التثبيت ✅</h1><p>ESP32 ستعيد التشغيل الآن.</p></body>");
+        delay(900);
+        ESP.restart();
+      }else{
+        server.send(500,"text/html; charset=utf-8",
+          "<!doctype html><meta charset='utf-8'><meta name='viewport' content='width=device-width'>"
+          "<body style='font-family:system-ui;background:#101318;color:white;padding:24px;text-align:center'>"
+          "<h1>فشل التحديث</h1><p>تأكد أنك اخترت OTA .bin صحيح ومخصص لـESP32-WROOM-32.</p>"
+          "<a style='color:#7fc1ff' href='/ota'>حاول مرة أخرى</a></body>");
+      }
+    },
+    [](){
+      HTTPUpload& upload = server.upload();
+      if(upload.status == UPLOAD_FILE_START){
+        otaFailed=false;
+        otaBytes=0;
+        String name=upload.filename;
+        name.toLowerCase();
+        if(!name.endsWith(".bin")){
+          otaFailed=true;
+          return;
+        }
+        if(!Update.begin(UPDATE_SIZE_UNKNOWN)){
+          otaFailed=true;
+          Update.printError(Serial);
+        }else{
+          Serial.printf("OTA start: %s\n",upload.filename.c_str());
+        }
+      }else if(upload.status == UPLOAD_FILE_WRITE){
+        if(!otaFailed){
+          size_t written=Update.write(upload.buf,upload.currentSize);
+          otaBytes += written;
+          if(written != upload.currentSize){
+            otaFailed=true;
+            Update.printError(Serial);
+          }
+        }
+      }else if(upload.status == UPLOAD_FILE_END){
+        if(!otaFailed){
+          if(!Update.end(true)){
+            otaFailed=true;
+            Update.printError(Serial);
+          }else{
+            Serial.printf("OTA complete: %u bytes\n",(unsigned)otaBytes);
+          }
+        }
+      }else if(upload.status == UPLOAD_FILE_ABORTED){
+        otaFailed=true;
+        Update.abort();
+        Serial.println("OTA aborted");
+      }
+    }
+  );
+
+  // Captive portal probes: Android / ChromeOS / Apple / Windows
+  server.on("/generate_204", HTTP_GET, captivePage);
+  server.on("/gen_204", HTTP_GET, captivePage);
+  server.on("/connectivity-check.html", HTTP_GET, captivePage);
+  server.on("/redirect", HTTP_GET, captivePage);
+  server.on("/hotspot-detect.html", HTTP_GET, captivePage);
+  server.on("/library/test/success.html", HTTP_GET, captivePage);
+  server.on("/canonical.html", HTTP_GET, captivePage);
+  server.on("/success.txt", HTTP_GET, captivePage);
+  server.on("/connecttest.txt", HTTP_GET, captivePage);
+  server.on("/ncsi.txt", HTTP_GET, captivePage);
+  server.onNotFound([](){ if(portalMode) captivePage(); else server.send(404,"text/plain","not found"); });
 }
 
 static void startPortal(){
   portalMode=true;
-  WiFi.disconnect(true, true);
+  WiFi.disconnect(true,true);
   delay(150);
   WiFi.mode(WIFI_AP_STA);
   WiFi.setSleep(false);
@@ -153,8 +225,7 @@ static void startPortal(){
   bool apOk=WiFi.softAP(apName.c_str(),"modax1234",6,false,4);
   delay(100);
   dns.start(53,"*",apIP);
-
-  Serial.printf("Captive portal AP: %s (%s) URL: http://192.168.4.1\n",
+  Serial.printf("Captive portal AP: %s (%s) http://192.168.4.1\n",
                 apName.c_str(),apOk?"started":"FAILED");
 }
 
