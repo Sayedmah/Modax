@@ -12,14 +12,15 @@ const state = {
 
 function log(line='') {
   const el=$('terminal');
+  if(!el) return;
   el.textContent += line + '\n';
   el.scrollTop=el.scrollHeight;
 }
-function status(text){ $('deviceState').textContent=text; }
+function status(text){ if($('deviceState')) $('deviceState').textContent=text; }
 function setProgress(p,text=''){
   const v=Math.max(0,Math.min(100,p||0));
-  $('progressBar').style.width=v+'%';
-  $('progressText').textContent=text||v.toFixed(1)+'%';
+  if($('progressBar')) $('progressBar').style.width=v+'%';
+  if($('progressText')) $('progressText').textContent=text||v.toFixed(1)+'%';
 }
 function hex4(n){ return n==null?'----':'0x'+Number(n).toString(16).padStart(4,'0'); }
 
@@ -29,39 +30,30 @@ function isClassicEsp32(){
   return !/ESP32[- ]?(S2|S3|C2|C3|C5|C6|C61|H2|P4)/i.test(c);
 }
 function updateBoardMatch(){
+  if(!$('boardMatch')) return;
   $('boardMatch').textContent = !state.loader ? 'لم يتم الفحص'
     : isClassicEsp32() ? 'مطابق لـ ESP32-WROOM-32'
     : 'غير مطابق — التفليش محظور';
 }
 function updateFlashButton(){
-  $('flashBtn').disabled=!(state.loader && state.firmware && isClassicEsp32());
+  if($('flashBtn')) $('flashBtn').disabled=!(state.loader && state.firmware && isClassicEsp32());
 }
 
-async function loadEsptool(){
-  try{
-    $('browserBadge').textContent='جاري تحميل أداة ESP…';
-    state.esptool = await import('https://unpkg.com/esptool-js@0.7.0/bundle.js');
-    if(!state.esptool?.ESPLoader || !state.esptool?.Transport){
-      throw new Error('esptool-js لم يتم تحميله بالشكل الصحيح');
-    }
-    browserCheck();
-    log('esptool-js 0.7.0 loaded.');
-  }catch(e){
-    $('browserBadge').textContent='فشل تحميل أداة التفليش';
-    log('TOOL ERROR: '+(e.message||e));
-    $('connectBtn').disabled=true;
-  }
+function showIosMode(){
+  $('iosSection')?.classList.remove('hidden');
+  $('usbSection')?.classList.add('hidden');
+  $('browserBadge').textContent='iOS جاهز — OTA عبر Wi-Fi';
+  if($('connectionMode')) $('connectionMode').textContent='OTA عبر Wi-Fi';
 }
 
 function browserCheck(){
   const secure=window.isSecureContext;
-  if(!secure){
-    $('browserBadge').textContent='يلزم HTTPS';
-    $('connectBtn').disabled=true;
+  if(IS_IOS){
+    showIosMode();
     return;
   }
-  if(IS_IOS){
-    $('browserBadge').textContent='iPhone/iPad لا يدعم تفليش USB';
+  if(!secure){
+    $('browserBadge').textContent='يلزم HTTPS';
     $('connectBtn').disabled=true;
     return;
   }
@@ -75,7 +67,7 @@ function browserCheck(){
     if(navigator.usb && state.esptool?.WebUSBSerialPort){
       state.mode='webusb-ch340';
       $('connectionMode').textContent='Android WebUSB — CH340/CH341';
-      $('browserBadge').textContent='Android جاهز — CH340 WebUSB';
+      $('browserBadge').textContent='Android جاهز — USB';
       $('connectBtn').disabled=false;
     }else{
       $('browserBadge').textContent='Chrome Android + WebUSB مطلوب';
@@ -99,7 +91,25 @@ function browserCheck(){
   }
 }
 
+async function loadEsptool(){
+  if(IS_IOS) return browserCheck();
+  try{
+    $('browserBadge').textContent='جاري تحميل أداة ESP…';
+    state.esptool = await import('https://unpkg.com/esptool-js@0.7.0/bundle.js');
+    if(!state.esptool?.ESPLoader || !state.esptool?.Transport){
+      throw new Error('esptool-js لم يتم تحميله بالشكل الصحيح');
+    }
+    browserCheck();
+    log('esptool-js 0.7.0 loaded.');
+  }catch(e){
+    $('browserBadge').textContent='فشل تحميل أداة التفليش';
+    log('TOOL ERROR: '+(e.message||e));
+    if($('connectBtn')) $('connectBtn').disabled=true;
+  }
+}
+
 async function loadFirmware(){
+  if(IS_IOS) return;
   state.firmware=null;
   updateFlashButton();
   $('firmwareStatus').textContent='جاري تحميل Firmware…';
@@ -123,9 +133,14 @@ async function loadFirmware(){
 }
 
 const terminal={
-  clean(){ $('terminal').textContent=''; },
+  clean(){ if($('terminal')) $('terminal').textContent=''; },
   writeLine(data){ log(String(data)); },
-  write(data){ const el=$('terminal'); el.textContent+=String(data); el.scrollTop=el.scrollHeight; }
+  write(data){
+    const el=$('terminal');
+    if(!el) return;
+    el.textContent+=String(data);
+    el.scrollTop=el.scrollHeight;
+  }
 };
 
 async function requestPort(){
@@ -151,7 +166,7 @@ function friendlyError(e){
   const s=String(e?.message||e||'');
   if(/No device selected|NotFoundError|user cancelled/i.test(s)) return 'لم يتم اختيار جهاز USB.';
   if(/CH343|55d3/i.test(s)) return 'المحول CH343 وليس CH340؛ هذه النسخة تحتاج مسار USB مختلف.';
-  if(/Couldn't sync|Failed to connect|sync/i.test(s)) return 'تم فتح USB لكن ESP32 لم تدخل وضع التحميل. استخدم BOOT + EN كما هو موضح ثم أعد التوصيل.';
+  if(/Couldn't sync|Failed to connect|sync/i.test(s)) return 'تم فتح USB لكن ESP32 لم تدخل وضع التحميل. استخدم BOOT + EN ثم أعد التوصيل.';
   if(/claim|interface|Access denied|permission/i.test(s)) return 'Android لم يسمح بالوصول إلى USB. افصل الكابل، أعد توصيله ووافق على إذن Chrome.';
   return s;
 }
@@ -168,7 +183,7 @@ async function connect(){
       terminal,
       debugLogging:false
     });
-    status('جاري إدخال ESP32 لوضع التحميل…');
+    status('جاري اكتشاف ESP32…');
     state.chip=await state.loader.main('default_reset');
     $('chipName').textContent=state.chip||'غير معروف';
     log('Detected chip: '+state.chip);
@@ -176,7 +191,7 @@ async function connect(){
     try{
       const s=await state.loader.detectFlashSize?.();
       if(s) state.flashSize=s;
-    }catch(e){ log('Flash size detect fallback: 4MB'); }
+    }catch(e){ log('Flash size fallback: 4MB'); }
     $('flashSize').textContent=state.flashSize||'4MB';
 
     updateBoardMatch();
@@ -185,7 +200,7 @@ async function connect(){
       log('Board accepted: classic ESP32.');
     }else{
       status('الشريحة غير متوافقة');
-      log('SAFETY BLOCK: this firmware is only for classic ESP32.');
+      log('SAFETY BLOCK: only classic ESP32.');
     }
     $('connectBtn').disabled=true;
     $('disconnectBtn').disabled=false;
@@ -241,7 +256,7 @@ async function flash(){
     status('تم تثبيت MODAX');
     log('Flash complete.');
     try{ await state.loader.after('hard_reset'); }catch(e){ log('Reset note: '+(e.message||e)); }
-    alert('تم تثبيت MODAX. انتظر شبكة MODAX-XXXX ثم اتصل بها.');
+    alert('تم تثبيت MODAX. بعد التشغيل يمكنك استخدام OTA من iPhone.');
   }catch(e){
     const msg=friendlyError(e);
     log('FLASH ERROR: '+msg);
@@ -322,15 +337,19 @@ async function askAI(){
   }catch(e){ answer.textContent='خطأ: '+(e.message||e); }
 }
 
-$('connectBtn').addEventListener('click',connect);
-$('disconnectBtn').addEventListener('click',disconnect);
-$('firmwareRetryBtn').addEventListener('click',loadFirmware);
-$('flashBtn').addEventListener('click',flash);
-$('cameraBtn').addEventListener('click',startCamera);
-$('stopCameraBtn').addEventListener('click',stopCamera);
-$('micBtn').addEventListener('click',voiceInput);
-$('askBtn').addEventListener('click',askAI);
+$('connectBtn')?.addEventListener('click',connect);
+$('disconnectBtn')?.addEventListener('click',disconnect);
+$('firmwareRetryBtn')?.addEventListener('click',loadFirmware);
+$('flashBtn')?.addEventListener('click',flash);
+$('cameraBtn')?.addEventListener('click',startCamera);
+$('stopCameraBtn')?.addEventListener('click',stopCamera);
+$('micBtn')?.addEventListener('click',voiceInput);
+$('askBtn')?.addEventListener('click',askAI);
 
-loadFirmware();
-loadEsptool();
+if(IS_IOS){
+  browserCheck();
+}else{
+  loadFirmware();
+  loadEsptool();
+}
 if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
