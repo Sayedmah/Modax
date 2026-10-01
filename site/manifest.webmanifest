@@ -1,0 +1,11 @@
+{
+  "name": "MODAX ESP32-WROOM-32",
+  "short_name": "MODAX ESP32",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#101318",
+  "theme_color": "#101318",
+  "icons": [
+    {"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}
