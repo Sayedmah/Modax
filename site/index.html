@@ -145,7 +145,15 @@
         <div><b>Buzzer</b><span>GPIO 14</span></div>
       </div>
       <button id="oneClickFlashBtn3" class="primary direct-flash visible-install">⚡ تثبيت Firmware على ESP32 مباشرة من Chrome</button>
-      <p id="directInstallHint" class="muted small">Android Chrome + كابل USB بيانات/OTG: اضغط الزر، اختر ESP32 من نافذة USB، ثم وافق على التثبيت.</p>
+      <div id="usbDiag" class="usb-diag">
+        <div><span>Android</span><b id="diagAndroid">…</b></div>
+        <div><span>HTTPS</span><b id="diagHttps">…</b></div>
+        <div><span>WebUSB</span><b id="diagUsb">…</b></div>
+        <div><span>Flasher</span><b id="diagTool">…</b></div>
+        <div><span>Firmware</span><b id="diagFw">…</b></div>
+      </div>
+      <p id="directInstallHint" class="muted small">اضغط الزر. لو USB لم يظهر، الموقع سيعرض السبب هنا بدل أن يبقى الزر بدون استجابة.</p>
+      <div id="directInstallError" class="install-error hidden"></div>
       <div class="row wrap">
         <a id="directDownloadBtn2" class="button" href="./firmware/mody-captive-portal-5buttons.ino" download="mody-captive-portal-5buttons.ino">تنزيل الكود .INO فقط</a>
         <a class="button" href="http://192.168.4.1" target="_blank" rel="noopener">فتح Captive Portal</a>
