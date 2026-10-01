@@ -1,4 +1,4 @@
-const CACHE='modax-wroom32-v2';
+const CACHE='modax-wroom32-v3';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon.svg'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)))});
 self.addEventListener('activate',e=>e.waitUntil(Promise.all([
@@ -8,11 +8,13 @@ self.addEventListener('activate',e=>e.waitUntil(Promise.all([
 self.addEventListener('fetch',e=>{
   if(e.request.method!=='GET') return;
   const u=new URL(e.request.url);
-  if(u.pathname.includes('/firmware/')){
-    e.respondWith(fetch(e.request,{cache:'no-store'}));
+  if(u.pathname.includes('/firmware/') || u.pathname.endsWith('/app.js') || u.pathname.endsWith('/index.html')){
+    e.respondWith(fetch(e.request,{cache:'no-store'}).catch(()=>caches.match(e.request)));
     return;
   }
   e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(resp=>{
-    const clone=resp.clone(); caches.open(CACHE).then(c=>c.put(e.request,clone)); return resp;
-  }).catch(()=>r)));
+    const clone=resp.clone();
+    caches.open(CACHE).then(c=>c.put(e.request,clone));
+    return resp;
+  })));
 });
