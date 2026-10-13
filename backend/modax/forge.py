@@ -95,6 +95,18 @@ package/name="Crystal Island"
 
 
 def validate_game(files, binary="godot"):
+    if binary == "managed":
+        try:
+            from .managed_godot import installed_godot
+
+            binary = installed_godot()
+        except (OSError, ValueError):
+            return {
+                "status": "unavailable",
+                "reason": "Managed Godot download or checksum verification failed",
+                "checks": [],
+                "export": "not_attempted",
+            }
     executable = shutil.which(binary)
     if not executable:
         return {

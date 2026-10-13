@@ -120,9 +120,14 @@ class HTTPProvider(Provider):
                             delta = message.get("content", "")
                         else:
                             choices = record.get("choices", [])
-                            delta = (
-                                choices[0].get("delta", {}).get("content", "") if choices else ""
-                            )
+                            if not isinstance(choices, list) or (
+                                choices and not isinstance(choices[0], dict)
+                            ):
+                                raise ProviderError("Malformed provider choices")
+                            change = choices[0].get("delta", {}) if choices else {}
+                            if not isinstance(change, dict):
+                                raise ProviderError("Malformed provider delta")
+                            delta = change.get("content", "")
                         if delta is not None and not isinstance(delta, str):
                             raise ProviderError("Malformed provider content")
                         if delta:
@@ -168,3 +173,56 @@ class Registry:
             raise CapabilityError("Model is not configured")
         p.require_capability(capability)
         return p
+
+
+class AnthropicProvider(HTTPProvider):
+    async def stream_text(self, messages):
+        system = "\n".join(m["content"] for m in messages if m["role"] == "system")
+        history = [m for m in messages if m["role"] != "system"]
+        payload = {
+            "model": self.model.model,
+            "messages": history,
+            "max_tokens": 4096,
+            "stream": True,
+        }
+        if system:
+            payload["system"] = system
+        try:
+            async with httpx.AsyncClient(
+                timeout=httpx.Timeout(90, connect=10),
+                transport=self.transport,
+                follow_redirects=False,
+            ) as client:
+                async with client.stream(
+                    "POST",
+                    self.base_url + "/messages",
+                    headers={"x-api-key": self.key, "anthropic-version": "2023-06-01"},
+                    json=payload,
+                ) as response:
+                    response.raise_for_status()
+                    size = 0
+                    async for line in response.aiter_lines():
+                        if not line.startswith("data: "):
+                            continue
+                        data = json.loads(line[6:])
+                        if not isinstance(data, dict):
+                            raise ProviderError("Malformed Anthropic event")
+                        if data.get("type") == "message_stop":
+                            return
+                        if data.get("type") == "error":
+                            raise ProviderError("Anthropic returned an error")
+                        if data.get("type") == "content_block_delta":
+                            delta = data.get("delta", {})
+                            if not isinstance(delta, dict):
+                                raise ProviderError("Malformed Anthropic delta")
+                            if delta.get("type") == "text_delta":
+                                text = delta.get("text", "")
+                                if not isinstance(text, str):
+                                    raise ProviderError("Malformed Anthropic text")
+                                size += len(text)
+                                if size > 100000:
+                                    raise ProviderError("Response limit exceeded")
+                                yield text
+                    raise ProviderError("Anthropic stream ended before message_stop")
+        except (httpx.HTTPError, ValueError, TypeError, KeyError, AttributeError) as exc:
+            raise ProviderError("Anthropic request failed; inspect configuration") from exc

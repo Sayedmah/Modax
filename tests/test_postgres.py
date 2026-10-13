@@ -1,0 +1,61 @@
+import os
+import uuid
+
+import pytest
+
+
+def test_genuine_postgres_migrations_auth_documents_and_tasks(tmp_path):
+    url = os.getenv("MODAX_TEST_DATABASE_URL")
+    if not url:
+        pytest.skip("Dedicated PostgreSQL integration URL not configured")
+    import psycopg
+    from fastapi.testclient import TestClient
+    from modax.api import create_app
+    from modax.config import Settings
+    from psycopg import sql
+    from psycopg.conninfo import make_conninfo
+    from test_chat import register
+
+    schema = "test_" + uuid.uuid4().hex
+    with psycopg.connect(url, autocommit=True) as c:
+        c.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(schema)))
+    scoped = make_conninfo(url, options="-c search_path=" + schema)
+    try:
+        settings = Settings(data_dir=tmp_path, database_url=scoped, allow_signup=True)
+        with TestClient(create_app(settings)) as c:
+            h = register(c)
+            assert (
+                c.post(
+                    "/api/v1/auth/register",
+                    json={"username": "alice", "password": "a-secure-password-123"},
+                ).status_code
+                == 409
+            )
+            cid = c.post("/api/v1/chats", headers=h, json={}).json()["id"]
+            assert (
+                "event: done"
+                in c.post(
+                    f"/api/v1/chats/{cid}/messages", headers=h, json={"content": "hello"}
+                ).text
+            )
+            task = c.post(
+                "/api/v1/tasks", headers=h, json={"kind": "code", "goal": "Create Python code"}
+            ).json()
+            assert (
+                c.post(f"/api/v1/tasks/{task['id']}/run", headers=h, json={}).json()["state"]
+                == "COMPLETED"
+            )
+            assert (
+                c.post(
+                    "/api/v1/files",
+                    headers=h,
+                    files={"file": ("notes.txt", b"Persistent document")},
+                ).status_code
+                == 201
+            )
+        with TestClient(create_app(settings)) as c:
+            assert len(c.get(f"/api/v1/chats/{cid}", headers=h).json()["messages"]) == 2
+            assert len(c.get("/api/v1/files", headers=h).json()) == 1
+    finally:
+        with psycopg.connect(url, autocommit=True) as c:
+            c.execute(sql.SQL("DROP SCHEMA {} CASCADE").format(sql.Identifier(schema)))

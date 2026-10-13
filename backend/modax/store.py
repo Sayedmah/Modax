@@ -26,6 +26,28 @@ CREATE TABLE audit(id INTEGER PRIMARY KEY, owner TEXT REFERENCES users(id), acti
 """
 ]
 
+MIGRATIONS.append("""
+CREATE TABLE provider_profiles(id TEXT PRIMARY KEY, owner TEXT NOT NULL REFERENCES users(id), family TEXT NOT NULL, model TEXT NOT NULL, base_url TEXT NOT NULL, secret TEXT NOT NULL, created REAL NOT NULL);
+CREATE INDEX provider_profiles_owner ON provider_profiles(owner);
+CREATE TABLE documents(id TEXT PRIMARY KEY, owner TEXT NOT NULL REFERENCES users(id), filename TEXT NOT NULL, kind TEXT NOT NULL, content TEXT NOT NULL, created REAL NOT NULL);
+CREATE INDEX documents_owner ON documents(owner);
+CREATE TABLE chunks(id TEXT PRIMARY KEY, document_id TEXT NOT NULL REFERENCES documents(id) ON DELETE CASCADE, ordinal INTEGER NOT NULL, content TEXT NOT NULL);
+CREATE INDEX chunks_document ON chunks(document_id,ordinal);
+CREATE TABLE user_settings(owner TEXT PRIMARY KEY REFERENCES users(id), settings TEXT NOT NULL);
+CREATE TABLE evaluations(id TEXT PRIMARY KEY, owner TEXT NOT NULL REFERENCES users(id), results TEXT NOT NULL, created REAL NOT NULL);
+""")
+
+MIGRATIONS.append("""
+CREATE TABLE workspace_files(task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE, path TEXT NOT NULL, content TEXT NOT NULL, PRIMARY KEY(task_id,path));
+CREATE TABLE workspace_snapshots(id TEXT PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE, files TEXT NOT NULL, created REAL NOT NULL);
+CREATE INDEX snapshots_task ON workspace_snapshots(task_id,created);
+""")
+
+MIGRATIONS.append("""
+CREATE TABLE inference_reservations(id TEXT PRIMARY KEY, owner TEXT NOT NULL REFERENCES users(id), created REAL NOT NULL);
+CREATE INDEX reservations_owner ON inference_reservations(owner,created);
+""")
+
 
 def uid():
     return secrets.token_hex(16)
@@ -92,8 +114,43 @@ class Store:
             (json.dumps({"reason": "Worker restarted; inspect artifacts before resuming"}),),
         )
 
+    def lock_user(self, db, owner):
+        db.execute("BEGIN IMMEDIATE")
+
+    def lock_task(self, db, owner, task_id):
+        db.execute("BEGIN IMMEDIATE")
+
+    def reserve_chat(self, owner, limit):
+        now = time.time()
+        reservation = uid()
+        with self.connect() as db:
+            self.lock_user(db, owner)
+            db.execute("DELETE FROM inference_reservations WHERE created<?", (now - 86400,))
+            used = db.execute(
+                "SELECT COUNT(*) AS count FROM usage WHERE owner=? AND created>?",
+                (owner, now - 86400),
+            ).fetchone()["count"]
+            pending = db.execute(
+                "SELECT COUNT(*) AS count FROM inference_reservations WHERE owner=? AND created>?",
+                (owner, now - 86400),
+            ).fetchone()["count"]
+            if used + pending >= limit:
+                raise ValueError("Daily chat request quota exceeded")
+            db.execute(
+                "INSERT INTO inference_reservations VALUES(?,?,?)", (reservation, owner, now)
+            )
+        return reservation
+
     def require(self, table, owner, resource_id):
-        if table not in {"chats", "tasks", "memory", "assets"}:
+        if table not in {
+            "chats",
+            "tasks",
+            "memory",
+            "assets",
+            "provider_profiles",
+            "documents",
+            "evaluations",
+        }:
             raise ValueError("Invalid resource")
         rows = self.query(f"SELECT * FROM {table} WHERE id=? AND owner=?", (resource_id, owner))
         if not rows:

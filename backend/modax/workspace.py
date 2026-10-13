@@ -232,3 +232,66 @@ class Workspace:
             subprocess.run(
                 ["docker", "rm", "-f", container], capture_output=True, timeout=10, check=False
             )
+
+
+class DatabaseWorkspace(Workspace):
+    """Durable artifacts backed by the already owner-authorized task."""
+
+    def __init__(self, root, store, task_id):
+        missing = not Path(root).exists()
+        super().__init__(root)
+        self.store, self.task_id = store, task_id
+        if missing:
+            rows = store.query(
+                "SELECT path,content FROM workspace_files WHERE task_id=?", (task_id,)
+            )
+            for row in rows:
+                path = self.path(row["path"])
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(row["content"])
+            self.files()
+        if not self.snapshots.exists():
+            self.snapshots.mkdir(mode=0o700)
+            for row in store.query(
+                "SELECT id,files FROM workspace_snapshots WHERE task_id=?", (task_id,)
+            ):
+                if not re.fullmatch(r"[0-9a-f]{32}", row["id"]):
+                    raise ToolDenied("Invalid persisted snapshot")
+                folder = self.snapshots / row["id"]
+                folder.mkdir()
+                for name, text in json.loads(row["files"]).items():
+                    self.path(name)
+                    path = folder / name
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_text(text)
+
+    def persist(self):
+        files = {name: self.read(name) for name in self.files()}
+        with self.store.connect() as db:
+            db.execute("DELETE FROM workspace_files WHERE task_id=?", (self.task_id,))
+            for name, text in files.items():
+                db.execute("INSERT INTO workspace_files VALUES(?,?,?)", (self.task_id, name, text))
+
+    def apply(self, files):
+        snapshot = super().apply(files)
+        before = {
+            p.relative_to(self.snapshots / snapshot).as_posix(): p.read_text()
+            for p in (self.snapshots / snapshot).rglob("*")
+            if p.is_file()
+        }
+        self.store.execute(
+            "INSERT INTO workspace_snapshots VALUES(?,?,?,?)",
+            (snapshot, self.task_id, json.dumps(before), time.time()),
+        )
+        old = self.store.query(
+            "SELECT id FROM workspace_snapshots WHERE task_id=? ORDER BY created DESC",
+            (self.task_id,),
+        )[10:]
+        for row in old:
+            self.store.execute("DELETE FROM workspace_snapshots WHERE id=?", (row["id"],))
+        self.persist()
+        return snapshot
+
+    def rollback(self, snapshot):
+        super().rollback(snapshot)
+        self.persist()

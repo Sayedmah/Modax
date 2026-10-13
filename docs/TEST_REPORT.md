@@ -23,3 +23,6 @@ Independent review found five important defects; regression coverage now rejects
 Master MVP matrix: demo chat/history/model selection/planning/file generation/gameplay/security pass; application-owned GitHub publishing, Docker execution and native/export build acceptance remain blocked or unimplemented. The complete master MVP is not claimed.
 
 Verified CI run: https://github.com/Sayedmah/Modax/actions/runs/38415160639. Documentation-only checkpoints trigger new runs separately.
+
+## Web increment 0.2
+Local full run: 59 passed, 1 skipped in 10.90 seconds; skipped check is genuine PostgreSQL because no connection credential is available. Godot 4.6 check ran. Node session regression tests: 2 passed. Browser checks: signup, streaming, coder, notes, mobile, account switching, CSV upload/search, Arena, and preferences all passed with zero page errors. Added CI PostgreSQL 16 service to run migration/auth/chat/doc/task integration separately. Render first deployment is live; final increment and database connection are verified/reported separately.

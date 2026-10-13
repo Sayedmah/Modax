@@ -4,7 +4,7 @@ import time
 
 from .providers import CapabilityError, ProviderError
 from .store import uid
-from .workspace import ToolDenied, Workspace
+from .workspace import DatabaseWorkspace, ToolDenied
 
 
 class InvalidTransition(ValueError):
@@ -29,6 +29,7 @@ class TaskEngine:
     def __init__(self, store, settings, registry):
         self.store, self.settings, self.registry = store, settings, registry
         self.running = {}
+        self.game_gate = asyncio.Semaphore(1)
 
     def create(self, owner, goal, kind="plan", mode="SMART"):
         task_id = uid()
@@ -78,7 +79,7 @@ class TaskEngine:
 
     def transition(self, owner, task_id, target, details=None):
         with self.store.connect() as db:
-            db.execute("BEGIN IMMEDIATE")
+            self.store.lock_task(db, owner, task_id)
             row = db.execute(
                 "SELECT state FROM tasks WHERE id=? AND owner=?", (task_id, owner)
             ).fetchone()
@@ -96,7 +97,9 @@ class TaskEngine:
 
     def workspace(self, owner, task_id):
         self.store.require("tasks", owner, task_id)
-        return Workspace(self.settings.data_dir / "workspaces" / owner / task_id)
+        return DatabaseWorkspace(
+            self.settings.data_dir / "workspaces" / owner / task_id, self.store, task_id
+        )
 
     async def run(self, owner, task_id, model="auto", execute=False, seed=42):
         task = self.store.require("tasks", owner, task_id)
@@ -106,7 +109,11 @@ class TaskEngine:
         try:
             workspace = self.workspace(owner, task_id)
             if task["kind"] == "code":
-                provider = self.registry.select(model, "code")
+                provider = (
+                    self.user_providers.select(owner, model, "code")
+                    if hasattr(self, "user_providers")
+                    else self.registry.select(model, "code")
+                )
                 messages = [
                     {
                         "role": "system",
@@ -114,17 +121,51 @@ class TaskEngine:
                     },
                     {"role": "user", "content": task["goal"]},
                 ]
+                repair_attempts = 0
                 async with asyncio.timeout(180):
-                    raw = await provider.generate_text(messages)
-                try:
-                    edits = json.loads(raw)
-                    if not isinstance(edits, dict) or set(edits) != {"files"}:
-                        raise ValueError("Invalid schema")
-                except (json.JSONDecodeError, TypeError, ValueError):
-                    raise ToolDenied(
-                        "Provider did not return the required JSON edit schema"
-                    ) from None
-                snapshot = workspace.apply(edits["files"])
+                    for attempt in range(3):
+                        raw = await provider.generate_text(messages)
+                        try:
+                            try:
+                                edits = json.loads(raw)
+                                if not isinstance(edits, dict) or set(edits) != {"files"}:
+                                    raise ValueError("Invalid schema")
+                            except (json.JSONDecodeError, TypeError, ValueError):
+                                raise ToolDenied(
+                                    "Provider did not return the required JSON edit schema"
+                                ) from None
+                            snapshot = workspace.apply(edits["files"])
+                            break
+                        except ToolDenied as error:
+                            repairable = "syntax validation" in str(
+                                error
+                            ) or "JSON edit schema" in str(error)
+                            if not repairable or attempt == 2:
+                                raise
+                            repair_attempts += 1
+                            self.store.execute(
+                                "INSERT INTO task_steps(task_id,phase,status,details,created) VALUES(?,?,?,?,?)",
+                                (
+                                    task_id,
+                                    "REPAIR",
+                                    "RUNNING",
+                                    json.dumps(
+                                        {"attempt": repair_attempts, "observed_error": str(error)}
+                                    ),
+                                    time.time(),
+                                ),
+                            )
+                            messages.extend(
+                                [
+                                    {"role": "assistant", "content": raw[:12000]},
+                                    {
+                                        "role": "user",
+                                        "content": "Validation returned this actual error: "
+                                        + str(error)
+                                        + ". Repair the files and return only the required JSON edit schema. Do not change permissions or run commands.",
+                                    },
+                                ]
+                            )
                 self.transition(owner, task_id, "VERIFYING")
                 result = {
                     "files": workspace.files(),
@@ -133,7 +174,7 @@ class TaskEngine:
                     "runtime_tests": "not_requested",
                     "demo": provider.model.demo,
                     "model": provider.model.id,
-                    "repair_attempts": 0,
+                    "repair_attempts": repair_attempts,
                 }
                 if execute:
                     runtime = await asyncio.to_thread(
@@ -158,7 +199,10 @@ class TaskEngine:
                 snapshot = workspace.apply(files)
                 self.transition(owner, task_id, "VERIFYING")
                 # Validate a separate trusted copy, never a coder-modified project.
-                result = await asyncio.to_thread(validate_game, files, self.settings.godot_binary)
+                async with self.game_gate:
+                    result = await asyncio.to_thread(
+                        validate_game, files, self.settings.godot_binary
+                    )
                 result.update(
                     {
                         "files": workspace.files(),

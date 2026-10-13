@@ -2,6 +2,16 @@
 
 An implemented local-first foundation for persistent AI chat, bounded software development tasks and original playable Godot project generation. **This is a verified first milestone, not the complete OMEGA roadmap or a trained foundation model.**
 
+## Hosted website
+
+The current Render service is https://modax-omega.onrender.com, deployed from the development branch. This is a free preview, not a production release. PostgreSQL was created but its connection secret could not be bound because dashboard sign-in was not completed. Until DATABASE_URL is configured, hosted account data uses local ephemeral storage and can be lost on sleep/redeploy. Do not treat it as durable production storage.
+
+### Added in web milestone 0.2
+
+Encrypted per-owner provider profiles for compatible/OpenAI endpoints and Anthropic; no keys returned to clients. Configure an actual provider in Settings to use real AI (provider API billing applies). PDF/DOCX/XLSX/CSV/text extraction in a bounded subprocess, chunk search, referenced attachments, opt-in user notes, chat import/edit/delete APIs, safe Markdown/code blocks, a three-case objective Arena and prompt-template comparisons, two bounded syntax-repair attempts, transactional daily chat quotas, PostgreSQL support and database-backed project files/snapshots. These are system capabilities, not trained weights or evidence of equivalence to frontier/world models.
+
+A six-run daily continuation automation is configured for October 14–19, 2026 at approximately 09:00 Africa/Cairo. Scheduled runs depend on the execution tools available at that time and are not continuous work or a guaranteed completion deadline.
+
 ## Run locally
 
 Python 3.12 required. From the repository root:
@@ -24,7 +34,7 @@ Open http://127.0.0.1:8000. Public signup defaults off. For a disposable local d
 - Coder JSON edit proposals, Python/JSON syntax checks, bounded project files, ten retained rollback snapshots and source ZIP downloads. Demo coder produces a genuine Python module and unittest file; it is explicitly a deterministic fixture.
 - Optional digest-pinned Docker-only runtime tests. Disabled by default and not executed in this development environment.
 - Game Forge: original seeded 3D Crystal Island, terrain collision, keyboard/controller/touch controls, third-person camera, twelve collectibles and save/load. Actual Godot 4.6 import and headless gameplay assertions run in tests.
-- Owner-controlled notes with edit/delete/export API; notes are not silently sent to providers. Request latency records with honest unknown token/cost fields.
+- Owner-controlled notes with edit/delete/export API; notes are only sent when explicitly enabled. Request latency records with honest unknown token/cost fields.
 - Optional independent ComfyUI queue transport adapter with submit/status/pending cancellation/media download. Tested with mocks; not connected to the public UI or a GPU worker.
 
 ## Provider configuration

@@ -13,3 +13,6 @@ Next action: configure an authorized local Ollama service, run genuine chat + st
 See project_state.json for the verified implementation commit and resume commands. Documentation checkpoint commits may follow the verified implementation commit without changing code.
 
 Verified implementation commit: 417755b13abc6a1afd7f6badafe54a2a4d9478f2. Draft PR: https://github.com/Sayedmah/Modax/pull/2.
+
+## Web milestone 0.2
+Implemented profile encryption, Anthropic streaming, bounded file extraction/chunk search, document grounding, opt-in notes, chat import/edit/delete, actual small Arena evaluations, syntax repair, daily quota reservations, PostgreSQL transactions/migrations and database-backed artifacts. The free Render website is live at https://modax-omega.onrender.com. PostgreSQL database exists but lacks bound connection secret after sign-in was aborted. Scheduled continuation: six daily attempts Oct 14–19. See current KNOWN_LIMITATIONS for exact missing capabilities.

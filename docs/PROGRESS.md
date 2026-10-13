@@ -14,3 +14,9 @@ Baseline: main bb0295d55483a9e1733fdc09399058afd3979534, README only; existing r
 Rulings: use SQLite and a tested web operator console for this first milestone while native SDK is absent; potential cost is later client/database migration. Use rule-based single-worker orchestration initially; OMEGA quality is not claimed. No references or weights copied; future integrations still need separate license/dependency/worker approval. License proposal is reviewable in draft PR, not merged.
 
 - Published verified implementation 417755b13abc6a1afd7f6badafe54a2a4d9478f2 to development branch; opened draft PR #2. Main not merged.
+
+### Web follow-up
+- User selected Render My Workspace and explicitly authorized publishing; existing Modax/ModaxAI/ESP32 services untouched. Created separate free modax-omega service and free modax-omega-data Postgres. Secure browser login was aborted, so connection binding is blocked.
+- Created six daily continuation attempts (Oct 14–19, approximately 09:00 Africa/Cairo); this is not a six-day continuous execution claim.
+- Platform APIs/controls now include per-owner encrypted providers, Anthropic, file extraction/retrieval, opt-in notes, imports/edits, measured small Arena and observed-error code repair.
+- Independent review found stale response-body state, private provider input retention, concurrent quota bypass and missing PostgreSQL locks. Fixed these; added Node session regressions and concurrent request checks.
