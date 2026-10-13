@@ -14,10 +14,12 @@ Development environment: Linux, Python 3.12.14, Node 24.19.0, Godot 4.6.stable.o
 | ComfyUI protocol | submit/status/download, path denial, pending cancellation, active interrupt refusal; mock service only |
 | Docker sandbox | disabled/missing-tool behavior and readable staging/immutable-image command contract; no real container run |
 | Native / export builds | not run; Flutter/SDK/signing/export templates absent |
-| GitHub Actions | configured; status must be read from real workflow run after PR publication |
+| GitHub Actions | implementation commit 417755b passed run 38415160639; Python/Godot, browser QA and generated source artifact all succeeded |
 
 Measured suite wall time is not an inference latency/FPS score. There is no production benchmark or model superiority evidence. Headless assertions do not prove mobile device performance, rendering or real gamepad input.
 
 Independent review found five important defects; regression coverage now rejects truncated/malformed streams, account-switch state leakage and file-count poisoning. Docker readable staging is contract-tested, not daemon-tested. Snapshots bounded to ten. No important reviewer finding knowingly left unresolved.
 
 Master MVP matrix: demo chat/history/model selection/planning/file generation/gameplay/security pass; application-owned GitHub publishing, Docker execution and native/export build acceptance remain blocked or unimplemented. The complete master MVP is not claimed.
+
+Verified CI run: https://github.com/Sayedmah/Modax/actions/runs/38415160639. Documentation-only checkpoints trigger new runs separately.
