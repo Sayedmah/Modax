@@ -24,5 +24,4 @@ Master MVP matrix: demo chat/history/model selection/planning/file generation/ga
 
 Verified CI run: https://github.com/Sayedmah/Modax/actions/runs/38415160639. Documentation-only checkpoints trigger new runs separately.
 
-## Web increment 0.2
-Local full run: 59 passed, 1 skipped in 10.90 seconds; skipped check is genuine PostgreSQL because no connection credential is available. Godot 4.6 check ran. Node session regression tests: 2 passed. Browser checks: signup, streaming, coder, notes, mobile, account switching, CSV upload/search, Arena, and preferences all passed with zero page errors. Added CI PostgreSQL 16 service to run migration/auth/chat/doc/task integration separately. Render first deployment is live; final increment and database connection are verified/reported separately.
+Verified web implementation eb1fd093: GitHub Actions run 38435478287 completed successfully, including genuine PostgreSQL 16 migration/auth/chat/document/task integration. Live Render HTTP checks passed for v0.2 health, encrypted profile create/delete, CSV extraction, demo streaming, Arena scoring, coder completion and ZIP download. Hosted Godot check recorded separately.
