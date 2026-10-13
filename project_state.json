@@ -83,14 +83,21 @@
       "Arena 201 score 0 on demo",
       "Coder COMPLETED",
       "project ZIP 200"
-    ]
+    ],
+    "live_godot": {
+      "state": "FAILED",
+      "reason": "Command timed out",
+      "seconds": 75.17,
+      "local_and_ci_validation": "passed; hosted process timeout is a separate blocker"
+    }
   },
   "blocked_features": [
     "production DATABASE_URL binding requires authorized Render dashboard connection secret",
     "actual model inference requires user-configured provider key",
     "actual Docker runtime unavailable",
     "native SDK/signing/export templates unavailable",
-    "GPU media workers and compatible model licenses not configured"
+    "GPU media workers and compatible model licenses not configured",
+    "Hosted Godot command timed out on free Render; capture bounded engine logs and diagnose before claiming live game validation"
   ],
   "remaining_tasks": [
     "bind production PostgreSQL",

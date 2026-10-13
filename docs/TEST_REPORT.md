@@ -25,3 +25,7 @@ Master MVP matrix: demo chat/history/model selection/planning/file generation/ga
 Verified CI run: https://github.com/Sayedmah/Modax/actions/runs/38415160639. Documentation-only checkpoints trigger new runs separately.
 
 Verified web implementation eb1fd093: GitHub Actions run 38435478287 completed successfully, including genuine PostgreSQL 16 migration/auth/chat/document/task integration. Live Render HTTP checks passed for v0.2 health, encrypted profile create/delete, CSV extraction, demo streaming, Arena scoring, coder completion and ZIP download. Hosted Godot check recorded separately.
+
+Hosted Godot attempt returned FAILED / Command timed out after 75.17 seconds. This is not a passed engine check. Local and CI Godot checks are passed; the live host limitation is separate. Render log lookup returned 503/502 and was unavailable. Generator preserves project files even when hosted validation fails.
+
+Latest web validation: 59 passed and one local PostgreSQL skip; 2 Node session tests passed; nine browser flows passed. PostgreSQL integration separately passed in CI run 38435478287. Live hosted Godot failed at 75.17 seconds with Command timed out; no hosted engine success.
