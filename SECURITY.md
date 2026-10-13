@@ -1,0 +1,10 @@
+# Security
+This milestone is a local/dedicated single-worker prototype, not a hardened public multi-tenant deployment. Bind loopback by default; use TLS and reverse-proxy global/IP limits before external access. Public registration is disabled by default. Passwords use scrypt; expiring session tokens are hashed at rest. Tokens are stored in browser sessionStorage, so client script integrity matters. Per-owner SQL checks gate every chat/task/memory read. SQLite is not encrypted: protect volume permissions and disk encryption/backup externally.
+
+Untrusted provider text cannot invoke a shell. File tools reject traversal, dotfiles, unsupported extensions, links, secret patterns, >32 edits, >128 KiB/file, >256 files or >4 MiB/workspace. Keep at most ten snapshots per workspace. Secret detection is heuristic, not a complete data-loss prevention service. Generated source may be malicious even when syntax is valid; inspect before using it. Godot validation executes only the original trusted template in a temporary directory, not provider-authored scripts.
+
+Runtime execution requires an operator-approved digest-pinned image pre-pulled on a dedicated Docker host. Use network-none, read-only root/workspace, unprivileged UID, no added capabilities, memory/CPU/PID limits, output cap and timeout. Docker is defense in depth, not a guarantee against kernel vulnerabilities. Never share the host Docker socket with untrusted/public services. Docker runtime has not been executed in the initial development environment. Workspaces must be exclusively writable by the service; filesystem checks do not replace OS permissions against a concurrent local attacker.
+
+ComfyUI is optional and external. Its custom nodes are arbitrary server-side code: operators must approve workflows/nodes/model licenses. Do not expose its server publicly. The adapter deliberately refuses global interrupt for active jobs and denies input-file downloads. No media generation endpoint is publicly wired yet.
+
+Report problems privately to the repository owner via their available contact channel; do not post credentials in issues.

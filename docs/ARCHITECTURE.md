@@ -1,0 +1,13 @@
+# Architecture
+
+One FastAPI service, one SQLite database, one adaptive web console. Run a single API worker; worker restart recovers interrupted messages and running tasks into explicit recoverable states. Database migration 1 creates foreign-key-constrained users, sessions, chats/messages, tasks/steps, memory, assets, usage and audit records. The assets table is reserved for later persisted media jobs; it does not imply media was generated.
+
+`config.py` holds operator-only settings. `store.py` owns transactional persistence and scrypt/session hashing. `providers.py` exposes explicit model capability records and demo/compatible/Ollama streaming implementations. No incomplete provider modalities are advertised. AUTO prefers a configured real provider; measured intelligent routing is future work. Unknown price/context metadata stays unknown.
+
+`api.py` handles authentication, quota/body guards and SSE chat. `tasks.py` persists state transitions; `workflow_api.py` authorizes task/file/memory routes. Plans are rule based; FAST/SMART/OMEGA values are recorded modes with the same single-worker execution in this milestone. No multi-agent quality claims. Coder accepts bounded JSON edits, parses Python/JSON, saves snapshots, optionally asks a Docker runtime to run unittest, and reports distinct syntax/runtime status.
+
+`workspace.py` owns file boundaries, quotas, ZIP and rollback. Original workspace stays private (0700); runtime gets a validated staging copy readable by container UID. Up to ten snapshots retained. Paths are checked within owner/task directories; no host shell or arbitrary command endpoint. No remote GitHub credentials are stored by the application yet. This development PR uses the external authorized GitHub connector.
+
+`forge.py` combines original scripts and escaped project metadata into a Godot template. Trusted temporary import + smoke tests are separate from generated file editing. Generation is deterministic with seed/title. `media.py` is an independently usable ComfyUI queue client tested with mock transport, not a connected image/video feature.
+
+API: `/api/v1/auth/*`, `/models`, `/chats`, `/chats/{id}/messages` (SSE), `/tasks`, `/tasks/{id}/run|cancel|resume|rollback|download`, `/tasks/{id}/files/{path}`, `/memory`, `/usage`. Consult generated OpenAPI `/docs` for exact input schemas. Authentication is bearer-token based. No credentials are returned in models/usage.

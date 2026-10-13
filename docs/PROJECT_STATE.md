@@ -1,0 +1,13 @@
+# Project state
+
+Repository: Sayedmah/Modax. Branch: feat/modax-omega-foundation. Baseline main: bb0295d55483a9e1733fdc09399058afd3979534.
+
+Implemented: authenticated persistent streaming demo/configurable-provider chat; adaptive operator console; owner-scoped tasks and notes; bounded coding file generation and ZIP/rollback; original Godot Crystal Island generator with real engine checks; independent mock-tested ComfyUI transport.
+
+Verified: 46 Python tests including Godot, lint, JavaScript syntax, six browser flow checks with no page errors. Detailed evidence: TEST_REPORT.md. All independent review important findings addressed; live Docker execution remains unavailable.
+
+Full master MVP and native release are incomplete. No real inference, trained weights, model benchmarks, generated media, Windows installer, APK or IPA is claimed. Docker image build also remains unverified.
+
+Next action: configure an authorized local Ollama service, run genuine chat + structured coder task, record actual model/version and failures. In parallel in a suitable later environment, verify dedicated Docker tests with a digest-pinned approved image; then build the native Flutter client.
+
+See project_state.json for the verified implementation commit and resume commands. Documentation checkpoint commits may follow the verified implementation commit without changing code.

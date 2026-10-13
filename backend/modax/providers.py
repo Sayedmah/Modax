@@ -1,0 +1,170 @@
+"""Capability-aware adapters; no client-supplied endpoints or keys."""
+
+import asyncio
+import json
+from dataclasses import dataclass
+
+import httpx
+
+
+class CapabilityError(ValueError):
+    pass
+
+
+class ProviderError(RuntimeError):
+    pass
+
+
+@dataclass
+class Model:
+    id: str
+    provider: str
+    model: str
+    demo: bool = False
+    capabilities: tuple = ("text", "stream", "code")
+    pricing: dict | None = None
+    context_limit: int | None = None
+    availability: str = "configured_unverified"
+
+
+class Provider:
+    def __init__(self, model):
+        self.model = model
+
+    def get_capabilities(self):
+        return self.model.capabilities
+
+    async def generate_text(self, messages):
+        return "".join([part async for part in self.stream_text(messages)])
+
+    def require_capability(self, capability):
+        if capability not in self.model.capabilities:
+            raise CapabilityError(f"{self.model.id} does not support {capability}")
+
+    async def generate_image(self, *args, **kwargs):
+        self.require_capability("image_generation")
+
+    async def generate_video(self, *args, **kwargs):
+        self.require_capability("video_generation")
+
+
+class DemoProvider(Provider):
+    def __init__(self):
+        super().__init__(
+            Model("demo", "demo", "deterministic-test-adapter", True, availability="demo")
+        )
+
+    async def stream_text(self, messages):
+        if messages[0].get("content", "").startswith("MODAX_CODE_JSON"):
+            answer = json.dumps(
+                {
+                    "files": [
+                        {
+                            "path": "hello.py",
+                            "content": 'def greet(name):\n    return "Hello, " + name\n',
+                        },
+                        {
+                            "path": "test_hello.py",
+                            "content": 'import unittest\nfrom hello import greet\n\nclass GreetingTest(unittest.TestCase):\n    def test_greeting(self):\n        self.assertEqual(greet("MODAX"), "Hello, MODAX")\n',
+                        },
+                    ]
+                }
+            )
+        else:
+            answer = "[DEMO — استجابة تجريبية وليست نموذج ذكاء اصطناعي] " + messages[-1]["content"]
+        for i in range(0, len(answer), 24):
+            await asyncio.sleep(0)
+            yield answer[i : i + 24]
+
+
+class HTTPProvider(Provider):
+    def __init__(self, model, base_url, key="", transport=None):
+        super().__init__(model)
+        self.base_url = base_url.rstrip("/")
+        self.key = key
+        self.transport = transport
+
+    async def stream_text(self, messages):
+        ollama = self.model.provider == "ollama"
+        url = self.base_url + ("/api/chat" if ollama else "/chat/completions")
+        headers = {"Authorization": "Bearer " + self.key} if self.key else {}
+        payload = {"model": self.model.model, "messages": messages, "stream": True}
+        if ollama:
+            payload["options"] = {"num_predict": 4096}
+        else:
+            payload["max_tokens"] = 4096
+        total = 0
+        try:
+            async with httpx.AsyncClient(
+                timeout=httpx.Timeout(90, connect=10),
+                transport=self.transport,
+                follow_redirects=False,
+            ) as client:
+                async with client.stream("POST", url, headers=headers, json=payload) as response:
+                    response.raise_for_status()
+                    async for line in response.aiter_lines():
+                        if not line or (not ollama and not line.startswith("data: ")):
+                            continue
+                        data = line if ollama else line[6:]
+                        if data == "[DONE]":
+                            return
+                        record = json.loads(data)
+                        if not isinstance(record, dict):
+                            raise ProviderError("Malformed provider event")
+                        if record.get("error"):
+                            raise ProviderError("Provider returned an error")
+                        if ollama:
+                            message = record.get("message", {})
+                            if not isinstance(message, dict):
+                                raise ProviderError("Malformed provider message")
+                            delta = message.get("content", "")
+                        else:
+                            choices = record.get("choices", [])
+                            delta = (
+                                choices[0].get("delta", {}).get("content", "") if choices else ""
+                            )
+                        if delta is not None and not isinstance(delta, str):
+                            raise ProviderError("Malformed provider content")
+                        if delta:
+                            total += len(delta)
+                            if total > 100000:
+                                raise ProviderError("Response limit exceeded")
+                            yield delta
+                        if ollama and record.get("done") is True:
+                            return
+                    raise ProviderError("Provider stream ended before its completion marker")
+        except (httpx.HTTPError, json.JSONDecodeError, TypeError, KeyError) as exc:
+            # Provider bodies can contain secrets. Do not forward raw responses.
+            raise ProviderError(
+                "Provider request failed; check server configuration or service availability"
+            ) from exc
+
+
+class Registry:
+    def __init__(self, settings):
+        self.providers = {}
+        if settings.demo:
+            self.providers["demo"] = DemoProvider()
+        if settings.provider_url and settings.provider_model and settings.provider_key:
+            self.providers["compatible"] = HTTPProvider(
+                Model("compatible", "compatible", settings.provider_model),
+                settings.provider_url,
+                settings.provider_key,
+            )
+        if settings.ollama_url and settings.ollama_model:
+            self.providers["ollama"] = HTTPProvider(
+                Model("ollama", "ollama", settings.ollama_model), settings.ollama_url
+            )
+
+    def select(self, model_id="auto", capability="text"):
+        if model_id == "auto":
+            candidates = [p for p in self.providers.values() if capability in p.get_capabilities()]
+            candidates.sort(key=lambda p: p.model.demo)
+            if not candidates:
+                raise CapabilityError("No configured provider supports this task")
+            return candidates[0]
+        p = self.providers.get(model_id)
+        if p is None:
+            raise CapabilityError("Model is not configured")
+        p.require_capability(capability)
+        return p

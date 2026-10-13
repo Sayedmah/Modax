@@ -1,0 +1,6 @@
+{
+  "name": "modax-console-qa",
+  "private": true,
+  "scripts": { "test:ui": "python scripts/check_ui.py", "check": "node --check apps/web/app.js" },
+  "devDependencies": { "playwright": "1.55.1" }
+}
