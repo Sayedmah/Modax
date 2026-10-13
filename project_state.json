@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "repository": "https://github.com/Sayedmah/Modax",
+  "active_branch": "feat/modax-omega-foundation",
+  "baseline_commit": "bb0295d55483a9e1733fdc09399058afd3979534",
+  "latest_verified_commit": "417755b13abc6a1afd7f6badafe54a2a4d9478f2",
+  "pull_request": "https://github.com/Sayedmah/Modax/pull/2",
+  "last_completed_phase": "verified foundation vertical slice; full master MVP incomplete",
+  "implemented_modules": [
+    "auth",
+    "sqlite_migrations",
+    "chat_history_streaming",
+    "demo_provider",
+    "compatible_http_adapter",
+    "ollama_adapter",
+    "rule_based_task_plans",
+    "task_state_recovery",
+    "bounded_coder_files",
+    "snapshot_rollback",
+    "workspace_zip",
+    "explicit_notes",
+    "usage_latency",
+    "godot_crystal_island_generator",
+    "comfyui_transport",
+    "adaptive_web_console"
+  ],
+  "test_results": {
+    "python": {
+      "passed": 46,
+      "failed": 0,
+      "engine_check": "Godot 4.6.stable.official.89cea1439",
+      "seconds": 9.4
+    },
+    "ruff": "passed",
+    "javascript_syntax": "passed",
+    "browser": {
+      "passed": true,
+      "page_errors": 0,
+      "checks": [
+        "signup",
+        "demo streaming",
+        "coder generation",
+        "notes create/delete",
+        "mobile overflow",
+        "account-switch isolation"
+      ]
+    }
+  },
+  "blocked_features": [
+    "real model inference needs authorized service",
+    "Docker daemon unavailable; runtime contracts only",
+    "native Flutter SDK unavailable",
+    "export templates/platform SDK/signing unavailable",
+    "GPU media worker and approved workflow/model licenses unavailable"
+  ],
+  "remaining_tasks": [
+    "real local model end-to-end test",
+    "dedicated Docker runtime verification",
+    "native Flutter client",
+    "internal GitHub tool integration",
+    "bounded repair loop",
+    "durable media worker",
+    "multimodal ingestion",
+    "multi-agent measured routing",
+    "Arena",
+    "training lab"
+  ],
+  "next_exact_executable_action": "Configure MODAX_OLLAMA_URL and MODAX_OLLAMA_MODEL for authorized local service; start API with one worker, log in, run chat and code task and record actual inference outputs.",
+  "resume_commands": [
+    "pip install -e .[dev]",
+    "python -m pytest -q",
+    "python -m ruff check backend tests scripts",
+    "node --check apps/web/app.js",
+    "npm ci --ignore-scripts",
+    "npx playwright install chromium",
+    "npm run test:ui"
+  ],
+  "background_work": false,
+  "notes": "Documentation checkpoint may follow verified implementation commit. No trained weights, images/videos, native executables or six-hour elapsed work claimed."
+}

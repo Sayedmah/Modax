@@ -11,3 +11,5 @@ Full master MVP and native release are incomplete. No real inference, trained we
 Next action: configure an authorized local Ollama service, run genuine chat + structured coder task, record actual model/version and failures. In parallel in a suitable later environment, verify dedicated Docker tests with a digest-pinned approved image; then build the native Flutter client.
 
 See project_state.json for the verified implementation commit and resume commands. Documentation checkpoint commits may follow the verified implementation commit without changing code.
+
+Verified implementation commit: 417755b13abc6a1afd7f6badafe54a2a4d9478f2. Draft PR: https://github.com/Sayedmah/Modax/pull/2.

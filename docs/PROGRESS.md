@@ -12,3 +12,5 @@ Baseline: main bb0295d55483a9e1733fdc09399058afd3979534, README only; existing r
 - Configuration/CI/docs and checkpoint provided. No elapsed six-hour claim or background worker claim.
 
 Rulings: use SQLite and a tested web operator console for this first milestone while native SDK is absent; potential cost is later client/database migration. Use rule-based single-worker orchestration initially; OMEGA quality is not claimed. No references or weights copied; future integrations still need separate license/dependency/worker approval. License proposal is reviewable in draft PR, not merged.
+
+- Published verified implementation 417755b13abc6a1afd7f6badafe54a2a4d9478f2 to development branch; opened draft PR #2. Main not merged.

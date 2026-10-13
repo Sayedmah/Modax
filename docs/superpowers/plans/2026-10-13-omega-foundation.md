@@ -32,4 +32,4 @@ Cross-user access, symlink/path escape, provider interruption, restart recovery,
 - [x] Test ComfyUI protocol and job failure/cancellation; implement adapter without bundling weights/code.
 - [x] Record exact reference/license audit, executed checks and limitations.
 - [x] CI, deployment configuration, resumable state, independent review and fixes.
-- [ ] Publish branch and draft PR through authorized GitHub workflow.
+- [x] Publish branch and draft PR through authorized GitHub workflow.
