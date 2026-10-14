@@ -49,3 +49,7 @@ Final0.3.3 verification: CI38526383889 success on32566b3673a17c26bf3ad4a29f40ecd
 
 107Python tests passed,1PostgreSQL test skipped locally,14.50s with Godot4.6. Ruff and JavaScript syntax passed;2Node state tests passed;14Chromium flows passed with zero page errors, including named-provider endpoint selection. Seven mock transport/API tests cover streaming text/usage, pinned endpoints, encrypted profiles, owner isolation, server registration and sanitized failures. No actual provider inference or paid request occurred. CI38583462449 passed both jobs on ac73bddf9a3932e5d9df288746e1ac514e679437. Render dep-db7pbavavr4c73fjidl0 live; hosted health0.3.4 and provider UI verified.
 
+# Configured OpenRouter and API controls
+
+Implementation117df3efca36d57995b7eca86cde8b87d8a9b9c4:107local tests passed/1PostgreSQLskip in13.83s; Ruff/JS and2Node tests passed;14browser flows passed with zero errors, including the header shortcut and active Settings navigation. CI38585205403 passed both jobs. Hosted button present; authenticated registry model openrouter/free; real text fixture completed with11characters and expected marker, done event and no error. Message/history probe18.74s including network. Probe chat removed and session logged out. Authorized key stays in Render; no paid model inference. Gemini real inference still unverified.
+

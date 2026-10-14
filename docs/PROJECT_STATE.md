@@ -4,7 +4,7 @@ Repository: https://github.com/Sayedmah/Modax
 Development branch: feat/modax-omega-foundation
 Draft PR: https://github.com/Sayedmah/Modax/pull/2
 Website: https://modax-omega.onrender.com/
-Current implementation: 0.3.4 (ac73bddf9a3932e5d9df288746e1ac514e679437)
+Current implementation: 0.3.4 (117df3efca36d57995b7eca86cde8b87d8a9b9c4)
 
 Implemented software: authenticated web chat/history/streaming, encrypted owner-specific provider profiles, bounded document extraction and references, optional notes, measured small Arena tests, source-aware Coder with ZIP import/snapshots/syntax repair/unified patches, isolated advisory review roles, background acceptance/status/history/cancel/resume, PostgreSQL store/artifact persistence support, original deterministic Godot Crystal Island, and optional ComfyUI transport.
 
@@ -21,3 +21,6 @@ Owner-only export from Settings is implemented and live. Local100tests passed/1P
 
 ## Gemini and OpenRouter
 Named owner-encrypted Gemini/OpenRouter profiles, fixed official endpoints, optional server secret/model settings and streaming usage reporting implemented. Settings switches endpoints automatically. Local107Python tests passed/1PostgreSQLskip in14.50s, Node2tests and Chromium14flows passed. Seven named-provider tests use mock HTTP only; real inference remains unverified without an authorized configured key. See docs/PROVIDERS.md for setup. CI38583462449 succeeded in both jobs; Render dep-db7pbavavr4c73fjidl0 is live. Hosted health0.3.4 and Gemini/OpenRouter UI verified; demo remains active until a real connection is configured.
+## Verified configured OpenRouter
+Prominent header API Settings shortcut and full-width save button are deployed. Authorized server secret is configured only in Render; the source contains no key. Authenticated models list exposes openrouter/free. A real hosted streamed text fixture completed, returned the expected11-character marker, emitted done without error, and persisted completed history. End-to-end message/history probe18.74s including network; probe chat deleted and session logged out. No paid model used; actual monetary cost not reported. Gemini remains unverified. Local107passed/1skip in13.83s, Node2tests, browser14flows and CI38585205403 passed. Render dep-db7pgrvavr4c73fjr6lg live. Ephemeral storage and native/media blockers remain.
+

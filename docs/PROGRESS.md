@@ -43,5 +43,5 @@ Implemented named providers across existing Chat/Coder/Arena registry and Settin
 
 # API connection visibility
 
-Added a prominent header Settings shortcut and full-width provider save button; active navigation remains synchronized. Browser14flows passed, including shortcut navigation. Authorized OpenRouter secret set only in Render with openrouter/free; other environment variables preserved. No secret in source. Live provider registration and actual free inference validation pending deployment.
+Added a prominent header Settings shortcut and full-width provider save button; active navigation remains synchronized. Browser14flows passed, including shortcut navigation. Authorized OpenRouter secret set only in Render with openrouter/free; other environment variables preserved. No secret in source. Live authenticated registration and real streamed free inference passed; expected11-character marker received and completed history verified. CI38585205403 passed; deployment dep-db7pgrvavr4c73fjr6lg live. No paid model used.
 

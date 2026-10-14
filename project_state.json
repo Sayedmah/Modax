@@ -3,9 +3,9 @@
   "repository": "https://github.com/Sayedmah/Modax",
   "active_branch": "feat/modax-omega-foundation",
   "baseline_commit": "bb0295d55483a9e1733fdc09399058afd3979534",
-  "latest_verified_commit": "ac73bddf9a3932e5d9df288746e1ac514e679437",
+  "latest_verified_commit": "117df3efca36d57995b7eca86cde8b87d8a9b9c4",
   "pull_request": "https://github.com/Sayedmah/Modax/pull/2",
-  "last_completed_phase": "verified hosted0.3.4 Gemini/OpenRouter integration; real inference requires authorized keys",
+  "last_completed_phase": "hosted API buttons and real OpenRouter free text inference verified",
   "implemented_modules": [
     "auth",
     "sqlite_migrations",
@@ -56,7 +56,7 @@
     "python": {
       "passed": 107,
       "skipped": 1,
-      "seconds": 14.5,
+      "seconds": 13.83,
       "skip_reason": "local PostgreSQL credentials missing; genuine PostgreSQL CI integration passed",
       "engine_check": "Godot 4.6"
     },
@@ -83,14 +83,14 @@
       ]
     },
     "github_actions": {
-      "commit": "ac73bddf9a3932e5d9df288746e1ac514e679437",
-      "run_id": 38583462449,
+      "commit": "117df3efca36d57995b7eca86cde8b87d8a9b9c4",
+      "run_id": 38585205403,
       "conclusion": "success",
       "jobs": [
         "backend-and-godot",
         "postgres-integration"
       ],
-      "url": "https://github.com/Sayedmah/Modax/actions/runs/38583462449"
+      "url": "https://github.com/Sayedmah/Modax/actions/runs/38585205403"
     },
     "node_session_regressions": {
       "passed": 2
@@ -117,8 +117,10 @@
       "full_editor_import": "still blocked on free host; passes in CI"
     },
     "live_http_current_commit": [
-      "health0.3.4 200",
-      "named Gemini/OpenRouter UI and fixed Gemini endpoint verified"
+      "health0.3.4",
+      "prominent connect-api button",
+      "authenticated server model openrouter/free",
+      "actual streamed response completed; probe chat deleted and session logged out"
     ],
     "account_export": {
       "local": "7 new tests passed",
@@ -130,16 +132,26 @@
     },
     "named_providers": {
       "protocol_tests": 7,
-      "real_inference": "not executed; authorized keys not configured"
+      "real_inference": "OpenRouter openrouter/free completed a real hosted streamed fixture; Gemini remains unverified"
+    },
+    "live_openrouter": {
+      "configured_model": "openrouter/free",
+      "status": "completed",
+      "characters": 11,
+      "expected_marker": true,
+      "done_event": true,
+      "error_event": false,
+      "probe_seconds": 18.74,
+      "cost": "not reported; free router selected; no paid model"
     }
   },
   "blocked_features": [
     "production DATABASE_URL binding requires authorized Render dashboard connection secret",
-    "actual model inference requires user-configured provider key",
     "actual Docker runtime unavailable",
     "native SDK/signing/export templates unavailable",
     "GPU media workers and compatible model licenses not configured",
-    "Full editor import/custom-asset validation on free Render remains blocked; exact primitive template gameplay is verified"
+    "Full editor import/custom-asset validation on free Render remains blocked; exact primitive template gameplay is verified",
+    "Gemini real inference requires an authorized configured key; paid models not authorized"
   ],
   "remaining_tasks": [
     "bind production PostgreSQL",
@@ -152,7 +164,7 @@
     "expand multi-agent OMEGA beyond same-provider isolated code reviews",
     "portable chat re-import from account export"
   ],
-  "next_exact_executable_action": "Verify actual Gemini/OpenRouter inference when an authorized key/model is configured; continue bounded account-export chat re-import. Production DATABASE_URL binding remains separately blocked.",
+  "next_exact_executable_action": "Continue bounded account-export chat re-import. OpenRouter free inference is verified; monitor free-provider quotas without paid fallback. PostgreSQL binding remains blocked.",
   "resume_commands": [
     "pip install -e .[dev]",
     "python -m pytest -q",
@@ -169,7 +181,7 @@
     "workspace": "tea-dalrl82d0e5s738de4j0",
     "service": "srv-db75ucmi0phs738mfg6g",
     "plan": "free",
-    "deploy": "dep-db7pbavavr4c73fjidl0",
+    "deploy": "dep-db7pgrvavr4c73fjr6lg",
     "status": "live",
     "postgres": "dpg-db74kajncjis73fgelo0-a",
     "database_connection": "blocked; secure browser sign-in aborted",
