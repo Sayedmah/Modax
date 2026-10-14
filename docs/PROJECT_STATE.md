@@ -4,7 +4,7 @@ Repository: https://github.com/Sayedmah/Modax
 Development branch: feat/modax-omega-foundation
 Draft PR: https://github.com/Sayedmah/Modax/pull/2
 Website: https://modax-omega.onrender.com/
-Current implementation: 0.3.2 (e98ec2d05c381414a9c5200025dc511c0148a2f5)
+Current implementation: 0.3.3 (32566b3673a17c26bf3ad4a29f40ecd04e8700de)
 
 Implemented software: authenticated web chat/history/streaming, encrypted owner-specific provider profiles, bounded document extraction and references, optional notes, measured small Arena tests, source-aware Coder with ZIP import/snapshots/syntax repair/unified patches, isolated advisory review roles, background acceptance/status/history/cancel/resume, PostgreSQL store/artifact persistence support, original deterministic Godot Crystal Island, and optional ComfyUI transport.
 
@@ -15,3 +15,6 @@ Hosted 0.3.1 source ZIP import, Coder completion and patch download passed. Edit
 Production blockers: DATABASE_URL unbound after secure Render sign-in was aborted; free-host SQLite is ephemeral. Actual paid/local model inference needs an authorized configured provider. Docker runtime, GPU/media workers and native SDK/signing/export templates unavailable. No trained model, generated media, benchmark superiority or complete universal platform is claimed.
 
 The next step is to read the machine checkpoint and verify the latest live deployment, then securely bind PostgreSQL and test persistence across restart when a connection secret is available. Six scheduled daily continuation attempts exist; these do not promise continuous work or complete delivery in six days.
+
+## Verified account export
+Owner-only export from Settings is implemented and live. Local100tests passed/1PostgreSQLskip in13.64s, Node2tests and Chromium13flows passed. CI38526383889 succeeded in both backend/Godot/browser and actual PostgreSQL export integration. Render deploy dep-db7ikkijnfac73db4dj0 live; small HTTP export probe verified2222bytes in2.72s (network included). Explicit secret exclusions, consistent read-only snapshots and bounded SQL/ZIP processing are tested. Whole-account automatic restore is not implemented. Next: bounded portable chat re-import; production PostgreSQL binding and genuine model inference remain blocked.

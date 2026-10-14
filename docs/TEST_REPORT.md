@@ -43,3 +43,5 @@ Final verification:93Pythonpassed/1localPostgreSQLskip in12.98s. GitHub Actions3
 
 ## Account export 0.3.3
 Executed local suite100passed/1PostgreSQLskip in13.64s with real Godot4.6. New7tests cover owner isolation across chats/notes/tasks/source, credential exclusion, exact CRLF, limits and gate recovery, consistent read-only snapshots during writes, concurrency bounds, SQL interruption and bounded PostgreSQL cursor transport. PostgreSQL CI test now checks actual exported documents/task counts. Browser13flows pass with zero page errors, including downloading and reading the export manifest. Ruff/JSsyntax/Node2 regressions passed. CI/live new release pending; no paid inference performed.
+
+Final0.3.3 verification: CI38526383889 success on32566b3673a17c26bf3ad4a29f40ecd04e8700de, including actual PostgreSQL export. Render dep-db7ikkijnfac73db4dj0 live. Hosted account export checked with one message/one note: valid ZIP2222bytes, HTTPprobe2.72s; authentication token absent and account fields onlyid/username. No live inference or paid services invoked. Checkpoint next step: bounded chat re-import while secure PostgreSQL binding remains blocked.

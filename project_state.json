@@ -3,9 +3,9 @@
   "repository": "https://github.com/Sayedmah/Modax",
   "active_branch": "feat/modax-omega-foundation",
   "baseline_commit": "bb0295d55483a9e1733fdc09399058afd3979534",
-  "latest_verified_commit": "e98ec2d05c381414a9c5200025dc511c0148a2f5",
+  "latest_verified_commit": "32566b3673a17c26bf3ad4a29f40ecd04e8700de",
   "pull_request": "https://github.com/Sayedmah/Modax/pull/2",
-  "last_completed_phase": "verified hosted web milestone0.3.2; full platform incomplete",
+  "last_completed_phase": "verified hosted milestone0.3.3 account data portability; full platform incomplete",
   "implemented_modules": [
     "auth",
     "sqlite_migrations",
@@ -79,14 +79,14 @@
       ]
     },
     "github_actions": {
-      "commit": "e98ec2d05c381414a9c5200025dc511c0148a2f5",
-      "run_id": 38514227710,
+      "commit": "32566b3673a17c26bf3ad4a29f40ecd04e8700de",
+      "run_id": 38526383889,
       "conclusion": "success",
       "jobs": [
         "backend-and-godot",
         "postgres-integration"
       ],
-      "url": "https://github.com/Sayedmah/Modax/actions/runs/38514227710"
+      "url": "https://github.com/Sayedmah/Modax/actions/runs/38526383889"
     },
     "node_session_regressions": {
       "passed": 2
@@ -113,14 +113,17 @@
       "full_editor_import": "still blocked on free host; passes in CI"
     },
     "live_http_current_commit": [
-      "health0.3.2 200",
-      "background game acceptance202",
-      "trusted game runtime COMPLETED"
+      "health0.3.3 200",
+      "account export valid ZIP",
+      "owner data and authentication-token exclusion verified"
     ],
     "account_export": {
-      "local": "passed",
-      "github_ci": "pending",
-      "live": "pending"
+      "local": "7 new tests passed",
+      "github_ci": "PostgreSQL export passed",
+      "live": "verified",
+      "bytes": 2222,
+      "probe_seconds": 2.72,
+      "fixture": "one imported message and one note; no credentials exported"
     }
   },
   "blocked_features": [
@@ -139,9 +142,10 @@
     "real media worker",
     "native client/export",
     "comprehensive benchmarks/training",
-    "expand multi-agent OMEGA beyond same-provider isolated code reviews"
+    "expand multi-agent OMEGA beyond same-provider isolated code reviews",
+    "portable chat re-import from account export"
   ],
-  "next_exact_executable_action": "Verify 0.3.3 deployment and owner-only account export on hosted preview; then implement portable chat re-import/conversion without restoring credentials, while production database binding stays blocked.",
+  "next_exact_executable_action": "Implement a bounded converter/re-import flow for account-export chat records, with regenerated IDs, owner checks and explicit size limits; do not restore credentials or run uploaded code. Production DATABASE_URL remains blocked pending an authorized secure connection-secret mechanism.",
   "resume_commands": [
     "pip install -e .[dev]",
     "python -m pytest -q",
@@ -158,7 +162,7 @@
     "workspace": "tea-dalrl82d0e5s738de4j0",
     "service": "srv-db75ucmi0phs738mfg6g",
     "plan": "free",
-    "deploy": "dep-db7gql6i0phs7393c3dg",
+    "deploy": "dep-db7ikkijnfac73db4dj0",
     "status": "live",
     "postgres": "dpg-db74kajncjis73fgelo0-a",
     "database_connection": "blocked; secure browser sign-in aborted",
