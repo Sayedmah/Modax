@@ -41,3 +41,7 @@ Final0.3.3 verification: CI38526383889 success on32566b3673a17c26bf3ad4a29f40ecd
 
 Implemented named providers across existing Chat/Coder/Arena registry and Settings. Fixed official endpoints prevent cross-provider key submission; optional server environment configuration added. Local107tests/1skip,14browser flows,2Node tests and Ruff/JS checks passed. CI38583462449 passed; hosted0.3.4 health and UI verified. No credentials provisioned and no paid inference performed. Next: authorized inference when a key is configured and bounded account-export chat re-import.
 
+# API connection visibility
+
+Added a prominent header Settings shortcut and full-width provider save button; active navigation remains synchronized. Browser14flows passed, including shortcut navigation. Authorized OpenRouter secret set only in Render with openrouter/free; other environment variables preserved. No secret in source. Live provider registration and actual free inference validation pending deployment.
+

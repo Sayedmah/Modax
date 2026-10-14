@@ -11,11 +11,12 @@ Operators can instead configure server secrets:
 | Gemini | GEMINI_API_KEY | MODAX_GEMINI_MODEL | https://generativelanguage.googleapis.com/v1beta/openai |
 | OpenRouter | OPENROUTER_API_KEY | MODAX_OPENROUTER_MODEL | https://openrouter.ai/api/v1 |
 
-Both a key and model are required before a server connection is exposed. AUTO prefers configured real providers over the demo fixture. Server-wide providers are shared by authorized users; per-user profiles preserve owner isolation. No keys are provisioned by this change and no paid test inference is performed. Usage counts are recorded only when the completed stream reports them; monetary costs remain unknown.
+Both a key and model are required before a server connection is exposed. AUTO prefers configured real providers over the demo fixture. Server-wide providers are shared by authorized users; per-user profiles preserve owner isolation. An operator-authorized OpenRouter secret was configured in Render on2026-10-14, using openrouter/free; its value is never stored in the repository. No paid test inference is performed. Usage counts are recorded only when the completed stream reports them; monetary costs remain unknown. Free model availability and quotas are controlled by OpenRouter.
 
 Protocol sources checked 2026-10-14:
 - https://ai.google.dev/gemini-api/docs/openai
 - https://ai.google.dev/gemini-api/docs/partner-integration
 - https://openrouter.ai/docs/api/api-reference/chat/send-chat-completion-request
+- https://openrouter.ai/openrouter/free/
 
 Known hosting limitation: production SQLite is ephemeral until DATABASE_URL is securely bound. User provider profiles can be lost on a host restart; account exports intentionally exclude their credentials.
