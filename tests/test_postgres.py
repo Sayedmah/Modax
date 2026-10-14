@@ -21,7 +21,7 @@ def test_genuine_postgres_migrations_auth_documents_and_tasks(tmp_path):
         c.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(schema)))
     scoped = make_conninfo(url, options="-c search_path=" + schema)
     try:
-        settings = Settings(data_dir=tmp_path, database_url=scoped, allow_signup=True)
+        settings = Settings(data_dir=tmp_path, database_url=scoped, allow_signup=True, guest_mode=True)
         with TestClient(create_app(settings)) as c:
             h = register(c)
             assert (
@@ -32,6 +32,11 @@ def test_genuine_postgres_migrations_auth_documents_and_tasks(tmp_path):
                 == 409
             )
             cid = c.post("/api/v1/chats", headers=h, json={}).json()["id"]
+            guest = c.post("/api/v1/auth/guest")
+            assert guest.status_code == 201, guest.text
+            guest_headers = {"Authorization": "Bearer " + guest.json()["token"]}
+            assert c.get(f"/api/v1/chats/{cid}", headers=guest_headers).status_code == 404
+            assert c.get("/api/v1/models", headers=guest_headers).status_code == 200
             assert (
                 "event: done"
                 in c.post(

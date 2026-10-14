@@ -164,7 +164,7 @@ def create_app(settings=None):
             raise HTTPException(429, "Guest session creation limit reached; retry later")
         hits.append(now)
         if (
-            store.query("SELECT COUNT(*) AS n FROM users WHERE username LIKE 'guest-%'")[0]["n"]
+            store.query("SELECT COUNT(*) AS n FROM users WHERE username LIKE ?", ("guest-%",))[0]["n"]
             >= 10000
         ):
             raise HTTPException(429, "Guest capacity reached")
