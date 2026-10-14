@@ -31,6 +31,9 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npx playwright install --with-deps chromium
       - run: npm run test:ui
+      - run: npm run test:ui
+        env:
+          MODAX_QA_GUEST: "true"
       - name: Preserve generated playable project
         run: python scripts/generate_game.py /tmp/crystal-island --godot /tmp/godot/Godot_v4.6-stable_linux.x86_64
       - uses: actions/upload-artifact@v4

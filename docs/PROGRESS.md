@@ -45,3 +45,7 @@ Implemented named providers across existing Chat/Coder/Arena registry and Settin
 
 Added a prominent header Settings shortcut and full-width provider save button; active navigation remains synchronized. Browser14flows passed, including shortcut navigation. Authorized OpenRouter secret set only in Render with openrouter/free; other environment variables preserved. No secret in source. Live authenticated registration and real streamed free inference passed; expected11-character marker received and completed history verified. CI38585205403 passed; deployment dep-db7pgrvavr4c73fjr6lg live. No paid model used.
 
+# Direct entry0.3.5
+
+Implemented opt-in guest sessions and automatic site startup without a login form. Reload preserves the browser session; New Session revokes and replaces it. Private API ownership remains enforced, existing accounts/data preserved, public registration disabled on hosting. Added creation limits, bootstrap loading/retry states, backend isolation/revocation tests and separate guest browser CI. Local110tests passed/1PostgreSQLskip in30.99s; Ruff/JS and2Node regressions passed. Hosted/CI verification pending source publication.
+

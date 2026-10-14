@@ -15,6 +15,7 @@ with tempfile.TemporaryDirectory(prefix="modax-ui-qa-") as temporary:
         MODAX_DATA_DIR=temporary,
         MODAX_ALLOW_SIGNUP="true",
         MODAX_DEMO="true",
+        MODAX_GUEST_MODE="true" if os.getenv("MODAX_QA_GUEST") == "true" else "false",
         MODAX_PROVIDER_URL="",
         MODAX_PROVIDER_KEY="",
         GEMINI_API_KEY="",
@@ -51,7 +52,16 @@ with tempfile.TemporaryDirectory(prefix="modax-ui-qa-") as temporary:
                         raise RuntimeError("QA API did not start") from None
                     time.sleep(0.1)
             subprocess.run(
-                ["node", "scripts/ui_smoke.cjs"], cwd=root, env=environment, timeout=90, check=True
+                [
+                    "node",
+                    "scripts/guest_smoke.cjs"
+                    if os.getenv("MODAX_QA_GUEST") == "true"
+                    else "scripts/ui_smoke.cjs",
+                ],
+                cwd=root,
+                env=environment,
+                timeout=90,
+                check=True,
             )
         finally:
             server.terminate()

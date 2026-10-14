@@ -8,6 +8,7 @@ class Settings:
     data_dir: Path = field(default_factory=lambda: Path(os.getenv("MODAX_DATA_DIR", "var")))
     allow_signup: bool = field(default_factory=lambda: os.getenv("MODAX_ALLOW_SIGNUP") == "true")
     demo: bool = field(default_factory=lambda: os.getenv("MODAX_DEMO", "true") == "true")
+    guest_mode: bool = field(default_factory=lambda: os.getenv("MODAX_GUEST_MODE") == "true")
     session_seconds: int = 86400
     secret_key: str = field(default_factory=lambda: os.getenv("MODAX_SECRET_KEY", ""))
     database_url: str = field(default_factory=lambda: os.getenv("DATABASE_URL", ""))

@@ -66,9 +66,10 @@ def create_app(settings=None):
         finally:
             await app.state.task_engine.shutdown()
 
-    app = FastAPI(title="MODAX OMEGA", version="0.3.4", lifespan=lifespan)
+    app = FastAPI(title="MODAX OMEGA", version="0.3.5", lifespan=lifespan)
     app.state.settings, app.state.store, app.state.registry = settings, store, registry
     limiter = defaultdict(deque)
+    guest_limiter = defaultdict(deque)
     active_chats = set()
     auth_scheme = HTTPBearer(auto_error=False)
 
@@ -141,11 +142,39 @@ def create_app(settings=None):
     def health():
         return {
             "status": "ok",
-            "version": "0.3.4",
+            "version": "0.3.5",
+            "guest_mode": settings.guest_mode,
             "demo": settings.demo,
             "persistence": "postgres" if settings.database_url else "local",
             "native_builds": False,
         }
+
+    @app.post("/api/v1/auth/guest", status_code=201)
+    def guest(request: Request):
+        import secrets
+
+        if not settings.guest_mode:
+            raise HTTPException(403, "Guest access disabled")
+        address = request.client.host if request.client else "unknown"
+        now = time.monotonic()
+        hits = guest_limiter[address]
+        while hits and hits[0] < now - 60:
+            hits.popleft()
+        if len(hits) >= 10:
+            raise HTTPException(429, "Guest session creation limit reached; retry later")
+        hits.append(now)
+        if (
+            store.query("SELECT COUNT(*) AS n FROM users WHERE username LIKE 'guest-%'")[0]["n"]
+            >= 10000
+        ):
+            raise HTTPException(429, "Guest capacity reached")
+        user = uid()
+        store.execute(
+            "INSERT INTO users VALUES(?,?,?)",
+            (user, "guest-" + user, hash_password(secrets.token_urlsafe(48))),
+        )
+        store.audit(user, "user.guest", {})
+        return session(user)
 
     @app.post("/api/v1/auth/register", status_code=201)
     def register(body: Registration):

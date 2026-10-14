@@ -5,7 +5,7 @@
   "baseline_commit": "bb0295d55483a9e1733fdc09399058afd3979534",
   "latest_verified_commit": "117df3efca36d57995b7eca86cde8b87d8a9b9c4",
   "pull_request": "https://github.com/Sayedmah/Modax/pull/2",
-  "last_completed_phase": "hosted API buttons and real OpenRouter free text inference verified",
+  "last_completed_phase": "0.3.5 direct guest entry implemented and locally verified; remote verification pending",
   "implemented_modules": [
     "auth",
     "sqlite_migrations",
@@ -50,13 +50,15 @@
     "consistent_readonly_export_snapshots",
     "gemini_named_provider",
     "openrouter_named_provider",
-    "server_named_provider_configuration"
+    "server_named_provider_configuration",
+    "isolated_guest_sessions",
+    "automatic_guest_bootstrap"
   ],
   "test_results": {
     "python": {
-      "passed": 107,
+      "passed": 110,
       "skipped": 1,
-      "seconds": 13.83,
+      "seconds": 30.99,
       "skip_reason": "local PostgreSQL credentials missing; genuine PostgreSQL CI integration passed",
       "engine_check": "Godot 4.6"
     },
@@ -143,6 +145,17 @@
       "error_event": false,
       "probe_seconds": 18.74,
       "cost": "not reported; free router selected; no paid model"
+    },
+    "guest_browser": {
+      "passed": true,
+      "page_errors": 0,
+      "checks": [
+        "direct entry",
+        "demo streaming",
+        "reload session",
+        "guest isolation",
+        "new session"
+      ]
     }
   },
   "blocked_features": [
@@ -164,7 +177,7 @@
     "expand multi-agent OMEGA beyond same-provider isolated code reviews",
     "portable chat re-import from account export"
   ],
-  "next_exact_executable_action": "Continue bounded account-export chat re-import. OpenRouter free inference is verified; monitor free-provider quotas without paid fallback. PostgreSQL binding remains blocked.",
+  "next_exact_executable_action": "Verify deployed guest mode and CI, then continue bounded account-export chat re-import; keep per-owner isolation and free-only configured provider.",
   "resume_commands": [
     "pip install -e .[dev]",
     "python -m pytest -q",

@@ -2,6 +2,7 @@
 const $ = id => document.getElementById(id);
 let token = sessionStorage.getItem('modax-token') || '';
 let chatId = null, currentChat = null, controller = null, sessionEpoch = 0;
+let guestMode = false;
 const requests = new Set();
 function resetOwnerView() {
   sessionEpoch++; controller?.abort(); controller=null;
@@ -26,7 +27,7 @@ async function api(path, options={}) {
     let detail='HTTP '+response.status;
     try { const data=await response.json(); detail=typeof data.detail==='string'?data.detail:JSON.stringify(data.detail); } catch {}
     if(response.status===401 && token) { resetOwnerView(); token=''; sessionStorage.removeItem('modax-token'); $('auth').hidden=false; $('app').hidden=true; }
-    throw new Error(detail);
+    const failure=new Error(detail);failure.status=response.status;if(guestMode&&response.status===401){$('auth').hidden=true;$('boot-state').hidden=false;$('boot-message').textContent='انتهت الجلسة. افتح جلسة جديدة للمتابعة.';}throw failure;
   }
   const originalJson=response.json.bind(response), originalBlob=response.blob.bind(response);
   response.json=async()=>{try{const data=await originalJson();if(epoch!==sessionEpoch)throw Error('Session changed');return data;}finally{requests.delete(requestController);}};
@@ -56,12 +57,12 @@ async function openChat(id) {
   await history();
 }
 async function enter() {
-  $('auth').hidden=true;$('app').hidden=false;
+  $('auth').hidden=true;
   const models=await (await api('/models')).json();$('model').replaceChildren();$('arena-models').replaceChildren();
   const auto=document.createElement('option');auto.value='auto';auto.textContent='AUTO';$('model').append(auto);
   for(const m of models){const o=document.createElement('option');o.value=m.id;o.textContent=m.demo?'DEMO / محاكى':m.model;$('model').append(o);$('arena-models').append(o.cloneNode(true));}
   $('model').onchange=()=>{$('demo-banner').hidden=!models.some(m=>m.demo&&(m.id===$('model').value||($('model').value==='auto'&&!models.some(x=>!x.demo))));};$('model').onchange();
-  await history();await documents();const health=await(await api('/health')).json();if(health.persistence==='local')notify('تنبيه: حفظ البيانات السحابي الدائم ينتظر ربط PostgreSQL؛ صدّر المحادثات المهمة قبل إعادة تشغيل الخدمة.');
+  await history();await documents();const health=await(await api('/health')).json();if(health.persistence==='local')notify('تنبيه: حفظ البيانات السحابي الدائم ينتظر ربط PostgreSQL؛ صدّر المحادثات المهمة قبل إعادة تشغيل الخدمة.');$('app').hidden=false;
 }
 async function authenticate(register=false) {
   $('auth-error').textContent='';
@@ -69,7 +70,7 @@ async function authenticate(register=false) {
   catch(error){$('auth-error').textContent=error.message;}
 }
 $('auth-form').onsubmit=e=>{e.preventDefault();authenticate();};$('register').onclick=()=>authenticate(true);
-$('logout').onclick=safe(async()=>{await post('/auth/logout',{});resetOwnerView();token='';sessionStorage.removeItem('modax-token');$('app').hidden=true;$('auth').hidden=false;});
+$('logout').onclick=safe(async()=>{await post('/auth/logout',{});resetOwnerView();token='';sessionStorage.removeItem('modax-token');$('app').hidden=true;if(guestMode)await bootstrap();else $('auth').hidden=false;});
 $('new-chat').onclick=safe(async()=>{if(controller) throw new Error('أوقف الرد الجاري أولاً');chatId=null;currentChat=null;$('messages').replaceChildren();$('chat-title').textContent='محادثة جديدة';});
 $('search').oninput=safe(history);
 $('chat-form').onsubmit=safe(async e=>{
@@ -155,4 +156,16 @@ $('account-export').onclick=safe(async()=>{
 async function arenaHistory(){const runs=await(await api('/arena/runs')).json();$('arena-results').replaceChildren();for(const run of runs){const panel=document.createElement('div');panel.className='panel';const pre=document.createElement('pre');pre.textContent=JSON.stringify(run,null,2);panel.append(pre);$('arena-results').append(panel);}}
 $('arena-form').onsubmit=safe(async event=>{event.preventDefault();notify('التقييم قيد التنفيذ…');await post('/arena/runs',{models:Array.from($('arena-models').selectedOptions).map(o=>o.value),confirm_external_calls:$('arena-confirm').checked,template:$('arena-template').value});await arenaHistory();notify('نتائج محسوبة من الردود الفعلية');});
 
-if(token)enter().catch(error=>{notify(error.message,true);});
+async function bootstrap(){
+  $('boot-state').hidden=false;$('auth').hidden=true;$('boot-message').textContent='جاري فتح MODAX…';$('boot-retry').disabled=true;
+  try{
+    const health=await(await api('/health')).json();guestMode=health.guest_mode===true;
+    $('logout').textContent=guestMode?'جلسة جديدة':'تسجيل الخروج';
+    if(token){try{await enter();return;}catch(error){if(error.status!==401)throw error;}}
+    if(guestMode){const data=await(await post('/auth/guest',{})).json();resetOwnerView();token=data.token;sessionStorage.setItem('modax-token',token);await enter();}
+    else $('auth').hidden=false;
+  }catch(error){$('boot-message').textContent='تعذر فتح الموقع: '+error.message;$('boot-state').hidden=false;return;}
+  finally{$('boot-retry').disabled=false;if(!$('app').hidden||!$('auth').hidden)$('boot-state').hidden=true;}
+}
+$('boot-retry').onclick=()=>bootstrap();
+if(typeof window!=='undefined')bootstrap();

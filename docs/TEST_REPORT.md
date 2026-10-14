@@ -53,3 +53,7 @@ Final0.3.3 verification: CI38526383889 success on32566b3673a17c26bf3ad4a29f40ecd
 
 Implementation117df3efca36d57995b7eca86cde8b87d8a9b9c4:107local tests passed/1PostgreSQLskip in13.83s; Ruff/JS and2Node tests passed;14browser flows passed with zero errors, including the header shortcut and active Settings navigation. CI38585205403 passed both jobs. Hosted button present; authenticated registry model openrouter/free; real text fixture completed with11characters and expected marker, done event and no error. Message/history probe18.74s including network. Probe chat removed and session logged out. Authorized key stays in Render; no paid model inference. Gemini real inference still unverified.
 
+# Guest entry0.3.5
+
+110Python tests passed/1local PostgreSQLskip in30.99s with Godot4.6; Ruff/JS syntax and2Node session regressions passed.14existing browser flows and5new guest flows passed with zero page errors. New backend tests cover disabled access, ownership isolation, revocation and rate limits. Browser checks cover direct entry, streaming, reload, separate guests and New Session. A real short-height sidebar scrolling bug was reproduced and fixed. No paid inference. Hosted/CI validation pending publication.
+
