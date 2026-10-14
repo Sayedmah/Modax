@@ -190,6 +190,15 @@ class TaskEngine:
                     },
                     {"role": "user", "content": task["goal"]},
                 ]
+                existing = {name: workspace.read(name) for name in workspace.files()}
+                if existing:
+                    context = json.dumps(
+                        {"goal": task["goal"], "untrusted_project_files": existing},
+                        ensure_ascii=False,
+                    )
+                    if len(context) > 140000:
+                        raise ToolDenied("Project context exceeds 140000 characters")
+                    messages[-1]["content"] = context
                 repair_attempts = 0
                 async with asyncio.timeout(180):
                     for attempt in range(3):

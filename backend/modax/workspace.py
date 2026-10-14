@@ -89,7 +89,13 @@ class Workspace:
         self.snapshots = self.root.parent / (self.root.name + "-snapshots")
 
     def path(self, name):
-        if not isinstance(name, str) or len(name) > 200 or "\\" in name or ":" in name:
+        if (
+            not isinstance(name, str)
+            or len(name) > 200
+            or "\\" in name
+            or ":" in name
+            or any(ord(c) < 32 or ord(c) == 127 for c in name)
+        ):
             raise ToolDenied("Invalid path")
         rel = Path(name)
         if (
@@ -128,7 +134,7 @@ class Workspace:
         p = self.path(name)
         if not p.is_file() or p.stat().st_size > 131072:
             raise ToolDenied("Missing or oversized file")
-        return p.read_text()
+        return p.read_bytes().decode("utf-8")
 
     def apply(self, files):
         if not isinstance(files, list) or not 1 <= len(files) <= 32:
@@ -171,7 +177,7 @@ class Workspace:
         try:
             for p, text in validated.items():
                 p.parent.mkdir(parents=True, exist_ok=True)
-                p.write_text(text)
+                p.write_bytes(text.encode("utf-8"))
         except Exception:
             self.rollback(snapshot)
             raise
@@ -262,7 +268,7 @@ class DatabaseWorkspace(Workspace):
             for row in rows:
                 path = self.path(row["path"])
                 path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_text(row["content"])
+                path.write_bytes(row["content"].encode("utf-8"))
             self.files()
         if not self.snapshots.exists():
             self.snapshots.mkdir(mode=0o700)
@@ -277,7 +283,7 @@ class DatabaseWorkspace(Workspace):
                     self.path(name)
                     path = folder / name
                     path.parent.mkdir(parents=True, exist_ok=True)
-                    path.write_text(text)
+                    path.write_bytes(text.encode("utf-8"))
 
     def persist(self):
         files = {name: self.read(name) for name in self.files()}
@@ -289,7 +295,7 @@ class DatabaseWorkspace(Workspace):
     def apply(self, files):
         snapshot = super().apply(files)
         before = {
-            p.relative_to(self.snapshots / snapshot).as_posix(): p.read_text()
+            p.relative_to(self.snapshots / snapshot).as_posix(): p.read_bytes().decode("utf-8")
             for p in (self.snapshots / snapshot).rglob("*")
             if p.is_file()
         }

@@ -8,3 +8,7 @@
 6. Review GitHub CI status and draft PR; do not merge/deploy without explicit authorization. No work runs after the assistant turn except explicitly configured application processes/CI.
 
 Current primary blocker is DATABASE_URL binding for the live free Render service. Read current project_state.json; first website and v0.2 APIs are already deployed. Do not recreate resources, rotate MODAX_SECRET_KEY, or repeat verified features. Actual PostgreSQL support passed in CI, but production is not connected. User aborted dashboard sign-in; do not retry credential entry unless user authorizes resuming it. Six daily continuation attempts are configured Oct 14–19.
+
+Milestone0.3: use POST /api/v1/tasks/{id}/start for202 acceptance and GET task for state/steps. Completed tasks cannot restart. FAILED/BLOCKED require explicit resume toREADY first. Active cancelled workers must finish cleanup before resume. FAST default; confirm_external_reviews required for real SMART/OMEGA code tasks. Diagnose Godot through result.failed_stage and result.checks output, never infer a timeout means success.
+
+Optional POST /api/v1/tasks/{id}/project multipart file before start imports source ZIP. GET /api/v1/tasks/{id}/patch exports unified changes vs generator snapshot. Validate with git apply --check in the original source checkout before applying. No external publication is performed by these endpoints.

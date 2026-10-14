@@ -66,7 +66,7 @@ def create_app(settings=None):
         finally:
             await app.state.task_engine.shutdown()
 
-    app = FastAPI(title="MODAX OMEGA", version="0.3.0", lifespan=lifespan)
+    app = FastAPI(title="MODAX OMEGA", version="0.3.1", lifespan=lifespan)
     app.state.settings, app.state.store, app.state.registry = settings, store, registry
     limiter = defaultdict(deque)
     active_chats = set()
@@ -141,7 +141,7 @@ def create_app(settings=None):
     def health():
         return {
             "status": "ok",
-            "version": "0.3.0",
+            "version": "0.3.1",
             "demo": settings.demo,
             "persistence": "postgres" if settings.database_url else "local",
             "native_builds": False,
@@ -341,4 +341,7 @@ def create_app(settings=None):
     from .chat_tools import install_chat_tools
 
     install_chat_tools(app, active_chats)
+    from .project_tools import install_project_tools
+
+    install_project_tools(app)
     return app

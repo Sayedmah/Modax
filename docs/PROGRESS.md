@@ -20,3 +20,7 @@ Rulings: use SQLite and a tested web operator console for this first milestone w
 - Created six daily continuation attempts (Oct 14–19, approximately 09:00 Africa/Cairo); this is not a six-day continuous execution claim.
 - Platform APIs/controls now include per-owner encrypted providers, Anthropic, file extraction/retrieval, opt-in notes, imports/edits, measured small Arena and observed-error code repair.
 - Independent review found stale response-body state, private provider input retention, concurrent quota bypass and missing PostgreSQL locks. Fixed these; added Node session regressions and concurrent request checks.
+
+Implemented web milestone 0.3: background jobs and history; cancellation drains actual Godot/Docker threads before freeing quotas; observed command output/stage retained. Fresh-context advisory reviews persist per-role artifacts and block unresolved major/critical findings. Reviewer found Docker cancellation leak and consent selection race; fixes have regression tests. Default FAST avoids extra inference.
+
+Source project import and reviewable patches implemented:200KB ZIP,120KB expanded,32files,UTF8,deflate/store; rejects traversal,hiddenpaths,links,duplicates,secrets and disallowed extensions. Coder reads current source in untrusted context. Patch baseline preserves CRLF and no-final-newline; actual git apply tests passed.

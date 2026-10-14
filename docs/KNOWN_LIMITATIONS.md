@@ -9,3 +9,10 @@
 - Original Godot project passes local and CI gameplay checks. The live Render engine check failed: Command timed out after 75.17 seconds. Project files remain generated/downloadable, but hosted gameplay/export success is not claimed. Render logs were unavailable (503/502). Diagnose bounded process/host resources before another attempt.
 - No real image/video GPU worker or generated media, trained foundation model, native Flutter client, Windows installer, APK or IPA is delivered.
 - Six daily continuation attempts are configured Oct 14–19 around 09:00 Africa/Cairo. Availability of tools governs execution; this is not continuous development or a guaranteed six-day completion.
+
+### Milestone 0.3 boundaries
+Background jobs use one application process, not a distributed/durable worker scheduler. Restart interrupts active work; recover() marks interrupted persisted tasks BLOCKED. Free-host ephemeral storage remains a blocker. SMART/OMEGA code reviews use separate prompts against the same selected provider; this does not provide independent model diversity. Demo approvals are fixed fixtures, not real assessments. A review is advisory and cannot replace runtime tests. Up to three generation calls and two reviews; token costs unknown unless provider supplies usage. No full planning/repair of reviewer findings yet; rejected artifacts remain BLOCKED for review.
+
+Hosted Godot stall located at import, not download/version or gameplay. Root cause still unconfirmed; bounded verbose logs will identify initialization progress. Do not label hosted GameForge validated yet.
+
+Project import accepts a small source subset, not arbitrary repositories, binaries/dependencies or git credentials. Invalid Python/JSON source currently rejected by syntax validation during import. Patches compare current task files against latest generation snapshot; manual review is required. No server GitHub OAuth/push integration exists yet.

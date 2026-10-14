@@ -109,9 +109,9 @@ def install_workflows(app):
         return require("tasks", user, task_id)
 
     @app.post("/api/v1/tasks/{task_id}/rollback")
-    def rollback(task_id: str, body: RollbackInput, user=Depends(owner)):
+    async def rollback(task_id: str, body: RollbackInput, user=Depends(owner)):
         task = require("tasks", user, task_id)
-        if task["state"] in {"RUNNING", "VERIFYING"}:
+        if task["state"] in {"RUNNING", "VERIFYING"} or task_id in engine.running:
             raise HTTPException(409, "Wait for task completion before rollback")
         engine.workspace(user, task_id).rollback(body.snapshot)
         store.audit(user, "workspace.rollback", {"task": task_id, "snapshot": body.snapshot})

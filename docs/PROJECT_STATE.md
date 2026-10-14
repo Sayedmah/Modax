@@ -16,3 +16,8 @@ Verified implementation commit: 417755b13abc6a1afd7f6badafe54a2a4d9478f2. Draft 
 
 ## Web milestone 0.2
 Implemented profile encryption, Anthropic streaming, bounded file extraction/chunk search, document grounding, opt-in notes, chat import/edit/delete, actual small Arena evaluations, syntax repair, daily quota reservations, PostgreSQL transactions/migrations and database-backed artifacts. The free Render website is live at https://modax-omega.onrender.com. PostgreSQL database exists but lacks bound connection secret after sign-in was aborted. Scheduled continuation: six daily attempts Oct 14–19. See current KNOWN_LIMITATIONS for exact missing capabilities.
+
+## Web milestone 0.3
+Background task acceptance (202), live status/history/cancel/resume, bounded global/per-owner worker slots, cooperative subprocess cancellation with cleanup drain, isolated SMART/OMEGA advisory reviews and preserved Godot timeout diagnostics. FAST is default; SMART adds one reviewer and OMEGA adds two distinct roles using the selected provider, not separate foundation models. External reviews require explicit confirmation. Local full suite: 71 passed, 1 PostgreSQL skip, 12.12 seconds; browser 10 flows, no page errors. GitHub CI/live verification pending for 9bcc8ce at this checkpoint.
+
+Source-project milestone extends0.3 with boundedZIP context ingestion and verified unifiedpatch delivery.80Pythonpass/1skip,12browserflows. Hosted Godot remains blocked in import; verbose diagnostics next.

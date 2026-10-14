@@ -128,8 +128,8 @@ def validate_game(files, binary="godot", cancel_event=None):
                 "output"
             ].strip()
             for stage, args in (
-                ("import", ["--headless", "--path", path, "--import"]),
-                ("gameplay", ["--headless", "--path", path, "--script", "smoke_test.gd"]),
+                ("import", ["--headless", "--verbose", "--path", path, "--import"]),
+                ("gameplay", ["--headless", "--verbose", "--path", path, "--script", "smoke_test.gd"]),
             ):
                 result = bounded_command([executable, *args], root, timeout=60, **options)
                 result["stage"] = stage
