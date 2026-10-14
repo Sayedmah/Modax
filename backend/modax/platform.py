@@ -30,7 +30,7 @@ ALLOWED_HOSTS = {
 
 
 class ProfileInput(BaseModel):
-    family: Literal["compatible", "anthropic"]
+    family: Literal["gemini", "openrouter", "compatible", "anthropic"]
     model: str = Field(min_length=1, max_length=100)
     api_key: str = Field(min_length=6, max_length=512)
     base_url: str = Field(default="https://api.openai.com/v1", max_length=200)
@@ -235,6 +235,15 @@ def install_platform(app):
             raise HTTPException(422, "Provider URL must use an approved HTTPS endpoint")
         if body.family == "anthropic" and parsed.hostname != "api.anthropic.com":
             raise HTTPException(422, "Anthropic requires its official API endpoint")
+        fixed_endpoints = {
+            "gemini": "https://generativelanguage.googleapis.com/v1beta/openai",
+            "openrouter": "https://openrouter.ai/api/v1",
+        }
+        if (
+            body.family in fixed_endpoints
+            and body.base_url.rstrip("/") != fixed_endpoints[body.family]
+        ):
+            raise HTTPException(422, "Provider requires its official API endpoint")
         if len(profiles(user)) >= 5:
             raise HTTPException(429, "Provider profile quota reached")
         pid = uid()

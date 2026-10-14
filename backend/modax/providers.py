@@ -122,12 +122,19 @@ class HTTPProvider(Provider):
         ollama = self.model.provider == "ollama"
         url = self.base_url + ("/api/chat" if ollama else "/chat/completions")
         headers = {"Authorization": "Bearer " + self.key} if self.key else {}
+        if self.model.provider == "gemini":
+            headers["x-goog-api-client"] = "modax-omega/0.3.4"
+        elif self.model.provider == "openrouter":
+            headers["X-Title"] = "MODAX OMEGA"
         payload = {"model": self.model.model, "messages": messages, "stream": True}
         if ollama:
             payload["options"] = {"num_predict": 4096}
         else:
             payload["max_tokens"] = 4096
-            if self.base_url == "https://api.openai.com/v1":
+            if self.base_url == "https://api.openai.com/v1" or self.model.provider in {
+                "gemini",
+                "openrouter",
+            }:
                 payload["stream_options"] = {"include_usage": True}
         total = 0
         try:
@@ -197,6 +204,22 @@ class Registry:
         self.providers = {}
         if settings.demo:
             self.providers["demo"] = DemoProvider()
+        for family, key, model, url in (
+            (
+                "gemini",
+                settings.gemini_key,
+                settings.gemini_model,
+                "https://generativelanguage.googleapis.com/v1beta/openai",
+            ),
+            (
+                "openrouter",
+                settings.openrouter_key,
+                settings.openrouter_model,
+                "https://openrouter.ai/api/v1",
+            ),
+        ):
+            if key and model:
+                self.providers[family] = HTTPProvider(Model(family, family, model), url, key)
         if settings.provider_url and settings.provider_model and settings.provider_key:
             self.providers["compatible"] = HTTPProvider(
                 Model("compatible", "compatible", settings.provider_model),

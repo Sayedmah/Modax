@@ -17,6 +17,8 @@ with tempfile.TemporaryDirectory(prefix="modax-ui-qa-") as temporary:
         MODAX_DEMO="true",
         MODAX_PROVIDER_URL="",
         MODAX_PROVIDER_KEY="",
+        GEMINI_API_KEY="",
+        OPENROUTER_API_KEY="",
         MODAX_OLLAMA_URL="",
         MODAX_QA_DIR=temporary,
     )

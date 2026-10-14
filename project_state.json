@@ -5,7 +5,7 @@
   "baseline_commit": "bb0295d55483a9e1733fdc09399058afd3979534",
   "latest_verified_commit": "32566b3673a17c26bf3ad4a29f40ecd04e8700de",
   "pull_request": "https://github.com/Sayedmah/Modax/pull/2",
-  "last_completed_phase": "verified hosted milestone0.3.3 account data portability; full platform incomplete",
+  "last_completed_phase": "0.3.4 named Gemini/OpenRouter adapters implemented; local tests passed, remote validation pending",
   "implemented_modules": [
     "auth",
     "sqlite_migrations",
@@ -47,13 +47,16 @@
     "provider_reported_token_usage",
     "trusted_primitive_runtime_validation",
     "owner_account_data_export",
-    "consistent_readonly_export_snapshots"
+    "consistent_readonly_export_snapshots",
+    "gemini_named_provider",
+    "openrouter_named_provider",
+    "server_named_provider_configuration"
   ],
   "test_results": {
     "python": {
-      "passed": 100,
+      "passed": 107,
       "skipped": 1,
-      "seconds": 13.64,
+      "seconds": 14.5,
       "skip_reason": "local PostgreSQL credentials missing; genuine PostgreSQL CI integration passed",
       "engine_check": "Godot 4.6"
     },
@@ -75,7 +78,8 @@
         "background task history",
         "project ZIP import",
         "patch download",
-        "account export download"
+        "account export download",
+        "Gemini/OpenRouter endpoint selection"
       ]
     },
     "github_actions": {
@@ -124,6 +128,10 @@
       "bytes": 2222,
       "probe_seconds": 2.72,
       "fixture": "one imported message and one note; no credentials exported"
+    },
+    "named_providers": {
+      "protocol_tests": 7,
+      "real_inference": "not executed; authorized keys not configured"
     }
   },
   "blocked_features": [
@@ -145,7 +153,7 @@
     "expand multi-agent OMEGA beyond same-provider isolated code reviews",
     "portable chat re-import from account export"
   ],
-  "next_exact_executable_action": "Implement a bounded converter/re-import flow for account-export chat records, with regenerated IDs, owner checks and explicit size limits; do not restore credentials or run uploaded code. Production DATABASE_URL remains blocked pending an authorized secure connection-secret mechanism.",
+  "next_exact_executable_action": "Verify hosted0.3.4 and CI, then use authorized provider configuration to verify real inference; continue bounded account-export chat re-import.",
   "resume_commands": [
     "pip install -e .[dev]",
     "python -m pytest -q",

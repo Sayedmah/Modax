@@ -4,7 +4,7 @@ Repository: https://github.com/Sayedmah/Modax
 Development branch: feat/modax-omega-foundation
 Draft PR: https://github.com/Sayedmah/Modax/pull/2
 Website: https://modax-omega.onrender.com/
-Current implementation: 0.3.3 (32566b3673a17c26bf3ad4a29f40ecd04e8700de)
+Current implementation: 0.3.4 (Gemini/OpenRouter integration; remote validation recorded below)
 
 Implemented software: authenticated web chat/history/streaming, encrypted owner-specific provider profiles, bounded document extraction and references, optional notes, measured small Arena tests, source-aware Coder with ZIP import/snapshots/syntax repair/unified patches, isolated advisory review roles, background acceptance/status/history/cancel/resume, PostgreSQL store/artifact persistence support, original deterministic Godot Crystal Island, and optional ComfyUI transport.
 
@@ -18,3 +18,6 @@ The next step is to read the machine checkpoint and verify the latest live deplo
 
 ## Verified account export
 Owner-only export from Settings is implemented and live. Local100tests passed/1PostgreSQLskip in13.64s, Node2tests and Chromium13flows passed. CI38526383889 succeeded in both backend/Godot/browser and actual PostgreSQL export integration. Render deploy dep-db7ikkijnfac73db4dj0 live; small HTTP export probe verified2222bytes in2.72s (network included). Explicit secret exclusions, consistent read-only snapshots and bounded SQL/ZIP processing are tested. Whole-account automatic restore is not implemented. Next: bounded portable chat re-import; production PostgreSQL binding and genuine model inference remain blocked.
+
+## Gemini and OpenRouter
+Named owner-encrypted Gemini/OpenRouter profiles, fixed official endpoints, optional server secret/model settings and streaming usage reporting implemented. Settings switches endpoints automatically. Local107Python tests passed/1PostgreSQLskip in14.50s, Node2tests and Chromium14flows passed. Seven named-provider tests use mock HTTP only; real inference remains unverified without an authorized configured key. See docs/PROVIDERS.md for setup. CI/hosted verification for0.3.4 pending publication.

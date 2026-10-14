@@ -37,3 +37,7 @@ Resource limits: 16 MiB serialized source, 100k rows, build deadline checks, one
 Local full suite: 100 passed, 1 skipped (PostgreSQL credentials unavailable), 13.64s with Godot4.6. Ruff/JS syntax/2Node session tests passed. Chromium13flows passed including account export, zero page errors. CI/live validation for this new change pending.
 
 Final0.3.3 verification: CI38526383889 success on32566b3673a17c26bf3ad4a29f40ecd04e8700de, including actual PostgreSQL export. Render dep-db7ikkijnfac73db4dj0 live. Hosted account export checked with one message/one note: valid ZIP2222bytes, HTTPprobe2.72s; authentication token absent and account fields onlyid/username. No live inference or paid services invoked. Checkpoint next step: bounded chat re-import while secure PostgreSQL binding remains blocked.
+# Gemini/OpenRouter0.3.4
+
+Implemented named providers across existing Chat/Coder/Arena registry and Settings. Fixed official endpoints prevent cross-provider key submission; optional server environment configuration added. Local107tests/1skip,14browser flows,2Node tests and Ruff/JS checks passed. No credentials provisioned and no paid inference performed. Next: publish, verify CI and hosted UI, then authorized inference when a key is configured.
+
