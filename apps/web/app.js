@@ -145,6 +145,11 @@ async function settings(){const records=await(await api('/providers')).json();$(
 $('provider-family').onchange=()=>{$('provider-url').value=$('provider-family').value==='anthropic'?'https://api.anthropic.com/v1':'https://api.openai.com/v1';};
 $('provider-form').onsubmit=safe(async event=>{event.preventDefault();await post('/providers',{family:$('provider-family').value,model:$('provider-model').value,api_key:$('provider-key').value,base_url:$('provider-url').value});$('provider-key').value='';await settings();await enter();notify('حُفظ المفتاح مشفراً. اختَر النموذج في المحادثة.');});
 $('preferences-form').onsubmit=safe(async event=>{event.preventDefault();await api('/settings',{method:'PUT',body:JSON.stringify({use_memory:$('use-memory').checked,requests_per_day:Number($('daily-requests').value)})});notify('حُفظت التفضيلات');});
+$('account-export').onclick=safe(async()=>{
+  const button=$('account-export');button.disabled=true;
+  try{notify('تجهيز بياناتك للتنزيل…');await download(await api('/account/export'),'modax-account.zip');notify('نُزّل ملف خاص غير مشفر؛ احتفظ به بأمان.');}
+  finally{button.disabled=false;}
+});
 async function arenaHistory(){const runs=await(await api('/arena/runs')).json();$('arena-results').replaceChildren();for(const run of runs){const panel=document.createElement('div');panel.className='panel';const pre=document.createElement('pre');pre.textContent=JSON.stringify(run,null,2);panel.append(pre);$('arena-results').append(panel);}}
 $('arena-form').onsubmit=safe(async event=>{event.preventDefault();notify('التقييم قيد التنفيذ…');await post('/arena/runs',{models:Array.from($('arena-models').selectedOptions).map(o=>o.value),confirm_external_calls:$('arena-confirm').checked,template:$('arena-template').value});await arenaHistory();notify('نتائج محسوبة من الردود الفعلية');});
 

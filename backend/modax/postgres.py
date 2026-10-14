@@ -51,5 +51,29 @@ class PostgresStore(Store):
     def lock_user(self, db, owner):
         db.execute("SELECT id FROM users WHERE id=? FOR UPDATE", (owner,))
 
+    @contextmanager
+    def read_snapshot(self, check=None):
+        with self.connect() as db:
+            db.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY")
+            db.execute("SET LOCAL statement_timeout = '15s'")
+            yield db
+
+    def snapshot_rows(self, db, sql, args, check):
+        def budget():
+            remaining = check()
+            milliseconds = max(1, min(15000, int(remaining * 1000)))
+            db.execute("SELECT set_config('statement_timeout', ?, true)", (str(milliseconds),))
+
+        # Ordinary psycopg cursors buffer full results. Named cursors fetch bounded rows.
+        with db.connection.cursor(name="modax_account_export") as cursor:
+            budget()
+            cursor.execute(sql.replace("?", "%s"), args)
+            while True:
+                budget()
+                rows = cursor.fetchmany(1)
+                if not rows:
+                    break
+                yield rows[0]
+
     def lock_task(self, db, owner, task_id):
         db.execute("SELECT id FROM tasks WHERE id=? AND owner=? FOR UPDATE", (task_id, owner))

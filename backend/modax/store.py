@@ -74,7 +74,39 @@ class Store:
         self.path = path
         path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
         self.migrate()
+        with self.connect() as db:
+            db.execute("PRAGMA journal_mode=WAL")
         path.chmod(0o600)
+
+    @contextmanager
+    def read_snapshot(self, check=None):
+        with self.connect() as db:
+            db.execute("BEGIN")
+            db.execute("PRAGMA query_only=ON")
+
+            def interrupt():
+                try:
+                    if check:
+                        check()
+                    return 0
+                except Exception:
+                    return 1
+
+            db.set_progress_handler(interrupt, 1000)
+            try:
+                yield db
+            finally:
+                db.set_progress_handler(None, 0)
+
+    def snapshot_rows(self, db, sql, args, check):
+        check()
+        cursor = db.execute(sql, args)
+        while True:
+            check()
+            row = cursor.fetchone()
+            if row is None:
+                break
+            yield row
 
     @contextmanager
     def connect(self):

@@ -56,6 +56,16 @@ def test_genuine_postgres_migrations_auth_documents_and_tasks(tmp_path):
         with TestClient(create_app(settings)) as c:
             assert len(c.get(f"/api/v1/chats/{cid}", headers=h).json()["messages"]) == 2
             assert len(c.get("/api/v1/files", headers=h).json()) == 1
+            import io
+            import json
+            import zipfile
+
+            exported = c.get("/api/v1/account/export", headers=h)
+            assert exported.status_code == 200, exported.text
+            with zipfile.ZipFile(io.BytesIO(exported.content)) as archive:
+                manifest = json.loads(archive.read("manifest.json"))
+                assert manifest["counts"]["documents"] == 1
+                assert manifest["counts"]["tasks"] == 1
     finally:
         with psycopg.connect(url, autocommit=True) as c:
             c.execute(sql.SQL("DROP SCHEMA {} CASCADE").format(sql.Identifier(schema)))

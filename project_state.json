@@ -45,13 +45,15 @@
     "project_context_inspection",
     "unified_patch_export",
     "provider_reported_token_usage",
-    "trusted_primitive_runtime_validation"
+    "trusted_primitive_runtime_validation",
+    "owner_account_data_export",
+    "consistent_readonly_export_snapshots"
   ],
   "test_results": {
     "python": {
-      "passed": 93,
+      "passed": 100,
       "skipped": 1,
-      "seconds": 12.98,
+      "seconds": 13.64,
       "skip_reason": "local PostgreSQL credentials missing; genuine PostgreSQL CI integration passed",
       "engine_check": "Godot 4.6"
     },
@@ -72,7 +74,8 @@
         "preferences",
         "background task history",
         "project ZIP import",
-        "patch download"
+        "patch download",
+        "account export download"
       ]
     },
     "github_actions": {
@@ -113,7 +116,12 @@
       "health0.3.2 200",
       "background game acceptance202",
       "trusted game runtime COMPLETED"
-    ]
+    ],
+    "account_export": {
+      "local": "passed",
+      "github_ci": "pending",
+      "live": "pending"
+    }
   },
   "blocked_features": [
     "production DATABASE_URL binding requires authorized Render dashboard connection secret",
@@ -133,7 +141,7 @@
     "comprehensive benchmarks/training",
     "expand multi-agent OMEGA beyond same-provider isolated code reviews"
   ],
-  "next_exact_executable_action": "Securely bind DATABASE_URL to existing modax-omega-data through an authorized connection-secret mechanism, then verify persistence across restart. Configure authorized real provider in website Settings and verify actual inference/usage. No aborted credential flow may be retried without user authorization.",
+  "next_exact_executable_action": "Verify 0.3.3 deployment and owner-only account export on hosted preview; then implement portable chat re-import/conversion without restoring credentials, while production database binding stays blocked.",
   "resume_commands": [
     "pip install -e .[dev]",
     "python -m pytest -q",
