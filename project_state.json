@@ -150,7 +150,7 @@
     "workspace": "tea-dalrl82d0e5s738de4j0",
     "service": "srv-db75ucmi0phs738mfg6g",
     "plan": "free",
-    "deploy": "dep-db7go7h42hec7396dqo0",
+    "deploy": "dep-db7gql6i0phs7393c3dg",
     "status": "live",
     "postgres": "dpg-db74kajncjis73fgelo0-a",
     "database_connection": "blocked; secure browser sign-in aborted",
@@ -166,6 +166,10 @@
     ],
     "approximate_local_time": "09:00",
     "timezone": "Africa/Cairo",
-    "scope": "daily continuation attempts if execution tools available; not continuous or guaranteed complete"
+    "scope": "daily continuation attempts if execution tools available; not continuous or guaranteed complete",
+    "frequency": "DAILY",
+    "verified_schedule": "BEGIN:VEVENT\nDTSTART;TZID=Africa/Cairo:20261014T090000\nRRULE:FREQ=DAILY;COUNT=6;BYHOUR=9;BYMINUTE=0;BYSECOND=0\nEND:VEVENT",
+    "verified_at": "2026-10-14T05:07:16Z",
+    "note": "Stored weekly cadence discovered and corrected; no continuous-runtime guarantee"
   }
 }
