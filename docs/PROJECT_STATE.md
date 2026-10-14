@@ -21,3 +21,5 @@ Implemented profile encryption, Anthropic streaming, bounded file extraction/chu
 Background task acceptance (202), live status/history/cancel/resume, bounded global/per-owner worker slots, cooperative subprocess cancellation with cleanup drain, isolated SMART/OMEGA advisory reviews and preserved Godot timeout diagnostics. FAST is default; SMART adds one reviewer and OMEGA adds two distinct roles using the selected provider, not separate foundation models. External reviews require explicit confirmation. Local full suite: 71 passed, 1 PostgreSQL skip, 12.12 seconds; browser 10 flows, no page errors. GitHub CI/live verification pending for 9bcc8ce at this checkpoint.
 
 Source-project milestone extends0.3 with boundedZIP context ingestion and verified unifiedpatch delivery.80Pythonpass/1skip,12browserflows. Hosted Godot remains blocked in import; verbose diagnostics next.
+
+Milestone0.3.2 implementation extends with completed provider token accounting and exact-template direct runtime checks to avoid hosted editor startup for primitive geometry. Hosted verification pending; production PostgreSQL and actual authorized model inference remain blockers.

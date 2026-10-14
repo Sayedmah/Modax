@@ -16,3 +16,5 @@ Background jobs use one application process, not a distributed/durable worker sc
 Hosted Godot stall located at import, not download/version or gameplay. Root cause still unconfirmed; bounded verbose logs will identify initialization progress. Do not label hosted GameForge validated yet.
 
 Project import accepts a small source subset, not arbitrary repositories, binaries/dependencies or git credentials. Invalid Python/JSON source currently rejected by syntax validation during import. Patches compare current task files against latest generation snapshot; manual review is required. No server GitHub OAuth/push integration exists yet.
+
+Hosted editor import is still not validated; verbose showed cold editor help-cache preparation. The managed primitive template can be checked without editor import, while future imported assets require a suitable worker. API token counters are provider-reported completed counts, not verified invoices; Anthropic cached token breakdown and all dollar costs are not yet recorded. Non-OpenAI compatible APIs are not forced to accept stream_options; reported usage is parsed if present. Paid inference remains unverified.

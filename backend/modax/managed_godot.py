@@ -3,6 +3,7 @@
 import hashlib
 import os
 import threading
+import time
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -13,8 +14,17 @@ SHA256 = "6bcc59dfd1d670e918c77eae06e82b9dc5699de13d353dc3a4b3b6b307b6dc06"
 NAME = "Godot_v4.6-stable_linux.x86_64"
 
 
-def installed_godot():
+def installed_godot(cancel_event=None):
     with _LOCK:
+        deadline = time.monotonic() + 120
+
+        def check_budget():
+            if cancel_event is not None and cancel_event.is_set():
+                raise OSError("Engine download cancelled")
+            if time.monotonic() >= deadline:
+                raise OSError("Engine download timed out")
+
+        check_budget()
         root = Path(os.getenv("MODAX_DATA_DIR", "var")) / "trusted-engine"
         engine = root / NAME
         if engine.is_file():
@@ -24,8 +34,13 @@ def installed_godot():
         digest = hashlib.sha256()
         size = 0
         try:
-            with urllib.request.urlopen(URL, timeout=60) as response, archive.open("wb") as output:
-                while chunk := response.read(1048576):
+            with urllib.request.urlopen(URL, timeout=10) as response, archive.open("wb") as output:
+                while True:
+                    check_budget()
+                    chunk = response.read(1048576)
+                    check_budget()
+                    if not chunk:
+                        break
                     size += len(chunk)
                     if size > 100 * 1024 * 1024:
                         raise ValueError("Engine archive exceeds size limit")
@@ -36,6 +51,7 @@ def installed_godot():
             with zipfile.ZipFile(archive) as source:
                 with source.open(NAME) as stream, (root / "engine.part").open("wb") as output:
                     while chunk := stream.read(1048576):
+                        check_budget()
                         output.write(chunk)
             (root / "engine.part").replace(engine)
             engine.chmod(0o700)

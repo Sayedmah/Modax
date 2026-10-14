@@ -66,7 +66,7 @@ def create_app(settings=None):
         finally:
             await app.state.task_engine.shutdown()
 
-    app = FastAPI(title="MODAX OMEGA", version="0.3.1", lifespan=lifespan)
+    app = FastAPI(title="MODAX OMEGA", version="0.3.2", lifespan=lifespan)
     app.state.settings, app.state.store, app.state.registry = settings, store, registry
     limiter = defaultdict(deque)
     active_chats = set()
@@ -141,7 +141,7 @@ def create_app(settings=None):
     def health():
         return {
             "status": "ok",
-            "version": "0.3.1",
+            "version": "0.3.2",
             "demo": settings.demo,
             "persistence": "postgres" if settings.database_url else "local",
             "native_builds": False,
@@ -291,14 +291,15 @@ def create_app(settings=None):
                     ("".join(chunks), status, assistant_id),
                 )
                 with store.connect() as db:
+                    measured_usage = provider.get_usage()
                     db.execute(
                         "INSERT INTO usage VALUES(?,?,?,?,?,?,?,?)",
                         (
                             uid(),
                             user,
                             provider.model.id,
-                            None,
-                            None,
+                            measured_usage["input_tokens"],
+                            measured_usage["output_tokens"],
                             None,
                             (time.perf_counter() - started) * 1000,
                             time.time(),

@@ -95,11 +95,28 @@ package/name="Crystal Island"
 
 
 def validate_game(files, binary="godot", cancel_event=None):
-    if binary == "managed":
+    managed = binary == "managed"
+    if managed:
+        try:
+            metadata = json.loads(
+                next(item["content"] for item in files if item["path"] == "metadata.json")
+            )
+            trusted = files == generate_game(metadata["title"], metadata["seed"])
+        except (ValueError, KeyError, TypeError, AttributeError, StopIteration):
+            trusted = False
+        if not trusted:
+            return {
+                "status": "unavailable",
+                "reason": "Managed runtime accepts only the original primitive template",
+                "checks": [],
+                "export": "not_attempted",
+            }
         try:
             from .managed_godot import installed_godot
 
-            binary = installed_godot()
+            binary = installed_godot(
+                **({"cancel_event": cancel_event} if cancel_event is not None else {})
+            )
         except (OSError, ValueError):
             return {
                 "status": "unavailable",
@@ -119,6 +136,7 @@ def validate_game(files, binary="godot", cancel_event=None):
     options = {"cancel_event": cancel_event} if cancel_event is not None else {}
     version = None
     stage = "version"
+    import_status = "not_required_for_trusted_primitive_template" if managed else "not_attempted"
     with tempfile.TemporaryDirectory(prefix="modax-godot-") as path:
         root = Path(path)
         for item in files:
@@ -127,22 +145,31 @@ def validate_game(files, binary="godot", cancel_event=None):
             version = bounded_command([executable, "--version"], root, timeout=10, **options)[
                 "output"
             ].strip()
-            for stage, args in (
+            stages = [
                 ("import", ["--headless", "--verbose", "--path", path, "--import"]),
-                ("gameplay", ["--headless", "--verbose", "--path", path, "--script", "smoke_test.gd"]),
-            ):
+                (
+                    "gameplay",
+                    ["--headless", "--verbose", "--path", path, "--script", "smoke_test.gd"],
+                ),
+            ]
+            for stage, args in stages[1:] if managed else stages:
                 result = bounded_command([executable, *args], root, timeout=60, **options)
                 result["stage"] = stage
                 checks.append(result)
+                if stage == "import":
+                    import_status = "passed" if result["exit_code"] == 0 else "failed"
                 if (
                     result["exit_code"] != 0
                     or "SCRIPT ERROR" in result["output"]
                     or "ERROR:" in result["output"]
+                    or (stage == "gameplay" and "GAMEPLAY_CHECKS_PASSED" not in result["output"])
                 ):
                     return {
                         "status": "failed",
                         "engine": version,
                         "checks": checks,
+                        "failed_stage": stage,
+                        "import": import_status,
                         "export": "not_attempted",
                     }
         except (ToolDenied, OSError) as exc:
@@ -153,7 +180,14 @@ def validate_game(files, binary="godot", cancel_event=None):
                 "reason": str(exc),
                 "engine": version,
                 "failed_stage": stage,
+                "import": import_status,
                 "checks": checks,
                 "export": "not_attempted",
             }
-    return {"status": "passed", "engine": version, "checks": checks, "export": "not_attempted"}
+    return {
+        "status": "passed",
+        "engine": version,
+        "checks": checks,
+        "import": import_status,
+        "export": "not_attempted",
+    }

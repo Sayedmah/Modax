@@ -3,9 +3,9 @@
   "repository": "https://github.com/Sayedmah/Modax",
   "active_branch": "feat/modax-omega-foundation",
   "baseline_commit": "bb0295d55483a9e1733fdc09399058afd3979534",
-  "latest_verified_commit": "9bcc8ce807f2fcebd201d97112a66234766ce0d7",
+  "latest_verified_commit": "2861275bf30ae903fce788fc5601ea8a1d09693e",
   "pull_request": "https://github.com/Sayedmah/Modax/pull/2",
-  "last_completed_phase": "web milestone 0.3 implementation: bounded background execution and isolated advisory reviews; full project incomplete",
+  "last_completed_phase": "web milestone0.3.1 source-aware coder and background reviews; full project incomplete",
   "implemented_modules": [
     "auth",
     "sqlite_migrations",
@@ -43,13 +43,15 @@
     "godot_failure_diagnostics",
     "safe_source_project_import",
     "project_context_inspection",
-    "unified_patch_export"
+    "unified_patch_export",
+    "provider_reported_token_usage",
+    "trusted_primitive_runtime_validation"
   ],
   "test_results": {
     "python": {
-      "passed": 80,
+      "passed": 93,
       "skipped": 1,
-      "seconds": 12.13,
+      "seconds": 12.78,
       "skip_reason": "local PostgreSQL credentials missing; genuine PostgreSQL CI integration passed",
       "engine_check": "Godot 4.6"
     },
@@ -74,14 +76,14 @@
       ]
     },
     "github_actions": {
-      "commit": "9bcc8ce807f2fcebd201d97112a66234766ce0d7",
-      "run_id": 38512131764,
+      "commit": "2861275bf30ae903fce788fc5601ea8a1d09693e",
+      "run_id": 38513080033,
       "conclusion": "success",
+      "url": "https://github.com/Sayedmah/Modax/actions/runs/38513080033",
       "jobs": [
         "backend-and-godot",
         "postgres-integration"
-      ],
-      "url": "https://github.com/Sayedmah/Modax/actions/runs/38512131764"
+      ]
     },
     "node_session_regressions": {
       "passed": 2
@@ -98,17 +100,18 @@
     "live_godot": {
       "state": "FAILED",
       "reason": "Command timed out",
-      "seconds": 80.65,
+      "seconds": 74.84,
       "engine": "4.6.stable.official.89cea1439",
       "failed_stage": "import",
-      "command_seconds": 60.082,
-      "output": "Godot header only",
+      "command_seconds": 60.035,
+      "output": "Verbose identifies editor help cache initialization before filesystem scanning",
       "local_and_ci_validation": "passed; hosted failure remains separate"
     },
     "live_http_current_commit": [
-      "health0.3 200",
-      "background Coder accepted202",
-      "OMEGA demo code completed with two review fixtures"
+      "health0.3.1 200",
+      "source project ZIP upload201",
+      "source-aware demo Coder COMPLETED",
+      "patch download314bytes"
     ]
   },
   "blocked_features": [
@@ -129,7 +132,7 @@
     "comprehensive benchmarks/training",
     "expand multi-agent OMEGA beyond same-provider isolated code reviews"
   ],
-  "next_exact_executable_action": "Read hosted Godot verbose output to locate import initialization stall; production PostgreSQL binding requires secure connection secret.",
+  "next_exact_executable_action": "Deploy0.3.2 and verify trusted primitive gameplay directly on Render; full import remains in CI. Bind PostgreSQL securely when an authorized connection secret is available.",
   "resume_commands": [
     "pip install -e .[dev]",
     "python -m pytest -q",
@@ -146,7 +149,7 @@
     "workspace": "tea-dalrl82d0e5s738de4j0",
     "service": "srv-db75ucmi0phs738mfg6g",
     "plan": "free",
-    "deploy": "dep-db7gcre0tbcc73bri4bg",
+    "deploy": "dep-db7gi0dbedkc738j2d60",
     "status": "live",
     "postgres": "dpg-db74kajncjis73fgelo0-a",
     "database_connection": "blocked; secure browser sign-in aborted",

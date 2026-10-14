@@ -53,3 +53,50 @@ def test_actual_godot_gameplay():
     result = validate_game(generate_game("Verified island", 73), engine)
     assert result["status"] == "passed", result
     assert "GAMEPLAY_CHECKS_PASSED" in result["checks"][1]["output"]
+
+
+def test_managed_primitive_game_skips_editor_but_runs_gameplay(monkeypatch):
+    from modax import forge, managed_godot
+
+    monkeypatch.setattr(managed_godot, "installed_godot", lambda: "/fixed/godot")
+    monkeypatch.setattr(forge.shutil, "which", lambda _: "/fixed/godot")
+    calls = []
+
+    def command(args, root, timeout):
+        calls.append(args)
+        return {
+            "exit_code": 0,
+            "output": "4.6" if "--version" in args else "GAMEPLAY_CHECKS_PASSED",
+        }
+
+    monkeypatch.setattr(forge, "bounded_command", command)
+    result = validate_game(generate_game("Island", 73), "managed")
+    assert result["status"] == "passed"
+    assert result["import"] == "not_required_for_trusted_primitive_template"
+    assert any("smoke_test.gd" in args for args in calls)
+    assert not any("--import" in args for args in calls)
+
+
+def test_managed_runtime_rejects_modified_template(monkeypatch):
+    from modax import managed_godot
+
+    def unexpected_download():
+        raise AssertionError("Modified template must be rejected before acquiring engine")
+
+    monkeypatch.setattr(managed_godot, "installed_godot", unexpected_download)
+    files = generate_game("Island")
+    files[0]["content"] += "\n# arbitrary modification"
+    result = validate_game(files, "managed")
+    assert result["status"] == "unavailable"
+
+
+def test_no_gameplay_success_without_completion_marker(monkeypatch):
+    from modax import forge
+
+    monkeypatch.setattr(forge.shutil, "which", lambda _: "/fixed/godot")
+    monkeypatch.setattr(
+        forge, "bounded_command", lambda *args, **kwargs: {"exit_code": 0, "output": "4.6"}
+    )
+    result = validate_game(generate_game("Island"))
+    assert result["status"] == "failed"
+    assert result["failed_stage"] == "gameplay"

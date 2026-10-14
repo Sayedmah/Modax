@@ -2,9 +2,12 @@
 
 import asyncio
 import json
+from contextvars import ContextVar
 from dataclasses import dataclass
 
 import httpx
+
+_USAGE = ContextVar("modax_provider_usage", default=None)
 
 
 class CapabilityError(ValueError):
@@ -35,7 +38,34 @@ class Provider:
         return self.model.capabilities
 
     async def generate_text(self, messages):
+        self.reset_usage()
         return "".join([part async for part in self.stream_text(messages)])
+
+    def reset_usage(self):
+        _USAGE.set((self, {"input_tokens": None, "output_tokens": None, "complete": False}))
+
+    def record_usage(self, input_tokens=None, output_tokens=None, complete=False):
+        current = _USAGE.get()
+        data = (
+            dict(current[1])
+            if current and current[0] is self
+            else {"input_tokens": None, "output_tokens": None, "complete": False}
+        )
+        for name, count in (("input_tokens", input_tokens), ("output_tokens", output_tokens)):
+            if type(count) is int and 0 <= count <= 1000000000:
+                data[name] = count
+            elif count is not None:
+                data[name] = None
+        if complete:
+            data["complete"] = True
+        _USAGE.set((self, data))
+
+    def get_usage(self):
+        current = _USAGE.get()
+        unknown = {"input_tokens": None, "output_tokens": None}
+        if not current or current[0] is not self or not current[1]["complete"]:
+            return unknown
+        return {key: current[1][key] for key in unknown}
 
     def require_capability(self, capability):
         if capability not in self.model.capabilities:
@@ -55,6 +85,7 @@ class DemoProvider(Provider):
         )
 
     async def stream_text(self, messages):
+        self.reset_usage()
         if messages[0].get("content", "").startswith("MODAX_REVIEW_JSON"):
             answer = json.dumps({"approved": True, "findings": []})
         elif messages[0].get("content", "").startswith("MODAX_CODE_JSON"):
@@ -87,6 +118,7 @@ class HTTPProvider(Provider):
         self.transport = transport
 
     async def stream_text(self, messages):
+        self.reset_usage()
         ollama = self.model.provider == "ollama"
         url = self.base_url + ("/api/chat" if ollama else "/chat/completions")
         headers = {"Authorization": "Bearer " + self.key} if self.key else {}
@@ -95,6 +127,8 @@ class HTTPProvider(Provider):
             payload["options"] = {"num_predict": 4096}
         else:
             payload["max_tokens"] = 4096
+            if self.base_url == "https://api.openai.com/v1":
+                payload["stream_options"] = {"include_usage": True}
         total = 0
         try:
             async with httpx.AsyncClient(
@@ -109,12 +143,18 @@ class HTTPProvider(Provider):
                             continue
                         data = line if ollama else line[6:]
                         if data == "[DONE]":
+                            self.record_usage(complete=True)
                             return
                         record = json.loads(data)
                         if not isinstance(record, dict):
                             raise ProviderError("Malformed provider event")
                         if record.get("error"):
                             raise ProviderError("Provider returned an error")
+                        usage = record.get("usage")
+                        if isinstance(usage, dict):
+                            self.record_usage(
+                                usage.get("prompt_tokens"), usage.get("completion_tokens")
+                            )
                         if ollama:
                             message = record.get("message", {})
                             if not isinstance(message, dict):
@@ -138,6 +178,11 @@ class HTTPProvider(Provider):
                                 raise ProviderError("Response limit exceeded")
                             yield delta
                         if ollama and record.get("done") is True:
+                            self.record_usage(
+                                record.get("prompt_eval_count"),
+                                record.get("eval_count"),
+                                complete=True,
+                            )
                             return
                     raise ProviderError("Provider stream ended before its completion marker")
         except (httpx.HTTPError, json.JSONDecodeError, TypeError, KeyError) as exc:
@@ -179,6 +224,7 @@ class Registry:
 
 class AnthropicProvider(HTTPProvider):
     async def stream_text(self, messages):
+        self.reset_usage()
         system = "\n".join(m["content"] for m in messages if m["role"] == "system")
         history = [m for m in messages if m["role"] != "system"]
         payload = {
@@ -210,7 +256,17 @@ class AnthropicProvider(HTTPProvider):
                         if not isinstance(data, dict):
                             raise ProviderError("Malformed Anthropic event")
                         if data.get("type") == "message_stop":
+                            self.record_usage(complete=True)
                             return
+                        if data.get("type") in {"message_start", "message_delta"}:
+                            envelope = (
+                                data.get("message", {}) if data["type"] == "message_start" else data
+                            )
+                            usage = envelope.get("usage") if isinstance(envelope, dict) else None
+                            if isinstance(usage, dict):
+                                self.record_usage(
+                                    usage.get("input_tokens"), usage.get("output_tokens")
+                                )
                         if data.get("type") == "error":
                             raise ProviderError("Anthropic returned an error")
                         if data.get("type") == "content_block_delta":
