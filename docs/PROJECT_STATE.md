@@ -1,25 +1,17 @@
-# Project state
+# Current project state
 
-Repository: Sayedmah/Modax. Branch: feat/modax-omega-foundation. Baseline main: bb0295d55483a9e1733fdc09399058afd3979534.
+Repository: https://github.com/Sayedmah/Modax
+Development branch: feat/modax-omega-foundation
+Draft PR: https://github.com/Sayedmah/Modax/pull/2
+Website: https://modax-omega.onrender.com/
+Current implementation: 0.3.2 (e98ec2d05c381414a9c5200025dc511c0148a2f5)
 
-Implemented: authenticated persistent streaming demo/configurable-provider chat; adaptive operator console; owner-scoped tasks and notes; bounded coding file generation and ZIP/rollback; original Godot Crystal Island generator with real engine checks; independent mock-tested ComfyUI transport.
+Implemented software: authenticated web chat/history/streaming, encrypted owner-specific provider profiles, bounded document extraction and references, optional notes, measured small Arena tests, source-aware Coder with ZIP import/snapshots/syntax repair/unified patches, isolated advisory review roles, background acceptance/status/history/cancel/resume, PostgreSQL store/artifact persistence support, original deterministic Godot Crystal Island, and optional ComfyUI transport.
 
-Verified: 46 Python tests including Godot, lint, JavaScript syntax, six browser flow checks with no page errors. Detailed evidence: TEST_REPORT.md. All independent review important findings addressed; live Docker execution remains unavailable.
+Local verification: 93 Python passed, 1 skipped (PostgreSQL unavailable locally), 12.78 seconds with real Godot 4.6; Ruff and JavaScript syntax passed; 2 Node session regressions and 12 Chromium flows passed. PostgreSQL and Godot/browser CI for 2861275 passed. Current e98ec2 GitHub Actions38514227710 succeeded (both PostgreSQL and backend/Godot/browser jobs). Render deploy dep-db7go7h42hec7396dqo0 is live.
 
-Full master MVP and native release are incomplete. No real inference, trained weights, model benchmarks, generated media, Windows installer, APK or IPA is claimed. Docker image build also remains unverified.
+Hosted 0.3.1 source ZIP import, Coder completion and patch download passed. Editor import timed out before filesystem scan during editor help-cache startup. Managed 0.3.2 gates the exact original primitive template and tests gameplay directly without editor import; hosted gameplay passed in5.8s with explicit GAMEPLAY_CHECKS_PASSED (whole HTTP probe20.24s). Local direct runtime passed in 3.967 seconds. Other/custom assets still require full editor import. No export artifact is implied by gameplay checks.
 
-Next action: configure an authorized local Ollama service, run genuine chat + structured coder task, record actual model/version and failures. In parallel in a suitable later environment, verify dedicated Docker tests with a digest-pinned approved image; then build the native Flutter client.
+Production blockers: DATABASE_URL unbound after secure Render sign-in was aborted; free-host SQLite is ephemeral. Actual paid/local model inference needs an authorized configured provider. Docker runtime, GPU/media workers and native SDK/signing/export templates unavailable. No trained model, generated media, benchmark superiority or complete universal platform is claimed.
 
-See project_state.json for the verified implementation commit and resume commands. Documentation checkpoint commits may follow the verified implementation commit without changing code.
-
-Verified implementation commit: 417755b13abc6a1afd7f6badafe54a2a4d9478f2. Draft PR: https://github.com/Sayedmah/Modax/pull/2.
-
-## Web milestone 0.2
-Implemented profile encryption, Anthropic streaming, bounded file extraction/chunk search, document grounding, opt-in notes, chat import/edit/delete, actual small Arena evaluations, syntax repair, daily quota reservations, PostgreSQL transactions/migrations and database-backed artifacts. The free Render website is live at https://modax-omega.onrender.com. PostgreSQL database exists but lacks bound connection secret after sign-in was aborted. Scheduled continuation: six daily attempts Oct 14–19. See current KNOWN_LIMITATIONS for exact missing capabilities.
-
-## Web milestone 0.3
-Background task acceptance (202), live status/history/cancel/resume, bounded global/per-owner worker slots, cooperative subprocess cancellation with cleanup drain, isolated SMART/OMEGA advisory reviews and preserved Godot timeout diagnostics. FAST is default; SMART adds one reviewer and OMEGA adds two distinct roles using the selected provider, not separate foundation models. External reviews require explicit confirmation. Local full suite: 71 passed, 1 PostgreSQL skip, 12.12 seconds; browser 10 flows, no page errors. GitHub CI/live verification pending for 9bcc8ce at this checkpoint.
-
-Source-project milestone extends0.3 with boundedZIP context ingestion and verified unifiedpatch delivery.80Pythonpass/1skip,12browserflows. Hosted Godot remains blocked in import; verbose diagnostics next.
-
-Milestone0.3.2 implementation extends with completed provider token accounting and exact-template direct runtime checks to avoid hosted editor startup for primitive geometry. Hosted verification pending; production PostgreSQL and actual authorized model inference remain blockers.
+The next step is to read the machine checkpoint and verify the latest live deployment, then securely bind PostgreSQL and test persistence across restart when a connection secret is available. Six scheduled daily continuation attempts exist; these do not promise continuous work or complete delivery in six days.
