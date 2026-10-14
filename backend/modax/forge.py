@@ -94,7 +94,7 @@ package/name="Crystal Island"
     return files
 
 
-def validate_game(files, binary="godot"):
+def validate_game(files, binary="godot", cancel_event=None):
     if binary == "managed":
         try:
             from .managed_godot import installed_godot
@@ -116,17 +116,23 @@ def validate_game(files, binary="godot"):
             "export": "not_attempted",
         }
     checks = []
+    options = {"cancel_event": cancel_event} if cancel_event is not None else {}
+    version = None
+    stage = "version"
     with tempfile.TemporaryDirectory(prefix="modax-godot-") as path:
         root = Path(path)
         for item in files:
             (root / item["path"]).write_text(item["content"])
         try:
-            version = bounded_command([executable, "--version"], root, timeout=10)["output"].strip()
-            for args in (
-                ["--headless", "--path", path, "--import"],
-                ["--headless", "--path", path, "--script", "smoke_test.gd"],
+            version = bounded_command([executable, "--version"], root, timeout=10, **options)[
+                "output"
+            ].strip()
+            for stage, args in (
+                ("import", ["--headless", "--path", path, "--import"]),
+                ("gameplay", ["--headless", "--path", path, "--script", "smoke_test.gd"]),
             ):
-                result = bounded_command([executable, *args], root, timeout=60)
+                result = bounded_command([executable, *args], root, timeout=60, **options)
+                result["stage"] = stage
                 checks.append(result)
                 if (
                     result["exit_code"] != 0
@@ -140,9 +146,13 @@ def validate_game(files, binary="godot"):
                         "export": "not_attempted",
                     }
         except (ToolDenied, OSError) as exc:
+            if hasattr(exc, "result"):
+                checks.append({**exc.result, "stage": stage})
             return {
                 "status": "failed",
                 "reason": str(exc),
+                "engine": version,
+                "failed_stage": stage,
                 "checks": checks,
                 "export": "not_attempted",
             }

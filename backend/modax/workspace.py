@@ -26,17 +26,20 @@ SECRET = re.compile(
 )
 
 
-def bounded_command(args, cwd, timeout=60, limit=262144):
+def bounded_command(args, cwd, timeout=60, limit=262144, cancel_event=None):
     """Fixed caller-owned argv, no shell; terminate on timeout or excessive output."""
     proc = subprocess.Popen(
         args, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, start_new_session=True
     )
     output = bytearray()
-    deadline = time.monotonic() + timeout
+    started = time.monotonic()
+    deadline = started + timeout
     selector = selectors.DefaultSelector()
     selector.register(proc.stdout, selectors.EVENT_READ)
     try:
         while selector.get_map():
+            if cancel_event is not None and cancel_event.is_set():
+                raise ToolDenied("Command cancelled")
             if time.monotonic() >= deadline:
                 raise ToolDenied("Command timed out")
             for key, _ in selector.select(0.1):
@@ -50,7 +53,17 @@ def bounded_command(args, cwd, timeout=60, limit=262144):
         return {
             "exit_code": proc.wait(timeout=max(0.1, deadline - time.monotonic())),
             "output": output.decode(errors="replace"),
+            "duration_seconds": round(time.monotonic() - started, 3),
         }
+    except (ToolDenied, subprocess.TimeoutExpired) as exc:
+        error = exc if isinstance(exc, ToolDenied) else ToolDenied("Command timed out")
+        error.result = {
+            "exit_code": proc.poll() if proc.poll() is not None else -9,
+            "output": output[:limit].decode(errors="replace"),
+            "duration_seconds": round(time.monotonic() - started, 3),
+            "timed_out": isinstance(exc, subprocess.TimeoutExpired) or "timed out" in str(exc),
+        }
+        raise error
     finally:
         selector.close()
         if proc.poll() is None:
@@ -181,7 +194,7 @@ class Workspace:
                 archive.write(self.path(name), name)
         return data.getvalue()
 
-    def run_tests(self, enabled=False, image=""):
+    def run_tests(self, enabled=False, image="", cancel_event=None):
         if not enabled:
             raise ToolDenied("Runtime tests disabled; configure dedicated Docker worker")
         if not re.fullmatch(r"[a-zA-Z0-9./:_-]+@sha256:[0-9a-f]{64}", image):
@@ -227,7 +240,8 @@ class Workspace:
                     path.chmod(0o755 if path.is_dir() else 0o644)
                 mount_index = args.index("--mount") + 1
                 args[mount_index] = f"type=bind,src={stage},dst=/project,readonly"
-                return bounded_command(args, stage, timeout=60)
+                options = {"cancel_event": cancel_event} if cancel_event is not None else {}
+                return bounded_command(args, stage, timeout=60, **options)
         finally:
             subprocess.run(
                 ["docker", "rm", "-f", container], capture_output=True, timeout=10, check=False

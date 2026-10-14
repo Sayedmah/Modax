@@ -55,7 +55,9 @@ class DemoProvider(Provider):
         )
 
     async def stream_text(self, messages):
-        if messages[0].get("content", "").startswith("MODAX_CODE_JSON"):
+        if messages[0].get("content", "").startswith("MODAX_REVIEW_JSON"):
+            answer = json.dumps({"approved": True, "findings": []})
+        elif messages[0].get("content", "").startswith("MODAX_CODE_JSON"):
             answer = json.dumps(
                 {
                     "files": [

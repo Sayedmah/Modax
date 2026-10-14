@@ -13,13 +13,14 @@ from .workspace import SECRET, ToolDenied
 class TaskInput(BaseModel):
     goal: str = Field(min_length=3, max_length=10000)
     kind: Literal["plan", "code", "game"] = "plan"
-    mode: Literal["FAST", "SMART", "OMEGA"] = "SMART"
+    mode: Literal["FAST", "SMART", "OMEGA"] = "FAST"
 
 
 class RunInput(BaseModel):
     model: str = Field(default="auto", max_length=100)
     execute: bool = False
     seed: int = Field(default=42, ge=0, le=2147483647)
+    confirm_external_reviews: bool = False
 
 
 class MemoryInput(BaseModel):
@@ -73,17 +74,37 @@ def install_workflows(app):
 
     @app.post("/api/v1/tasks/{task_id}/run")
     async def run(task_id: str, body: RunInput, user=Depends(owner)):
-        require("tasks", user, task_id)
-        return await engine.run(user, task_id, body.model, body.execute, body.seed)
+        authorize_reviews(task_id, body, user)
+        return await engine.run(
+            user, task_id, body.model, body.execute, body.seed, body.confirm_external_reviews
+        )
+
+    def authorize_reviews(task_id, body, user):
+        task = require("tasks", user, task_id)
+        if task["kind"] == "code" and task["mode"] != "FAST":
+            provider = app.state.user_providers.select(user, body.model, "code")
+            if not provider.model.demo and not body.confirm_external_reviews:
+                raise HTTPException(
+                    422, "SMART/OMEGA extra inference calls require explicit confirmation"
+                )
 
     @app.post("/api/v1/tasks/{task_id}/cancel", status_code=204)
     async def cancel(task_id: str, user=Depends(owner)):
         require("tasks", user, task_id)
         engine.cancel(user, task_id)
 
+    @app.post("/api/v1/tasks/{task_id}/start", status_code=202)
+    async def start(task_id: str, body: RunInput, user=Depends(owner)):
+        authorize_reviews(task_id, body, user)
+        return engine.start(
+            user, task_id, body.model, body.execute, body.seed, body.confirm_external_reviews
+        )
+
     @app.post("/api/v1/tasks/{task_id}/resume")
     def resume(task_id: str, user=Depends(owner)):
         require("tasks", user, task_id)
+        if task_id in engine.running:
+            raise HTTPException(409, "Wait for worker shutdown before resuming")
         engine.transition(user, task_id, "READY")
         return require("tasks", user, task_id)
 

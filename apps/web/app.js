@@ -7,15 +7,15 @@ function resetOwnerView() {
   sessionEpoch++; controller?.abort(); controller=null;
   for(const request of requests) request.abort(); requests.clear();
   chatId=null; currentChat=null;
-  for(const id of ['messages','chat-list','coder-result','game-result','memory-list','usage-list','model','file-list','file-hits','arena-results','provider-list','arena-models']) $(id).replaceChildren();
+  for(const id of ['messages','chat-list','coder-result','game-result','memory-list','usage-list','model','file-list','file-hits','arena-results','provider-list','arena-models','task-history']) $(id).replaceChildren();
   for(const id of ['prompt','code-goal','memory-text','search','provider-key','provider-model','file-search']) $(id).value='';
-  $('execute-tests').checked=false;$('document-file').value='';$('chat-import-file').value='';$('chat-attachment').replaceChildren();$('use-memory').checked=false;$('daily-requests').value='100';$('arena-confirm').checked=false;$('arena-template').value='{task}'; $('stop').hidden=true; $('send').disabled=false;
+  $('execute-tests').checked=false;$('review-confirm').checked=false;$('code-mode').value='FAST';$('document-file').value='';$('chat-import-file').value='';$('chat-attachment').replaceChildren();$('use-memory').checked=false;$('daily-requests').value='100';$('arena-confirm').checked=false;$('arena-template').value='{task}'; $('stop').hidden=true; $('send').disabled=false;
   $('chat-title').textContent='مساحة للتفكير والبناء'; notify('');
   for(const panel of document.querySelectorAll('.view')) panel.hidden=panel.id!=='view-chat';
   for(const nav of document.querySelectorAll('.nav')) nav.classList.toggle('active',nav.dataset.view==='chat');
   $('view-title').textContent='المحادثة';
 }
-const titleMap = {chat:'المحادثة',coder:'Coder',game:'Game Forge',memory:'الذاكرة',usage:'الاستخدام',files:'الملفات',arena:'Model Arena',settings:'الإعدادات'};
+const titleMap = {chat:'المحادثة',coder:'Coder',game:'Game Forge',memory:'الذاكرة',usage:'الاستخدام',files:'الملفات',arena:'Model Arena',settings:'الإعدادات',tasks:'سجل المهام'};
 function notify(text, error=false) { $('notice').textContent=text; $('notice').className=error?'error':''; }
 async function api(path, options={}) {
   const epoch=sessionEpoch, requestController=new AbortController(); requests.add(requestController);
@@ -91,20 +91,39 @@ async function download(response,filename){const blob=await response.blob(),url=
 $('export-chat').onclick=safe(async()=>{if(!chatId)throw new Error('اختر محادثة أولاً');const chat=await (await api('/chats/'+chatId)).json();await download(new Response(JSON.stringify(chat,null,2)),'modax-chat.json');});
 async function runTask(kind,goal,seed=42){
   const epoch=sessionEpoch;const resultId=kind==='code'?'coder-result':'game-result';$(resultId).replaceChildren();notify('المهمة قيد التنفيذ…');
-  const task=await (await post('/tasks',{goal,kind,mode:'SMART'})).json();
+  const task=await (await post('/tasks',{goal,kind,mode:kind==='code'?$('code-mode').value:'FAST'})).json();
   const panel=document.createElement('div');panel.className='panel';const state=document.createElement('p');state.className='task-status';state.textContent='RUNNING · '+task.id;panel.append(state);$(resultId).append(panel);
   const cancel=document.createElement('button');cancel.className='secondary';cancel.textContent='إلغاء المهمة';cancel.onclick=safe(async()=>{await post('/tasks/'+task.id+'/cancel',{});notify('تم طلب الإلغاء');});panel.append(cancel);
-  let final;try{final=await (await post('/tasks/'+task.id+'/run',{model:$('model').value,execute:kind==='code'&&$('execute-tests').checked,seed})).json();}catch(error){final=await (await api('/tasks/'+task.id)).json();notify(error.message,true);}
+  let final=await (await post('/tasks/'+task.id+'/start',{model:$('model').value,execute:kind==='code'&&$('execute-tests').checked,seed,confirm_external_reviews:$('review-confirm').checked})).json();
+  for(let attempt=0;['RUNNING','VERIFYING'].includes(final.state)&&attempt<100;attempt++){
+    await new Promise(resolve=>setTimeout(resolve,3000));
+    if(epoch!==sessionEpoch)return;
+    final=await (await api('/tasks/'+task.id)).json();state.textContent=final.state+' · '+task.id;
+  }
   if(epoch!==sessionEpoch)return;cancel.remove();state.textContent=final.state+' · '+task.id;const pre=document.createElement('pre');pre.textContent=JSON.stringify(final.result?JSON.parse(final.result):{},null,2);panel.append(pre);
   const button=document.createElement('button');button.textContent='تنزيل ملفات المشروع';button.onclick=safe(async()=>download(await api('/tasks/'+task.id+'/download'),'modax-project.zip'));panel.append(button);
-  notify(final.state==='COMPLETED'?'اكتملت الخطوات المحددة؛ راجع سجل التحقق.':'الملفات محفوظة؛ راجع العائق المسجل.',final.state!=='COMPLETED');
+  await taskHistory();notify(final.state==='COMPLETED'?'اكتملت الخطوات المحددة؛ راجع سجل التحقق.':'راجع سجل المهام لعرض الحالة والملفات.',final.state!=='COMPLETED');
 }
+async function taskHistory(){
+  const records=await (await api('/tasks')).json();$('task-history').replaceChildren();
+  for(const task of records){
+    const panel=document.createElement('div');panel.className='panel';
+    const label=document.createElement('p');label.textContent=task.state+' · '+task.goal;panel.append(label);
+    const details=document.createElement('pre');details.textContent=task.result?JSON.stringify(JSON.parse(task.result),null,2):'لم تُسجل نتيجة بعد';panel.append(details);
+    const downloadButton=document.createElement('button');downloadButton.textContent='تنزيل الملفات';downloadButton.onclick=safe(async()=>download(await api('/tasks/'+task.id+'/download'),'modax-project.zip'));panel.append(downloadButton);
+    if(['RUNNING','VERIFYING','READY'].includes(task.state)){const cancel=document.createElement('button');cancel.textContent='إلغاء';cancel.onclick=safe(async()=>{await post('/tasks/'+task.id+'/cancel',{});await taskHistory();});panel.append(cancel);}
+    if(['FAILED','BLOCKED'].includes(task.state)){const resume=document.createElement('button');resume.textContent='تجهيز لإعادة المحاولة';resume.onclick=safe(async()=>{await post('/tasks/'+task.id+'/resume',{});await taskHistory();});panel.append(resume);}
+    if(task.state==='READY'){const run=document.createElement('button');run.textContent='تشغيل المهمة';run.onclick=safe(async()=>{await post('/tasks/'+task.id+'/start',{model:$('model').value,seed:task.result?(JSON.parse(task.result).seed??42):42,confirm_external_reviews:$('review-confirm').checked});await taskHistory();});panel.append(run);}
+    $('task-history').append(panel);
+  }
+}
+$('refresh-tasks').onclick=safe(taskHistory);
 $('coder-form').onsubmit=safe(async e=>{e.preventDefault();await runTask('code',$('code-goal').value);});
 $('game-form').onsubmit=safe(async e=>{e.preventDefault();await runTask('game',$('game-title').value,Number($('seed').value));});
 async function memory(){const items=await (await api('/memory')).json();$('memory-list').replaceChildren();for(const item of items){const panel=document.createElement('div');panel.className='panel';const text=document.createElement('p');text.textContent=item.content;const button=document.createElement('button');button.className='secondary';button.textContent='حذف';button.onclick=safe(async()=>{await api('/memory/'+item.id,{method:'DELETE'});await memory();});panel.append(text,button);$('memory-list').append(panel);}}
 $('memory-form').onsubmit=safe(async e=>{e.preventDefault();await post('/memory',{content:$('memory-text').value});$('memory-text').value='';await memory();});
 async function usage(){const data=await (await api('/usage')).json();const table=document.createElement('table');const tr=document.createElement('tr');for(const text of ['النموذج','المدة ms','التكلفة']){const th=document.createElement('th');th.textContent=text;tr.append(th);}table.append(tr);for(const r of data.records){const row=document.createElement('tr');for(const value of [r.model,Math.round(r.latency_ms),r.cost??'غير متاح']){const cell=document.createElement('td');cell.textContent=value;row.append(cell);}table.append(row);}$('usage-list').replaceChildren(table);}
-for(const button of document.querySelectorAll('[data-view]'))button.onclick=safe(async()=>{const view=button.dataset.view;for(const panel of document.querySelectorAll('.view'))panel.hidden=panel.id!=='view-'+view;for(const nav of document.querySelectorAll('.nav'))nav.classList.toggle('active',nav===button);$('view-title').textContent=titleMap[view];notify('');if(view==='memory')await memory();if(view==='usage')await usage();if(view==='files')await documents();if(view==='arena')await arenaHistory();if(view==='settings')await settings();});
+for(const button of document.querySelectorAll('[data-view]'))button.onclick=safe(async()=>{const view=button.dataset.view;for(const panel of document.querySelectorAll('.view'))panel.hidden=panel.id!=='view-'+view;for(const nav of document.querySelectorAll('.nav'))nav.classList.toggle('active',nav===button);$('view-title').textContent=titleMap[view];notify('');if(view==='memory')await memory();if(view==='usage')await usage();if(view==='files')await documents();if(view==='arena')await arenaHistory();if(view==='tasks')await taskHistory();if(view==='settings')await settings();});
 $('language').onclick=()=>{const rtl=document.documentElement.dir==='rtl';document.documentElement.dir=rtl?'ltr':'rtl';document.documentElement.lang='ar';};
 
 

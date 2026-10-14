@@ -61,9 +61,12 @@ def create_app(settings=None):
     @asynccontextmanager
     async def lifespan(app):
         store.recover()
-        yield
+        try:
+            yield
+        finally:
+            await app.state.task_engine.shutdown()
 
-    app = FastAPI(title="MODAX OMEGA", version="0.1.0", lifespan=lifespan)
+    app = FastAPI(title="MODAX OMEGA", version="0.3.0", lifespan=lifespan)
     app.state.settings, app.state.store, app.state.registry = settings, store, registry
     limiter = defaultdict(deque)
     active_chats = set()
@@ -138,7 +141,7 @@ def create_app(settings=None):
     def health():
         return {
             "status": "ok",
-            "version": "0.2.0",
+            "version": "0.3.0",
             "demo": settings.demo,
             "persistence": "postgres" if settings.database_url else "local",
             "native_builds": False,
