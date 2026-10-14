@@ -4,7 +4,7 @@ Repository: https://github.com/Sayedmah/Modax
 Development branch: feat/modax-omega-foundation
 Draft PR: https://github.com/Sayedmah/Modax/pull/2
 Website: https://modax-omega.onrender.com/
-Current implementation: 0.3.4 (117df3efca36d57995b7eca86cde8b87d8a9b9c4)
+Current implementation: 0.3.5 (d99b01d3d045de11c9d5c5086a61c74126fb11b0)
 
 Implemented software: authenticated web chat/history/streaming, encrypted owner-specific provider profiles, bounded document extraction and references, optional notes, measured small Arena tests, source-aware Coder with ZIP import/snapshots/syntax repair/unified patches, isolated advisory review roles, background acceptance/status/history/cancel/resume, PostgreSQL store/artifact persistence support, original deterministic Godot Crystal Island, and optional ComfyUI transport.
 
@@ -25,5 +25,5 @@ Named owner-encrypted Gemini/OpenRouter profiles, fixed official endpoints, opti
 Prominent header API Settings shortcut and full-width save button are deployed. Authorized server secret is configured only in Render; the source contains no key. Authenticated models list exposes openrouter/free. A real hosted streamed text fixture completed, returned the expected11-character marker, emitted done without error, and persisted completed history. End-to-end message/history probe18.74s including network; probe chat deleted and session logged out. No paid model used; actual monetary cost not reported. Gemini remains unverified. Local107passed/1skip in13.83s, Node2tests, browser14flows and CI38585205403 passed. Render dep-db7pgrvavr4c73fjr6lg live. Ephemeral storage and native/media blockers remain.
 
 ## Direct guest entry0.3.5
-Guest access is implemented with random isolated owners/session tokens, auto bootstrap, reload continuity, retry UI and New Session revocation. Existing accounts/data are preserved; hosted public registration disabled. Backend110tests passed/1skip in30.99s with Godot4.6, Node2tests, normal14browser flows and5guest flows passed. Short desktop sidebar overflow discovered and fixed. CI now checks guest entry separately. Hosted validation pending publication. See docs/GUEST_ACCESS.md for temporary-session limits.
+Guest access is implemented with random isolated owners/session tokens, auto bootstrap, reload continuity, retry UI and New Session revocation. Existing accounts/data are preserved; hosted public registration disabled. Backend110tests passed/1skip in30.99s with Godot4.6, Node2tests, normal14browser flows and5guest flows passed. Short desktop sidebar overflow discovered and fixed. CI38619242431 passed, including genuine PostgreSQL guest creation/isolation. Render dep-db7t023tqb8s73bqschg live; hosted health0.3.5, guest201, other-owner404, signup403 and configured OpenRouter registry verified. See docs/GUEST_ACCESS.md for temporary-session limits.
 

@@ -3,9 +3,9 @@
   "repository": "https://github.com/Sayedmah/Modax",
   "active_branch": "feat/modax-omega-foundation",
   "baseline_commit": "bb0295d55483a9e1733fdc09399058afd3979534",
-  "latest_verified_commit": "117df3efca36d57995b7eca86cde8b87d8a9b9c4",
+  "latest_verified_commit": "d99b01d3d045de11c9d5c5086a61c74126fb11b0",
   "pull_request": "https://github.com/Sayedmah/Modax/pull/2",
-  "last_completed_phase": "0.3.5 direct guest entry implemented and locally verified; remote verification pending",
+  "last_completed_phase": "verified hosted0.3.5 direct guest entry with private sessions; full platform incomplete",
   "implemented_modules": [
     "auth",
     "sqlite_migrations",
@@ -85,14 +85,14 @@
       ]
     },
     "github_actions": {
-      "commit": "117df3efca36d57995b7eca86cde8b87d8a9b9c4",
-      "run_id": 38585205403,
+      "commit": "d99b01d3d045de11c9d5c5086a61c74126fb11b0",
+      "run_id": 38619242431,
       "conclusion": "success",
       "jobs": [
         "backend-and-godot",
         "postgres-integration"
       ],
-      "url": "https://github.com/Sayedmah/Modax/actions/runs/38585205403"
+      "url": "https://github.com/Sayedmah/Modax/actions/runs/38619242431"
     },
     "node_session_regressions": {
       "passed": 2
@@ -119,10 +119,12 @@
       "full_editor_import": "still blocked on free host; passes in CI"
     },
     "live_http_current_commit": [
-      "health0.3.4",
-      "prominent connect-api button",
-      "authenticated server model openrouter/free",
-      "actual streamed response completed; probe chat deleted and session logged out"
+      "health0.3.5 guest_mode=true",
+      "guest creation201",
+      "separate-owner chat read404",
+      "public signup403",
+      "OpenRouter free registry configured",
+      "probe chat removed and tokens revoked"
     ],
     "account_export": {
       "local": "7 new tests passed",
@@ -155,7 +157,8 @@
         "reload session",
         "guest isolation",
         "new session"
-      ]
+      ],
+      "live_network": "Direct remote Chromium request blocked with ERR_EMPTY_RESPONSE; UI passed local/CI and actual hosted HTTP guest checks passed."
     }
   },
   "blocked_features": [
@@ -177,7 +180,7 @@
     "expand multi-agent OMEGA beyond same-provider isolated code reviews",
     "portable chat re-import from account export"
   ],
-  "next_exact_executable_action": "Verify deployed guest mode and CI, then continue bounded account-export chat re-import; keep per-owner isolation and free-only configured provider.",
+  "next_exact_executable_action": "Continue bounded account-export chat re-import. Preserve isolated automatic guest access; production PostgreSQL binding and native/media workers remain blocked.",
   "resume_commands": [
     "pip install -e .[dev]",
     "python -m pytest -q",
@@ -194,12 +197,14 @@
     "workspace": "tea-dalrl82d0e5s738de4j0",
     "service": "srv-db75ucmi0phs738mfg6g",
     "plan": "free",
-    "deploy": "dep-db7pgrvavr4c73fjr6lg",
+    "deploy": "dep-db7t023tqb8s73bqschg",
     "status": "live",
     "postgres": "dpg-db74kajncjis73fgelo0-a",
     "database_connection": "blocked; secure browser sign-in aborted",
     "database_expires": "2026-11-12",
-    "active_storage": "local ephemeral until DATABASE_URL bound"
+    "active_storage": "local ephemeral until DATABASE_URL bound",
+    "guest_mode": true,
+    "public_signup": false
   },
   "scheduled_continuation": {
     "enabled": true,
