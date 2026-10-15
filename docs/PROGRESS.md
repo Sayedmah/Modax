@@ -49,3 +49,7 @@ Added a prominent header Settings shortcut and full-width provider save button; 
 
 Implemented opt-in guest sessions and automatic site startup without a login form. Reload preserves the browser session; New Session revokes and replaces it. Private API ownership remains enforced, existing accounts/data preserved, public registration disabled on hosting. Added creation limits, bootstrap loading/retry states, backend isolation/revocation tests and separate guest browser CI. Local110tests passed/1PostgreSQLskip in30.99s; Ruff/JS and2Node regressions passed;14normal and5guest browser flows passed. Sidebar scrolling and PostgreSQL query compatibility fixed. CI38619242431 passed both jobs, including PostgreSQL guest checks. Render dep-db7t023tqb8s73bqschg live; actual guest creation/isolation/signup-disable HTTP checks passed.
 
+# Chat archive restore0.3.6
+
+Implemented authenticated ZIP chat restoration with regenerated IDs, owner-locked all-or-nothing writes, preserved UTF-8/CRLF text, interrupted running-message states and count-only audit records. Settings provides an actual upload/restore action. Untrusted archives have strict compressed/expanded/text/record limits; credentials, usage, files and tasks are ignored and never restored/executed. Repeated imports create copies. Local122tests passed/1PostgreSQLskip in16.06s with Godot4.6, Ruff/JS/2Node tests passed, normal15browser flows and6guest flows passed with zero errors. Genuine PostgreSQL restore coverage added for CI. Remote validation pending publication.
+

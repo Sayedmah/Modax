@@ -5,6 +5,7 @@ let chatId = null, currentChat = null, controller = null, sessionEpoch = 0;
 let guestMode = false;
 const requests = new Set();
 function resetOwnerView() {
+  $('account-import-file').value='';
   sessionEpoch++; controller?.abort(); controller=null;
   for(const request of requests) request.abort(); requests.clear();
   chatId=null; currentChat=null;
@@ -154,6 +155,17 @@ $('account-export').onclick=safe(async()=>{
   finally{button.disabled=false;}
 });
 async function arenaHistory(){const runs=await(await api('/arena/runs')).json();$('arena-results').replaceChildren();for(const run of runs){const panel=document.createElement('div');panel.className='panel';const pre=document.createElement('pre');pre.textContent=JSON.stringify(run,null,2);panel.append(pre);$('arena-results').append(panel);}}
+$('restore-chats').onclick=()=>$('account-import-file').click();
+$('account-import-file').onchange=safe(async()=>{
+  const input=$('account-import-file'),file=input.files[0];if(!file)return;
+  const button=$('restore-chats');button.disabled=true;
+  try{if(controller)throw Error('أوقف الرد الجاري قبل استعادة المحادثات');if(file.size>4*1024*1024)throw Error('حجم ZIP يتجاوز 4 MiB');
+    const body=new FormData();body.append('file',file);notify('التحقق من الأرشيف واستعادة المحادثات…');
+    const result=await(await api('/account/import-chats',{method:'POST',body})).json();await history();
+    if(result.chats.length&&!controller)await openChat(result.chats[0].id);
+    notify('تمت استعادة '+result.chats.length+' محادثة و'+result.imported_messages+' رسالة.'+(result.interrupted_messages?' أُوقفت الردود التي كانت جارية في الأرشيف.':''));
+  }finally{input.value='';button.disabled=false;}
+});
 $('arena-form').onsubmit=safe(async event=>{event.preventDefault();notify('التقييم قيد التنفيذ…');await post('/arena/runs',{models:Array.from($('arena-models').selectedOptions).map(o=>o.value),confirm_external_calls:$('arena-confirm').checked,template:$('arena-template').value});await arenaHistory();notify('نتائج محسوبة من الردود الفعلية');});
 
 async function bootstrap(){

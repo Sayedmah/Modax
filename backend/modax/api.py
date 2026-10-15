@@ -66,7 +66,7 @@ def create_app(settings=None):
         finally:
             await app.state.task_engine.shutdown()
 
-    app = FastAPI(title="MODAX OMEGA", version="0.3.5", lifespan=lifespan)
+    app = FastAPI(title="MODAX OMEGA", version="0.3.6", lifespan=lifespan)
     app.state.settings, app.state.store, app.state.registry = settings, store, registry
     limiter = defaultdict(deque)
     guest_limiter = defaultdict(deque)
@@ -78,11 +78,16 @@ def create_app(settings=None):
         from fastapi.responses import JSONResponse
 
         if request.method in {"POST", "PUT", "PATCH"}:
+            body_limit = settings.max_body_bytes
+            if request.url.path == "/api/v1/account/import-chats":
+                from .account_import import MAX_UPLOAD
+
+                body_limit = MAX_UPLOAD + 65536
             size = 0
             chunks = []
             async for chunk in request.stream():
                 size += len(chunk)
-                if size > settings.max_body_bytes:
+                if size > body_limit:
                     return JSONResponse({"detail": "Request body too large"}, status_code=413)
                 chunks.append(chunk)
             request._body = b"".join(chunks)
@@ -142,7 +147,7 @@ def create_app(settings=None):
     def health():
         return {
             "status": "ok",
-            "version": "0.3.5",
+            "version": "0.3.6",
             "guest_mode": settings.guest_mode,
             "demo": settings.demo,
             "persistence": "postgres" if settings.database_url else "local",
@@ -377,4 +382,7 @@ def create_app(settings=None):
     from .account_export import install_account_export
 
     install_account_export(app)
+    from .account_import import install_account_import
+
+    install_account_import(app)
     return app

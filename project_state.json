@@ -5,7 +5,7 @@
   "baseline_commit": "bb0295d55483a9e1733fdc09399058afd3979534",
   "latest_verified_commit": "d99b01d3d045de11c9d5c5086a61c74126fb11b0",
   "pull_request": "https://github.com/Sayedmah/Modax/pull/2",
-  "last_completed_phase": "verified hosted0.3.5 direct guest entry with private sessions; full platform incomplete",
+  "last_completed_phase": "0.3.6 archive chat restore locally verified; remote validation pending",
   "implemented_modules": [
     "auth",
     "sqlite_migrations",
@@ -52,13 +52,15 @@
     "openrouter_named_provider",
     "server_named_provider_configuration",
     "isolated_guest_sessions",
-    "automatic_guest_bootstrap"
+    "automatic_guest_bootstrap",
+    "bounded_archive_chat_restore",
+    "transactional_restore_owner_isolation"
   ],
   "test_results": {
     "python": {
-      "passed": 110,
+      "passed": 122,
       "skipped": 1,
-      "seconds": 30.99,
+      "seconds": 16.06,
       "skip_reason": "local PostgreSQL credentials missing; genuine PostgreSQL CI integration passed",
       "engine_check": "Godot 4.6"
     },
@@ -81,7 +83,8 @@
         "project ZIP import",
         "patch download",
         "account export download",
-        "Gemini/OpenRouter endpoint selection"
+        "Gemini/OpenRouter endpoint selection",
+        "account chat restore"
       ]
     },
     "github_actions": {
@@ -156,9 +159,17 @@
         "demo streaming",
         "reload session",
         "guest isolation",
-        "new session"
+        "new session",
+        "archive restore into new guest"
       ],
       "live_network": "Direct remote Chromium request blocked with ERR_EMPTY_RESPONSE; UI passed local/CI and actual hosted HTTP guest checks passed."
+    },
+    "chat_restore": {
+      "backend_tests": 12,
+      "local": "passed",
+      "browser": "passed",
+      "postgres": "CI pending",
+      "live": "pending"
     }
   },
   "blocked_features": [
@@ -178,9 +189,9 @@
     "native client/export",
     "comprehensive benchmarks/training",
     "expand multi-agent OMEGA beyond same-provider isolated code reviews",
-    "portable chat re-import from account export"
+    "opt-in note restoration from account export"
   ],
-  "next_exact_executable_action": "Continue bounded account-export chat re-import. Preserve isolated automatic guest access; production PostgreSQL binding and native/media workers remain blocked.",
+  "next_exact_executable_action": "Verify0.3.6 CI and hosted chat restore, then implement explicit opt-in saved-note restoration with owner isolation and no credential/file/task execution.",
   "resume_commands": [
     "pip install -e .[dev]",
     "python -m pytest -q",

@@ -4,6 +4,8 @@ An implemented local-first foundation for persistent AI chat, bounded software d
 
 ## Hosted website
 
+Chat archives can be restored from Settings into the current guest session as new copies. Keys, projects and other account collections are not restored. See [chat restore limits and workflow](docs/CHAT_RESTORE.md).
+
 The current Render service is https://modax-omega.onrender.com, deployed from the development branch. This is a free preview, not a production release. PostgreSQL was created but its connection secret could not be bound because dashboard sign-in was not completed. Until DATABASE_URL is configured, hosted account data uses local ephemeral storage and can be lost on sleep/redeploy. Do not treat it as durable production storage.
 
 ### Added in web milestone 0.2

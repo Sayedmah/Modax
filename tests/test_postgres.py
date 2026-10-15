@@ -21,7 +21,9 @@ def test_genuine_postgres_migrations_auth_documents_and_tasks(tmp_path):
         c.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(schema)))
     scoped = make_conninfo(url, options="-c search_path=" + schema)
     try:
-        settings = Settings(data_dir=tmp_path, database_url=scoped, allow_signup=True, guest_mode=True)
+        settings = Settings(
+            data_dir=tmp_path, database_url=scoped, allow_signup=True, guest_mode=True
+        )
         with TestClient(create_app(settings)) as c:
             h = register(c)
             assert (
@@ -71,6 +73,19 @@ def test_genuine_postgres_migrations_auth_documents_and_tasks(tmp_path):
                 manifest = json.loads(archive.read("manifest.json"))
                 assert manifest["counts"]["documents"] == 1
                 assert manifest["counts"]["tasks"] == 1
+            restored = c.post(
+                "/api/v1/account/import-chats",
+                headers=guest_headers,
+                files={"file": ("account.zip", exported.content)},
+            )
+            assert restored.status_code == 201, restored.text
+            restored_id = restored.json()["chats"][0]["id"]
+            assert restored_id != cid
+            assert (
+                len(c.get(f"/api/v1/chats/{restored_id}", headers=guest_headers).json()["messages"])
+                == 2
+            )
+            assert c.get(f"/api/v1/chats/{restored_id}", headers=h).status_code == 404
     finally:
         with psycopg.connect(url, autocommit=True) as c:
             c.execute(sql.SQL("DROP SCHEMA {} CASCADE").format(sql.Identifier(schema)))
