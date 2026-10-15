@@ -3,9 +3,9 @@
   "repository": "https://github.com/Sayedmah/Modax",
   "active_branch": "feat/modax-omega-foundation",
   "baseline_commit": "bb0295d55483a9e1733fdc09399058afd3979534",
-  "latest_verified_commit": "d99b01d3d045de11c9d5c5086a61c74126fb11b0",
+  "latest_verified_commit": "5b4212bdc2829c6b0585794bf796ab64997eea0c",
   "pull_request": "https://github.com/Sayedmah/Modax/pull/2",
-  "last_completed_phase": "0.3.6 archive chat restore locally verified; remote validation pending",
+  "last_completed_phase": "verified hosted0.3.6 bounded archive chat restoration; full platform incomplete",
   "implemented_modules": [
     "auth",
     "sqlite_migrations",
@@ -88,14 +88,14 @@
       ]
     },
     "github_actions": {
-      "commit": "d99b01d3d045de11c9d5c5086a61c74126fb11b0",
-      "run_id": 38619242431,
+      "commit": "5b4212bdc2829c6b0585794bf796ab64997eea0c",
+      "run_id": 38695366873,
       "conclusion": "success",
       "jobs": [
         "backend-and-godot",
         "postgres-integration"
       ],
-      "url": "https://github.com/Sayedmah/Modax/actions/runs/38619242431"
+      "url": "https://github.com/Sayedmah/Modax/actions/runs/38695366873"
     },
     "node_session_regressions": {
       "passed": 2
@@ -122,12 +122,12 @@
       "full_editor_import": "still blocked on free host; passes in CI"
     },
     "live_http_current_commit": [
-      "health0.3.5 guest_mode=true",
-      "guest creation201",
-      "separate-owner chat read404",
-      "public signup403",
-      "OpenRouter free registry configured",
-      "probe chat removed and tokens revoked"
+      "health0.3.6 guest_mode=true",
+      "account export validZIP2137bytes",
+      "cross-guest chat restore201",
+      "source owner denied restored chat404",
+      "invalid ZIP422 without additional copies",
+      "probe chats deleted and sessions revoked"
     ],
     "account_export": {
       "local": "7 new tests passed",
@@ -162,14 +162,23 @@
         "new session",
         "archive restore into new guest"
       ],
-      "live_network": "Direct remote Chromium request blocked with ERR_EMPTY_RESPONSE; UI passed local/CI and actual hosted HTTP guest checks passed."
+      "live_network": "This release tested with local/CI Chromium and hosted HTTP; direct remote Chromium not re-tested."
     },
     "chat_restore": {
       "backend_tests": 12,
       "local": "passed",
-      "browser": "passed",
-      "postgres": "CI pending",
-      "live": "pending"
+      "browser": "15 normal and6guest flows passed",
+      "postgres": "CI38695366873 passed",
+      "live": "verified",
+      "restore_status": 201,
+      "ownership_status": 404,
+      "invalid_archive_status": 422,
+      "new_ids": true,
+      "utf8_crlf": true,
+      "no_partial_copy": true,
+      "export_bytes": 2137,
+      "probe_seconds": 55.82,
+      "cleanup": "probe chats deleted and sessions revoked; no inference"
     }
   },
   "blocked_features": [
@@ -191,7 +200,7 @@
     "expand multi-agent OMEGA beyond same-provider isolated code reviews",
     "opt-in note restoration from account export"
   ],
-  "next_exact_executable_action": "Verify0.3.6 CI and hosted chat restore, then implement explicit opt-in saved-note restoration with owner isolation and no credential/file/task execution.",
+  "next_exact_executable_action": "Implement explicit opt-in saved-note restoration from account exports, with a separate bounded schema, new IDs, owner isolation, and no credential/file/task execution.",
   "resume_commands": [
     "pip install -e .[dev]",
     "python -m pytest -q",
@@ -202,13 +211,13 @@
     "npm run test:ui"
   ],
   "background_work": "scheduled daily attempts only",
-  "notes": "Documentation checkpoint may follow verified implementation commit. No trained weights, images/videos, native executables or six-hour elapsed work claimed.",
+  "notes": "Documentation checkpoints can follow the verified code commit. Use [skip render] only for docs/state-only commits to avoid unnecessary ephemeral-host restarts. No paid inference, training, generated media or native executable is claimed.",
   "website": "https://modax-omega.onrender.com/",
   "render": {
     "workspace": "tea-dalrl82d0e5s738de4j0",
     "service": "srv-db75ucmi0phs738mfg6g",
     "plan": "free",
-    "deploy": "dep-db7t023tqb8s73bqschg",
+    "deploy": "dep-db87hljrjlhs73cs9vkg",
     "status": "live",
     "postgres": "dpg-db74kajncjis73fgelo0-a",
     "database_connection": "blocked; secure browser sign-in aborted",
