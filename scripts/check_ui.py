@@ -63,6 +63,13 @@ with tempfile.TemporaryDirectory(prefix="modax-ui-qa-") as temporary:
                 timeout=90,
                 check=True,
             )
+            subprocess.run(
+                ["node", "scripts/notes_smoke.cjs"],
+                cwd=root,
+                env=environment,
+                timeout=90,
+                check=True,
+            )
         finally:
             server.terminate()
             server.wait(timeout=10)

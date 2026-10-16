@@ -66,7 +66,7 @@ def create_app(settings=None):
         finally:
             await app.state.task_engine.shutdown()
 
-    app = FastAPI(title="MODAX OMEGA", version="0.3.6", lifespan=lifespan)
+    app = FastAPI(title="MODAX OMEGA", version="0.4.0", lifespan=lifespan)
     app.state.settings, app.state.store, app.state.registry = settings, store, registry
     limiter = defaultdict(deque)
     guest_limiter = defaultdict(deque)
@@ -79,7 +79,7 @@ def create_app(settings=None):
 
         if request.method in {"POST", "PUT", "PATCH"}:
             body_limit = settings.max_body_bytes
-            if request.url.path == "/api/v1/account/import-chats":
+            if request.url.path in {"/api/v1/account/import-chats", "/api/v1/account/import-notes"}:
                 from .account_import import MAX_UPLOAD
 
                 body_limit = MAX_UPLOAD + 65536
@@ -147,7 +147,7 @@ def create_app(settings=None):
     def health():
         return {
             "status": "ok",
-            "version": "0.3.6",
+            "version": "0.4.0",
             "guest_mode": settings.guest_mode,
             "demo": settings.demo,
             "persistence": "postgres" if settings.database_url else "local",

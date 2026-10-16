@@ -1,4 +1,4 @@
-"""Read chat records from a bounded account archive without extracting files."""
+"""Restore selected records from a bounded account archive without extracting files."""
 
 import io
 import json
@@ -9,11 +9,12 @@ import zipfile
 import zlib
 from typing import Literal
 
-from fastapi import Depends, File, HTTPException, UploadFile
+from fastapi import Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
 from .account_export import COLLECTIONS
 from .store import uid
+from .workspace import SECRET
 
 MAX_UPLOAD = 4 * 1024 * 1024
 MAX_TEXT = 2 * 1024 * 1024
@@ -36,7 +37,12 @@ class SourceMessage(BaseModel):
     status: Literal["completed", "error", "interrupted", "running"]
 
 
-def parse_archive(payload):
+class SourceNote(BaseModel):
+    id: str = Field(min_length=1, max_length=128)
+    content: str = Field(min_length=1, max_length=2000)
+
+
+def parse_archive(payload, *, notes_only=False):
     if len(payload) > MAX_UPLOAD:
         raise ArchiveError("Archive exceeds 4 MiB")
     try:
@@ -55,11 +61,11 @@ def parse_archive(payload):
 
             def read(name, limit):
                 if archive.getinfo(name).file_size > limit:
-                    raise ArchiveError("Chat collection size limit exceeded")
+                    raise ArchiveError("Collection size limit exceeded")
                 with archive.open(name) as member:
                     data = member.read(limit + 1)
                 if len(data) > limit:
-                    raise ArchiveError("Chat collection size limit exceeded")
+                    raise ArchiveError("Collection size limit exceeded")
                 return data.decode("utf-8")
 
             manifest = json.loads(read("manifest.json", 16384))
@@ -70,6 +76,27 @@ def parse_archive(payload):
                 or manifest["version"] != 1
             ):
                 raise ArchiveError("Unsupported account export format")
+            if notes_only:
+                lines = [
+                    line for line in read("memory.ndjson", 1024 * 1024).splitlines() if line.strip()
+                ]
+                if len(lines) > 100:
+                    raise ArchiveError("Import limit: 100 notes")
+                counts = manifest.get("counts")
+                if (
+                    not isinstance(counts, dict)
+                    or type(counts.get("memory")) is not int
+                    or counts["memory"] != len(lines)
+                ):
+                    raise ArchiveError("Note record count does not match the manifest")
+                notes = [SourceNote.model_validate_json(line) for line in lines]
+                if len({note.id for note in notes}) != len(notes):
+                    raise ArchiveError("Duplicate note identifiers")
+                if sum(len(note.content.encode("utf-8")) for note in notes) > 512 * 1024:
+                    raise ArchiveError("Imported note text exceeds 512 KiB")
+                if any(not note.content.strip() or SECRET.search(note.content) for note in notes):
+                    raise ArchiveError("Blank notes or possible secrets cannot be restored")
+                return notes
             chat_lines = [line for line in read("chats.ndjson", 65536).splitlines() if line.strip()]
             message_lines = [
                 line
@@ -116,12 +143,56 @@ def parse_archive(payload):
         EOFError,
         zlib.error,
     ):
-        raise ArchiveError("Invalid account archive; no chats imported") from None
+        raise ArchiveError("Invalid account archive; no records imported") from None
 
 
 def install_account_import(app):
     store = app.state.store
     gate = threading.BoundedSemaphore(1)
+
+    @app.post("/api/v1/account/import-notes", status_code=201)
+    def import_notes(
+        file: UploadFile = File(...),
+        confirm: bool = Form(False),
+        user=Depends(app.state.owner_dependency),
+    ):
+        if not confirm:
+            raise HTTPException(422, "Explicit note restoration confirmation is required")
+        if not gate.acquire(blocking=False):
+            raise HTTPException(429, "Another archive import is active; retry later")
+        try:
+            try:
+                notes = parse_archive(file.file.read(MAX_UPLOAD + 1), notes_only=True)
+            except ArchiveError as error:
+                raise HTTPException(422, str(error)) from None
+            if not notes:
+                raise HTTPException(422, "The archive contains no notes")
+            created, now = [], time.time()
+            with store.connect() as db:
+                store.lock_user(db, user)
+                count = db.execute(
+                    "SELECT COUNT(*) AS n FROM memory WHERE owner=?", (user,)
+                ).fetchone()["n"]
+                if count + len(notes) > 100:
+                    raise HTTPException(429, "Stored note quota reached; no notes imported")
+                for index, note in enumerate(notes):
+                    note_id = uid()
+                    db.execute(
+                        "INSERT INTO memory VALUES(?,?,?,?)",
+                        (note_id, user, note.content, now + index * 0.001),
+                    )
+                    created.append(note_id)
+                db.execute(
+                    "INSERT INTO audit(owner,action,details,created) VALUES(?,?,?,?)",
+                    (user, "notes.archive_import", json.dumps({"notes": len(created)}), now),
+                )
+            return {"note_ids": created, "imported_notes": len(created)}
+        except HTTPException:
+            raise
+        except Exception:
+            raise HTTPException(503, "Note import failed; no notes imported") from None
+        finally:
+            gate.release()
 
     @app.post("/api/v1/account/import-chats", status_code=201)
     def import_chats(file: UploadFile = File(...), user=Depends(app.state.owner_dependency)):

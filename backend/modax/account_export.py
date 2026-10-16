@@ -91,7 +91,7 @@ def build_export(store, owner, stop=None):
                     "original_document_binaries",
                 ],
                 "documents": "extracted text only",
-                "restore": "Restore chat copies from Settings; other collections are export-only",
+                "restore": "Restore chat copies or explicitly confirmed notes from Settings; other collections are export-only",
                 "warning": "Private plaintext data. Store securely. Not a substitute for durable server storage.",
             }
             archive.writestr("manifest.json", encoded(manifest))

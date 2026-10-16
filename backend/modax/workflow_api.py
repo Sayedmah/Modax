@@ -139,10 +139,17 @@ def install_workflows(app):
     def add_memory(body: MemoryInput, user=Depends(owner)):
         if SECRET.search(body.content):
             raise HTTPException(422, "Possible secret cannot be stored as ordinary memory")
-        if len(store.query("SELECT id FROM memory WHERE owner=?", (user,))) >= 100:
-            raise HTTPException(429, "Memory quota reached")
         mid = uid()
-        store.execute("INSERT INTO memory VALUES(?,?,?,?)", (mid, user, body.content, time.time()))
+        with store.connect() as db:
+            store.lock_user(db, user)
+            if (
+                db.execute("SELECT COUNT(*) AS n FROM memory WHERE owner=?", (user,)).fetchone()[
+                    "n"
+                ]
+                >= 100
+            ):
+                raise HTTPException(429, "Memory quota reached")
+            db.execute("INSERT INTO memory VALUES(?,?,?,?)", (mid, user, body.content, time.time()))
         return require("memory", user, mid)
 
     @app.put("/api/v1/memory/{memory_id}")

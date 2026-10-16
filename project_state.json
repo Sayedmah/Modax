@@ -54,14 +54,16 @@
     "isolated_guest_sessions",
     "automatic_guest_bootstrap",
     "bounded_archive_chat_restore",
-    "transactional_restore_owner_isolation"
+    "transactional_restore_owner_isolation",
+    "explicit_opt_in_note_restore",
+    "transactional_note_quotas"
   ],
   "test_results": {
     "python": {
-      "passed": 122,
+      "passed": 134,
       "skipped": 1,
-      "seconds": 16.06,
-      "skip_reason": "local PostgreSQL credentials missing; genuine PostgreSQL CI integration passed",
+      "seconds": 16.52,
+      "skip_reason": "local PostgreSQL credentials missing; current CI pending",
       "engine_check": "Godot 4.6"
     },
     "ruff": "passed",
@@ -84,7 +86,9 @@
         "patch download",
         "account export download",
         "Gemini/OpenRouter endpoint selection",
-        "account chat restore"
+        "account chat restore",
+        "explicit opt-in note archive restore",
+        "literal note rendering and reload/delete"
       ]
     },
     "github_actions": {
@@ -98,7 +102,7 @@
       "url": "https://github.com/Sayedmah/Modax/actions/runs/38695366873"
     },
     "node_session_regressions": {
-      "passed": 2
+      "passed": 3
     },
     "live_http": [
       "health v0.2 200",
@@ -160,7 +164,8 @@
         "reload session",
         "guest isolation",
         "new session",
-        "archive restore into new guest"
+        "archive restore into new guest",
+        "opt-in note restore with consent reset and unchanged preferences"
       ],
       "live_network": "This release tested with local/CI Chromium and hosted HTTP; direct remote Chromium not re-tested."
     },
@@ -179,6 +184,13 @@
       "export_bytes": 2137,
       "probe_seconds": 55.82,
       "cleanup": "probe chats deleted and sessions revoked; no inference"
+    },
+    "note_restore": {
+      "backend_tests": 12,
+      "local": "134 passed,1 skipped with Godot4.6",
+      "browser": "15 normal+6 note checks;6 guest+6 note checks;zero page errors",
+      "postgres": "current CI pending",
+      "live": "pending"
     }
   },
   "blocked_features": [
@@ -197,10 +209,9 @@
     "real media worker",
     "native client/export",
     "comprehensive benchmarks/training",
-    "expand multi-agent OMEGA beyond same-provider isolated code reviews",
-    "opt-in note restoration from account export"
+    "expand multi-agent OMEGA beyond same-provider isolated code reviews"
   ],
-  "next_exact_executable_action": "Implement explicit opt-in saved-note restoration from account exports, with a separate bounded schema, new IDs, owner isolation, and no credential/file/task execution.",
+  "next_exact_executable_action": "Verify 0.4.0 note restoration in browser, GitHub CI and existing free hosted service, then implement owner-scoped document deletion with attachment/reference handling and tests.",
   "resume_commands": [
     "pip install -e .[dev]",
     "python -m pytest -q",
@@ -240,5 +251,9 @@
     "verified_schedule": "BEGIN:VEVENT\nDTSTART;TZID=Africa/Cairo:20261014T090000\nRRULE:FREQ=DAILY;COUNT=6;BYHOUR=9;BYMINUTE=0;BYSECOND=0\nEND:VEVENT",
     "verified_at": "2026-10-14T05:07:16Z",
     "note": "Stored weekly cadence discovered and corrected; no continuous-runtime guarantee"
+  },
+  "pending_release": {
+    "version": "0.4.0",
+    "status": "Local Python/Ruff/Node and both Chromium modes passed; CI/host verification pending"
   }
 }

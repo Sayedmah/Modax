@@ -60,6 +60,7 @@ def test_genuine_postgres_migrations_auth_documents_and_tasks(tmp_path):
                 ).status_code
                 == 201
             )
+            note = c.post("/api/v1/memory", headers=h, json={"content": "Portable note"}).json()
         with TestClient(create_app(settings)) as c:
             assert len(c.get(f"/api/v1/chats/{cid}", headers=h).json()["messages"]) == 2
             assert len(c.get("/api/v1/files", headers=h).json()) == 1
@@ -86,6 +87,19 @@ def test_genuine_postgres_migrations_auth_documents_and_tasks(tmp_path):
                 == 2
             )
             assert c.get(f"/api/v1/chats/{restored_id}", headers=h).status_code == 404
+            note_restore = c.post(
+                "/api/v1/account/import-notes",
+                headers=guest_headers,
+                files={"file": ("account.zip", exported.content)},
+                data={"confirm": "true"},
+            )
+            assert note_restore.status_code == 201, note_restore.text
+            assert note_restore.json()["imported_notes"] == 1
+            notes = c.get("/api/v1/memory", headers=guest_headers).json()
+            assert notes[0]["content"] == note["content"]
+            assert notes[0]["id"] != note["id"]
+            assert c.get("/api/v1/settings", headers=guest_headers).json()["use_memory"] is False
+            assert c.delete("/api/v1/memory/" + notes[0]["id"], headers=h).status_code == 404
     finally:
         with psycopg.connect(url, autocommit=True) as c:
             c.execute(sql.SQL("DROP SCHEMA {} CASCADE").format(sql.Identifier(schema)))

@@ -6,6 +6,7 @@ let guestMode = false;
 const requests = new Set();
 function resetOwnerView() {
   $('account-import-file').value='';
+  $('notes-import-file').value='';$('confirm-note-restore').checked=false;$('restore-notes').disabled=true;
   sessionEpoch++; controller?.abort(); controller=null;
   for(const request of requests) request.abort(); requests.clear();
   chatId=null; currentChat=null;
@@ -156,6 +157,19 @@ $('account-export').onclick=safe(async()=>{
 });
 async function arenaHistory(){const runs=await(await api('/arena/runs')).json();$('arena-results').replaceChildren();for(const run of runs){const panel=document.createElement('div');panel.className='panel';const pre=document.createElement('pre');pre.textContent=JSON.stringify(run,null,2);panel.append(pre);$('arena-results').append(panel);}}
 $('restore-chats').onclick=()=>$('account-import-file').click();
+$('confirm-note-restore').onchange=()=>{$('restore-notes').disabled=!$('confirm-note-restore').checked;};
+$('restore-notes').onclick=()=>{if($('confirm-note-restore').checked)$('notes-import-file').click();};
+$('notes-import-file').onchange=safe(async()=>{
+  const input=$('notes-import-file'),file=input.files[0];if(!file)return;
+  const button=$('restore-notes');button.disabled=true;$('confirm-note-restore').disabled=true;
+  try{if(!$('confirm-note-restore').checked)throw Error('وافق صراحة على استعادة الملاحظات أولًا');
+    if(controller)throw Error('أوقف الرد الجاري قبل استعادة الملاحظات');
+    if(file.size>4*1024*1024)throw Error('حجم ZIP يتجاوز 4 MiB');
+    const body=new FormData();body.append('file',file);body.append('confirm','true');notify('التحقق من الأرشيف واستعادة الملاحظات…');
+    const result=await(await api('/account/import-notes',{method:'POST',body})).json();await memory();
+    notify('تمت استعادة '+result.imported_notes+' ملاحظة. لم تتغير إعدادات استخدام الذاكرة؛ راجع الملاحظات أولًا.');
+  }finally{input.value='';$('confirm-note-restore').disabled=false;$('confirm-note-restore').checked=false;button.disabled=true;}
+});
 $('account-import-file').onchange=safe(async()=>{
   const input=$('account-import-file'),file=input.files[0];if(!file)return;
   const button=$('restore-chats');button.disabled=true;
