@@ -3,9 +3,9 @@
   "repository": "https://github.com/Sayedmah/Modax",
   "active_branch": "feat/modax-omega-foundation",
   "baseline_commit": "bb0295d55483a9e1733fdc09399058afd3979534",
-  "latest_verified_commit": "5b4212bdc2829c6b0585794bf796ab64997eea0c",
+  "latest_verified_commit": "f50c6604b1c176847758f78d41f57079f7fad332",
   "pull_request": "https://github.com/Sayedmah/Modax/pull/2",
-  "last_completed_phase": "verified hosted0.3.6 bounded archive chat restoration; full platform incomplete",
+  "last_completed_phase": "0.4.0 explicit note restore: local/CI and hosted core semantics verified; hosted browser and fixture cleanup incomplete",
   "implemented_modules": [
     "auth",
     "sqlite_migrations",
@@ -63,7 +63,7 @@
       "passed": 134,
       "skipped": 1,
       "seconds": 16.52,
-      "skip_reason": "local PostgreSQL credentials missing; current CI pending",
+      "skip_reason": "local PostgreSQL credentials absent; genuine PostgreSQL CI38862653312 passed",
       "engine_check": "Godot 4.6"
     },
     "ruff": "passed",
@@ -92,14 +92,14 @@
       ]
     },
     "github_actions": {
-      "commit": "5b4212bdc2829c6b0585794bf796ab64997eea0c",
-      "run_id": 38695366873,
+      "commit": "f50c6604b1c176847758f78d41f57079f7fad332",
+      "run_id": 38862653312,
       "conclusion": "success",
       "jobs": [
         "backend-and-godot",
         "postgres-integration"
       ],
-      "url": "https://github.com/Sayedmah/Modax/actions/runs/38695366873"
+      "url": "https://github.com/Sayedmah/Modax/actions/runs/38862653312"
     },
     "node_session_regressions": {
       "passed": 3
@@ -126,12 +126,13 @@
       "full_editor_import": "still blocked on free host; passes in CI"
     },
     "live_http_current_commit": [
-      "health0.3.6 guest_mode=true",
-      "account export validZIP2137bytes",
-      "cross-guest chat restore201",
-      "source owner denied restored chat404",
-      "invalid ZIP422 without additional copies",
-      "probe chats deleted and sessions revoked"
+      "health0.4.0 guest_mode=true persistence=local",
+      "notes export/import201",
+      "explicit consent422",
+      "cross-owner delete404",
+      "corrupt archive422 no partial copy",
+      "disabled memory unchanged; no chats copied",
+      "fixture cleanup incomplete; hosted HTML/browser not verified"
     ],
     "account_export": {
       "local": "7 new tests passed",
@@ -167,7 +168,7 @@
         "archive restore into new guest",
         "opt-in note restore with consent reset and unchanged preferences"
       ],
-      "live_network": "This release tested with local/CI Chromium and hosted HTTP; direct remote Chromium not re-tested."
+      "live_network": "2026-10-16: hosted Chromium ERR_EMPTY_RESPONSE; curl root502/timeout. Local/CI passed; hosted core API fixtures passed. Root cause undetermined."
     },
     "chat_restore": {
       "backend_tests": 12,
@@ -189,8 +190,20 @@
       "backend_tests": 12,
       "local": "134 passed,1 skipped with Godot4.6",
       "browser": "15 normal+6 note checks;6 guest+6 note checks;zero page errors",
-      "postgres": "current CI pending",
-      "live": "pending"
+      "postgres": "CI38862653312 passed",
+      "live": {
+        "semantics": "verified before cleanup assertion in first probe",
+        "restore_status": 201,
+        "consent_status": 422,
+        "owner_status": 404,
+        "corrupt_status": 422,
+        "utf8_crlf": true,
+        "new_ids": true,
+        "memory_preferences_unchanged": true,
+        "no_chat_copy": true,
+        "no_partial_copy": true,
+        "cleanup": "incomplete: first harness expected logout200 rather than actual204; corrected retry later lost HTTP transport. Three harmless synthetic notes remain in isolated disposable guest workspaces; no user data/secrets included."
+      }
     }
   },
   "blocked_features": [
@@ -199,7 +212,8 @@
     "native SDK/signing/export templates unavailable",
     "GPU media workers and compatible model licenses not configured",
     "Full editor import/custom-asset validation on free Render remains blocked; exact primitive template gameplay is verified",
-    "Gemini real inference requires an authorized configured key; paid models not authorized"
+    "Gemini real inference requires an authorized configured key; paid models not authorized",
+    "Direct hosted HTML/browser verification from this runner failed502/timeout/ERR_EMPTY_RESPONSE despite successful API checks; cause undetermined"
   ],
   "remaining_tasks": [
     "bind production PostgreSQL",
@@ -211,7 +225,7 @@
     "comprehensive benchmarks/training",
     "expand multi-agent OMEGA beyond same-provider isolated code reviews"
   ],
-  "next_exact_executable_action": "Verify 0.4.0 note restoration in browser, GitHub CI and existing free hosted service, then implement owner-scoped document deletion with attachment/reference handling and tests.",
+  "next_exact_executable_action": "Implement owner-scoped document deletion, including safe chat-attachment/reference handling, UI confirmation, and SQLite/PostgreSQL/isolation tests. Do not execute uploaded files.",
   "resume_commands": [
     "pip install -e .[dev]",
     "python -m pytest -q",
@@ -228,7 +242,7 @@
     "workspace": "tea-dalrl82d0e5s738de4j0",
     "service": "srv-db75ucmi0phs738mfg6g",
     "plan": "free",
-    "deploy": "dep-db87hljrjlhs73cs9vkg",
+    "deploy": "dep-db8se7c9v7es7398n3k0",
     "status": "live",
     "postgres": "dpg-db74kajncjis73fgelo0-a",
     "database_connection": "blocked; secure browser sign-in aborted",
@@ -251,9 +265,5 @@
     "verified_schedule": "BEGIN:VEVENT\nDTSTART;TZID=Africa/Cairo:20261014T090000\nRRULE:FREQ=DAILY;COUNT=6;BYHOUR=9;BYMINUTE=0;BYSECOND=0\nEND:VEVENT",
     "verified_at": "2026-10-14T05:07:16Z",
     "note": "Stored weekly cadence discovered and corrected; no continuous-runtime guarantee"
-  },
-  "pending_release": {
-    "version": "0.4.0",
-    "status": "Local Python/Ruff/Node and both Chromium modes passed; CI/host verification pending"
   }
 }

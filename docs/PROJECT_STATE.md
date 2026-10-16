@@ -1,21 +1,24 @@
 # Current project state
 
-Verified release: 0.3.6 on 2026-10-15
+Release: 0.4.0 on 2026-10-16
 Repository: https://github.com/Sayedmah/Modax
 Branch: feat/modax-omega-foundation
 Draft PR: https://github.com/Sayedmah/Modax/pull/2
 Website: https://modax-omega.onrender.com/
-Verified implementation: 5b4212bdc2829c6b0585794bf796ab64997eea0c
+Verified implementation: f50c6604b1c176847758f78d41f57079f7fad332
 
-The website opens directly into an isolated guest session. Existing chat/history/streaming, owner-encrypted provider profiles, document retrieval, opt-in notes, small Arena checks, source-aware Coder, background tasks/reviews, original seeded Godot Crystal Island and PostgreSQL support remain implemented. OpenRouter free inference was verified on 2026-10-14; no inference was requested in this release. Gemini, paid inference, native builds and media workers remain unverified.
+The site remains configured for direct isolated guest entry; no account/signup screen is required. Existing chat, encrypted provider profiles, documents, optional notes, Arena, source-aware Coder, bounded task/review workflows and original Godot Crystal Island remain implemented. OpenRouter free inference was verified on2026-10-14; no inference or paid request occurred in this increment. Gemini/media/native builds remain unverified.
 
-Current increment: Settings restores chat copies directly from account ZIP exports, including into a new guest session. Every chat/message ID is regenerated; existing data is not overwritten. UTF-8/CRLF and message states are preserved, with running responses marked interrupted. Credentials, usage/costs, notes, projects and files are not restored or executed. Validation and writes are bounded/transactional. See CHAT_RESTORE.md for exact limits.
+Settings now has a separate explicitly confirmed saved-note restore action. It copies only notes from an account ZIP, regenerates IDs, preserves text and leaves memory-context preferences unchanged. Consent/file inputs reset between sessions and after attempts. Secret-like content, invalid archives and quota overflows are rejected before an owner-locked atomic transaction. Manual note creation now shares the owner lock to prevent quota races. Chat restore remains chat-only. See NOTE_RESTORE.md and CHAT_RESTORE.md.
 
-Validation:122 local Python tests passed, 1 PostgreSQL skip in 16.06 seconds with checksum-pinned Godot 4.6; Ruff/JavaScript syntax and2 Node session tests passed.15 normal and6 guest Chromium flows passed with zero errors. CI 38695366873 passed both backend/Godot/browser and genuine PostgreSQL restore jobs: https://github.com/Sayedmah/Modax/actions/runs/38695366873.
+Validation:134 local Python tests passed,1 local PostgreSQL skip in16.52s with freshly checksum-verified Godot4.6; Ruff/JavaScript checks and3Node regressions passed. Chromium:15 existing normal+6 note checks and6 existing guest+6 note checks passed with zero page errors. Initial reload QA failure was an assertion before asynchronous rendering; waiting for the actual note fixes the test without changing product persistence.
 
-Render dep-db87hljrjlhs73cs9vkg is live. Actual hosted export/import across two guests returned 201, preserved text/new IDs, rejected source-owner access 404 and invalid ZIP 422 without partial copies. Probe ZIP 2137 bytes; 55.82 seconds includes auth/export/import/history and network, not model/server inference latency. Probe data and tokens were cleaned up.
+CI38862653312 succeeded on this exact source, including backend/Godot/browser and actual PostgreSQL note restoration. https://github.com/Sayedmah/Modax/actions/runs/38862653312
+Render dep-db8se7c9v7es7398n3k0 is live on the authorized existing free service. Hosted API note restoration201, consent422, owner404, corrupt ZIP422, new IDs/UTF-8/CRLF, unchanged disabled memory and no chat copies were verified. The first probe completed all semantic assertions, then cleanup stopped on an incorrect harness expectation (logout actually204). The corrected retry confirmed import201 but later lost HTTP transport, including cleanup requests. Three harmless synthetic fixture notes remain in isolated disposable guest workspaces; no user data/secrets were included. Do not claim complete cleanup or a successful whole-probe duration.
 
-Production storage is still local/ephemeral until DATABASE_URL is securely bound. Previously aborted dashboard sign-in must not be retried without user authorization. Guest tokens are browser-session scoped; manual chat restore is not permanent storage or whole-account recovery. Dedicated generated-code runtime, native export/signing and GPU/media workers remain outside this verified release.
+Direct remote HTML/browser verification from this runner remains unverified: curl root returned502/timed out; Chromium ERR_EMPTY_RESPONSE. Hosted API requests succeeded and Render records its root health probe200. Do not infer the root cause or claim a successful hosted browser test from local/CI checks.
 
-Next: explicit opt-in saved-note restoration with its own validation and ownership tests. Read project_state.json before changes. Use [skip render] for docs/state-only checkpoints; code releases still require CI and live verification. No continuous work or complete universal platform is claimed.
+Production storage remains local/ephemeral until DATABASE_URL is securely bound. Aborted dashboard sign-in must not be retried automatically. Archive restoration is not whole-account recovery or permanent storage. Generated-code execution requires the dedicated sandbox; native SDK/signing/export and GPU/media workers remain unavailable.
+
+Next: owner-scoped document deletion with attachment/reference handling and tests. Use [skip render] for docs/state-only checkpoints. No full-platform completion or continuous runtime is claimed.
 

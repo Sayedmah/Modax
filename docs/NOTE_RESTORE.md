@@ -31,3 +31,10 @@ Restoration never changes use_memory (false stays false; true stays true). No
 provider credentials, account settings, tasks or projects are restored. Raw notes
 are displayed as text, not HTML. This is not whole-account recovery or permanent
 storage: the free host is still ephemeral until PostgreSQL is securely bound.
+
+Validation on 2026-10-16: local and CI browser/API/PostgreSQL checks passed on
+f50c6604b1c176847758f78d41f57079f7fad332. Hosted API semantic checks passed, but
+the disposable probe cleanup was incomplete after a harness-status mistake and
+later transport failures. Direct hosted HTML/browser verification is unconfirmed;
+see PROJECT_STATE.md for exact limits and evidence, rather than assuming deployment
+status alone proves browser availability.

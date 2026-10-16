@@ -61,3 +61,14 @@ Implementation117df3efca36d57995b7eca86cde8b87d8a9b9c4:107local tests passed/1Po
 
 122Python tests passed/1local PostgreSQLskip in16.06s using the checksum-pinned Godot4.6 binary. Ruff, JavaScript syntax and2Node session tests passed.15normal plus6guest Chromium flows passed with zero page errors, including actual ZIP download/upload and restoration into a fresh guest.12new backend checks cover malformed archives, paths/counts/IDs, quotas, expanded/upload limits, cross-owner copies, metadata exclusion, running-message normalization and database rollback/recovery. CI38695366873 passed both backend/Godot/browser and genuine PostgreSQL restore integration on5b4212bdc2829c6b0585794bf796ab64997eea0c. Render dep-db87hljrjlhs73cs9vkg live. Hosted export/import across two guest sessions returned201, preserved UTF-8/CRLF and regenerated IDs; source-owner access denied404; corrupt archive rejected422 with target count unchanged. Fixture ZIP2137bytes; auth/export/import/history network probe55.82s, not an inference/server latency benchmark. Probe chats deleted and tokens revoked. No provider inference was requested.
 
+## 0.4.0 — saved-note restore, 2026-10-16
+
+- Python134passed/1localPostgreSQLskip in16.52s, actual checksum-pinned Godot4.6.
+- Ruff backend/tests/scripts, JS syntax,3Node session regressions passed.
+- Chromium: normal15 existing+6new note checks; guest6 existing+6new note checks,zero page errors.
+-12new Python cases: confirmation/auth, owner isolation/new IDs/repeated copies, unchanged false/true preferences, malformed/duplicate/blank/oversized records, manifest/count/collection selection, secret screening, quota/concurrency, database rollback/gate recovery. Genuine PostgreSQL fixture restores notes across owners after restart.
+- First full suite failed because cached Godot binary was truncated and segfaulted even on --version. Pinned checksum-verified re-download restored engine; full suite passed. Initial browser assertion read note count before asynchronous fetch completed; awaited actual DOM data and session change; both modes passed.
+- Source f50c6604b1c176847758f78d41f57079f7fad332; CI38862653312 success for backend-and-godot and postgres-integration. https://github.com/Sayedmah/Modax/actions/runs/38862653312
+- Render dep-db8se7c9v7es7398n3k0 live; hosted0.4.0 health and note restoration201,consent422,foreign-owner404,corrupt422,text/newIDs/unchanged preferences/no chat copy/no partial copies passed before cleanup. First probe cleanup expected200 but logout204; corrected retry confirmed201 but then transport failed. Three disposable synthetic notes remain; no sensitive data. No successful aggregate probe timing or full-cleanup claim.
+- Root HTML curl502/timeout and direct remote Chromium ERR_EMPTY_RESPONSE; hosted browser availability not verified from this runner. Render root probe200; local/CI browser checks passed. No paid or model inference requests in this increment.
+
