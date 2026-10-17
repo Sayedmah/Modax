@@ -1,0 +1,2 @@
+# Contributing
+Use Python 3.12, an isolated environment and `pip install -e '.[dev]'`. Start from project_state.json. Write failure and security tests with each workflow. Use mock transports for providers and optional services; never spend money in CI. Run the checks in AGENTS.md. Label experiments and missing toolchains in PRs. Never commit .env, user databases, sessions or model weights. Native clients, real inference and GPU workers are separate milestones.

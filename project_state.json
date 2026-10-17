@@ -1,0 +1,292 @@
+{
+  "schema_version": 1,
+  "repository": "https://github.com/Sayedmah/Modax",
+  "active_branch": "feat/modax-omega-foundation",
+  "baseline_commit": "bb0295d55483a9e1733fdc09399058afd3979534",
+  "latest_verified_commit": "b0c89eec9a898625bceb9909d498d013d72d35f5",
+  "pull_request": "https://github.com/Sayedmah/Modax/pull/2",
+  "last_completed_phase": "0.4.1 document deletion safety and upload response completion: local/CI/hosted API verified; hosted browser certificate trust remains blocked",
+  "implemented_modules": [
+    "auth",
+    "sqlite_migrations",
+    "chat_history_streaming",
+    "demo_provider",
+    "compatible_http_adapter",
+    "ollama_adapter",
+    "rule_based_task_plans",
+    "task_state_recovery",
+    "bounded_coder_files",
+    "snapshot_rollback",
+    "workspace_zip",
+    "explicit_notes",
+    "usage_latency",
+    "godot_crystal_island_generator",
+    "comfyui_transport",
+    "adaptive_web_console",
+    "encrypted_user_provider_profiles",
+    "anthropic_streaming",
+    "document_extraction",
+    "chunk_search",
+    "explicit_attachment_grounding",
+    "opt_in_note_context",
+    "chat_import_edit_delete",
+    "markdown_code_rendering",
+    "small_measured_arena",
+    "bounded_syntax_repair",
+    "transactional_chat_quotas",
+    "postgres_store",
+    "database_artifact_storage",
+    "background_task_acceptance",
+    "task_history_resume_ui",
+    "thread_cancellation_drain",
+    "isolated_code_reviews",
+    "godot_failure_diagnostics",
+    "safe_source_project_import",
+    "project_context_inspection",
+    "unified_patch_export",
+    "provider_reported_token_usage",
+    "trusted_primitive_runtime_validation",
+    "owner_account_data_export",
+    "consistent_readonly_export_snapshots",
+    "gemini_named_provider",
+    "openrouter_named_provider",
+    "server_named_provider_configuration",
+    "isolated_guest_sessions",
+    "automatic_guest_bootstrap",
+    "bounded_archive_chat_restore",
+    "transactional_restore_owner_isolation",
+    "explicit_opt_in_note_restore",
+    "transactional_note_quotas",
+    "confirmed_atomic_document_delete",
+    "stale_document_view_guards"
+  ],
+  "test_results": {
+    "python": {
+      "passed": 137,
+      "skipped": 1,
+      "seconds": 31.57,
+      "skip_reason": "local PostgreSQL credentials absent; actual PostgreSQL CI39011097558 passed",
+      "engine_check": "Godot4.6"
+    },
+    "ruff": "passed",
+    "javascript_syntax": "passed",
+    "browser": {
+      "passed": true,
+      "page_errors": 0,
+      "checks": [
+        "signup",
+        "demo streaming",
+        "coder generation",
+        "notes create/delete",
+        "mobile overflow",
+        "account-switch isolation",
+        "CSV upload/search",
+        "Arena scoring",
+        "preferences",
+        "background task history",
+        "project ZIP import",
+        "patch download",
+        "account export download",
+        "Gemini/OpenRouter endpoint selection",
+        "account chat restore",
+        "explicit opt-in note archive restore",
+        "literal note rendering and reload/delete",
+        "document delete confirmation/cancel",
+        "document search/preview/attachment cleanup",
+        "unrelated document selection and reload"
+      ]
+    },
+    "github_actions": {
+      "commit": "b0c89eec9a898625bceb9909d498d013d72d35f5",
+      "run_id": 39011097558,
+      "conclusion": "success",
+      "jobs": [
+        "backend-and-godot",
+        "postgres-integration"
+      ],
+      "url": "https://github.com/Sayedmah/Modax/actions/runs/39011097558"
+    },
+    "node_session_regressions": {
+      "passed": 4
+    },
+    "live_http": [
+      "health v0.2 200",
+      "profile encrypted 201",
+      "CSV upload 201",
+      "DEMO streaming 200",
+      "Arena 201 score 0 on demo",
+      "Coder COMPLETED",
+      "project ZIP 200"
+    ],
+    "live_godot": {
+      "state": "COMPLETED",
+      "status": "passed",
+      "engine": "4.6.stable.official.89cea1439",
+      "stage": "gameplay",
+      "command_seconds": 5.8,
+      "probe_seconds": 20.24,
+      "marker": "GAMEPLAY_CHECKS_PASSED: collision movement jump camera touch collect save load",
+      "import": "not_required_for_trusted_primitive_template",
+      "export": "not_attempted",
+      "full_editor_import": "still blocked on free host; passes in CI"
+    },
+    "live_http_current_commit": [
+      "health0.4.1 guest_mode=true persistence=local",
+      "root HTTP200",
+      "document upload201 and delete204",
+      "removed document read404",
+      "removed attachment404 before messages/inference",
+      "search empty; historic messages unchanged",
+      "current probe fixture files/chat removed and session revoked"
+    ],
+    "account_export": {
+      "local": "7 new tests passed",
+      "github_ci": "PostgreSQL export passed",
+      "live": "verified",
+      "bytes": 2222,
+      "probe_seconds": 2.72,
+      "fixture": "one imported message and one note; no credentials exported"
+    },
+    "named_providers": {
+      "protocol_tests": 7,
+      "real_inference": "OpenRouter openrouter/free completed a real hosted streamed fixture; Gemini remains unverified"
+    },
+    "live_openrouter": {
+      "configured_model": "openrouter/free",
+      "status": "completed",
+      "characters": 11,
+      "expected_marker": true,
+      "done_event": true,
+      "error_event": false,
+      "probe_seconds": 18.74,
+      "cost": "not reported; free router selected; no paid model"
+    },
+    "guest_browser": {
+      "passed": true,
+      "page_errors": 0,
+      "checks": [
+        "direct entry",
+        "demo streaming",
+        "reload session",
+        "guest isolation",
+        "new session",
+        "archive restore into new guest",
+        "opt-in note restore with consent reset and unchanged preferences",
+        "confirmed document deletion and retained unrelated selection"
+      ],
+      "live_network": "2026-10-17 root HTTP200 and hosted API deletion verified; direct Chromium ERR_EMPTY_RESPONSE; configured proxy Chromium ERR_CERT_AUTHORITY_INVALID; TLS not bypassed. Hosted browser unverified."
+    },
+    "chat_restore": {
+      "backend_tests": 12,
+      "local": "passed",
+      "browser": "15 normal and6guest flows passed",
+      "postgres": "CI38695366873 passed",
+      "live": "verified",
+      "restore_status": 201,
+      "ownership_status": 404,
+      "invalid_archive_status": 422,
+      "new_ids": true,
+      "utf8_crlf": true,
+      "no_partial_copy": true,
+      "export_bytes": 2137,
+      "probe_seconds": 55.82,
+      "cleanup": "probe chats deleted and sessions revoked; no inference"
+    },
+    "note_restore": {
+      "backend_tests": 12,
+      "local": "134 passed,1 skipped with Godot4.6",
+      "browser": "15 normal+6 note checks;6 guest+6 note checks;zero page errors",
+      "postgres": "CI38862653312 passed",
+      "live": {
+        "semantics": "verified before cleanup assertion in first probe",
+        "restore_status": 201,
+        "consent_status": 422,
+        "owner_status": 404,
+        "corrupt_status": 422,
+        "utf8_crlf": true,
+        "new_ids": true,
+        "memory_preferences_unchanged": true,
+        "no_chat_copy": true,
+        "no_partial_copy": true,
+        "cleanup": "incomplete: first harness expected logout200 rather than actual204; corrected retry later lost HTTP transport. Three harmless synthetic notes remain in isolated disposable guest workspaces; no user data/secrets included."
+      }
+    },
+    "document_delete": {
+      "backend_tests": 3,
+      "local": "137passed/1PGskip in31.57s with Godot4.6",
+      "browser": "normal15+6notes+7files;guest6+6notes+7files;zero page errors",
+      "postgres": "CI39011097558 passed",
+      "live": {
+        "health_version": "0.4.1",
+        "delete_status": 204,
+        "read_status": 404,
+        "attachment_status": 404,
+        "search_empty": true,
+        "history_unchanged": true,
+        "cleanup": true,
+        "probe_seconds": 49.59,
+        "measurement": "auth/upload/parse/chat/delete/cleanup plus network; not inference latency"
+      }
+    }
+  },
+  "blocked_features": [
+    "production DATABASE_URL binding requires authorized Render dashboard connection secret",
+    "actual Docker runtime unavailable",
+    "native SDK/signing/export templates unavailable",
+    "GPU media workers and compatible model licenses not configured",
+    "Full editor import/custom-asset validation on free Render remains blocked; exact primitive template gameplay is verified",
+    "Gemini real inference requires an authorized configured key; paid models not authorized",
+    "Hosted browser unverified2026-10-17: direct ERR_EMPTY_RESPONSE; configured proxy ERR_CERT_AUTHORITY_INVALID. RootHTTP200 and API verified; do not bypass TLS or infer public-site certificate failure."
+  ],
+  "remaining_tasks": [
+    "bind production PostgreSQL",
+    "verify real provider inference and usage",
+    "verify dedicated Docker runtime",
+    "internal GitHub workflow integration",
+    "real media worker",
+    "native client/export",
+    "comprehensive benchmarks/training",
+    "expand multi-agent OMEGA beyond same-provider isolated code reviews"
+  ],
+  "next_exact_executable_action": "Implement bounded owner-scoped custom Arena datasets with validated task/expected pairs, versioned results, explicit external-call consent, and SQLite/PostgreSQL/isolation tests. Never execute benchmark code or incur unauthorized inference costs.",
+  "resume_commands": [
+    "pip install -e .[dev]",
+    "python -m pytest -q",
+    "python -m ruff check backend tests scripts",
+    "node --check apps/web/app.js",
+    "npm ci --ignore-scripts",
+    "npx playwright install chromium",
+    "npm run test:ui"
+  ],
+  "background_work": "scheduled daily attempts only",
+  "notes": "Documentation checkpoints can follow the verified code commit. Use [skip render] only for docs/state-only commits to avoid unnecessary ephemeral-host restarts. No paid inference, training, generated media or native executable is claimed.",
+  "website": "https://modax-omega.onrender.com/",
+  "render": {
+    "workspace": "tea-dalrl82d0e5s738de4j0",
+    "service": "srv-db75ucmi0phs738mfg6g",
+    "plan": "free",
+    "deploy": "dep-db9hj2u1egvs73cpppug",
+    "status": "live",
+    "postgres": "dpg-db74kajncjis73fgelo0-a",
+    "database_connection": "blocked; secure browser sign-in aborted",
+    "database_expires": "2026-11-12",
+    "active_storage": "local ephemeral until DATABASE_URL bound",
+    "guest_mode": true,
+    "public_signup": false
+  },
+  "scheduled_continuation": {
+    "enabled": true,
+    "count": 6,
+    "date_range": [
+      "2026-10-14",
+      "2026-10-19"
+    ],
+    "approximate_local_time": "09:00",
+    "timezone": "Africa/Cairo",
+    "scope": "daily continuation attempts if execution tools available; not continuous or guaranteed complete",
+    "frequency": "DAILY",
+    "verified_schedule": "BEGIN:VEVENT\nDTSTART;TZID=Africa/Cairo:20261014T090000\nRRULE:FREQ=DAILY;COUNT=6;BYHOUR=9;BYMINUTE=0;BYSECOND=0\nEND:VEVENT",
+    "verified_at": "2026-10-14T05:07:16Z",
+    "note": "Stored weekly cadence discovered and corrected; no continuous-runtime guarantee"
+  }
+}
