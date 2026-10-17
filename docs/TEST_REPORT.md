@@ -72,3 +72,13 @@ Implementation117df3efca36d57995b7eca86cde8b87d8a9b9c4:107local tests passed/1Po
 - Render dep-db8se7c9v7es7398n3k0 live; hosted0.4.0 health and note restoration201,consent422,foreign-owner404,corrupt422,text/newIDs/unchanged preferences/no chat copy/no partial copies passed before cleanup. First probe cleanup expected200 but logout204; corrected retry confirmed201 but then transport failed. Three disposable synthetic notes remain; no sensitive data. No successful aggregate probe timing or full-cleanup claim.
 - Root HTML curl502/timeout and direct remote Chromium ERR_EMPTY_RESPONSE; hosted browser availability not verified from this runner. Render root probe200; local/CI browser checks passed. No paid or model inference requests in this increment.
 
+## Document lifecycle0.4.1 — 2026-10-17
+
+-137Pythonpassed/1localPostgreSQLskip in31.57s with real Godot4.6. Ruff/JS and4Node regressions passed.
+-New3API cases cover auth/ownership, chunk cascade and search/export exclusion, retained history, deleted attachment404 without new messages, transactional audit failure rollback and concurrent delete204/404. PostgreSQL integration expanded with actual cascade/ownership/attachment/history assertions.
+-Chromium: normal15existing+6notes+7files,guest6existing+6notes+7files;zero page errors. Files cases: confirm/cancel,retention warning,preview/search/attachment cleanup,unrelated selection,reload. Node regression rejects delayed search results after file epoch changes.
+-Failing browser upload response.json reproduced twice and localized by API trace; frontend had not consumed upload JSON. Consuming JSON fixed the original case and both full UI modes. No test was skipped to hide this failure.
+-Source b0c89eec9a898625bceb9909d498d013d72d35f5; https://github.com/Sayedmah/Modax/actions/runs/39011097558 success for backend-and-godot and postgres-integration.
+-Render dep-db9hj2u1egvs73cpppug live. Actual hosted health0.4.1,upload201/delete204,read404,removed-attachment404,emptysearch and unchanged chat passed. Current fixture files/chat removed and session revoked. Whole probe49.59s includes authentication/upload/parser/network/cleanup,not model latency. No inference was requested.
+-RootHTTP200; direct remote Chromium ERR_EMPTY_RESPONSE; configured-proxy browser ERR_CERT_AUTHORITY_INVALID. TLS checks retained. Hosted browser not verified; neither this nor prior runner errors prove a public-site certificate defect. No current runtime error logs found after deploy.
+

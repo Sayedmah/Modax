@@ -1,24 +1,27 @@
 # Current project state
 
-Release: 0.4.0 on 2026-10-16
-Repository: https://github.com/Sayedmah/Modax
-Branch: feat/modax-omega-foundation
-Draft PR: https://github.com/Sayedmah/Modax/pull/2
-Website: https://modax-omega.onrender.com/
-Verified implementation: f50c6604b1c176847758f78d41f57079f7fad332
+Release:0.4.1,2026-10-17
+Repository:https://github.com/Sayedmah/Modax
+Branch:feat/modax-omega-foundation
+Draft PR:https://github.com/Sayedmah/Modax/pull/2
+Website:https://modax-omega.onrender.com/
+Verified source:b0c89eec9a898625bceb9909d498d013d72d35f5
 
-The site remains configured for direct isolated guest entry; no account/signup screen is required. Existing chat, encrypted provider profiles, documents, optional notes, Arena, source-aware Coder, bounded task/review workflows and original Godot Crystal Island remain implemented. OpenRouter free inference was verified on2026-10-14; no inference or paid request occurred in this increment. Gemini/media/native builds remain unverified.
+Configured direct isolated guest entry and existing provider/chat/Coder/Game Forge/notes/Arena workflows are preserved. No inference, paid service, training or secret configuration change occurred in this increment.
 
-Settings now has a separate explicitly confirmed saved-note restore action. It copies only notes from an account ZIP, regenerates IDs, preserves text and leaves memory-context preferences unchanged. Consent/file inputs reset between sessions and after attempts. Secret-like content, invalid archives and quota overflows are rejected before an owner-locked atomic transaction. Manual note creation now shares the owner lock to prevent quota races. Chat restore remains chat-only. See NOTE_RESTORE.md and CHAT_RESTORE.md.
+The checkpoint called for document deletion, but inspection found it already existed.0.4.1 completes its missing safety: filename/retention confirmation, no DELETE on cancel, atomic owner-locked document/chunk deletion plus ID-only audit, sanitized503 with rollback, stale-response guards, attachment/search/preview cleanup and preservation of unrelated selections. Upload now consumes its JSON response to finish body processing and release its request tracker; the new real browser test first exposed a response.json hang before that correction. See DOCUMENT_DELETION.md.
 
-Validation:134 local Python tests passed,1 local PostgreSQL skip in16.52s with freshly checksum-verified Godot4.6; Ruff/JavaScript checks and3Node regressions passed. Chromium:15 existing normal+6 note checks and6 existing guest+6 note checks passed with zero page errors. Initial reload QA failure was an assertion before asynchronous rendering; waiting for the actual note fixes the test without changing product persistence.
+Document deletion does NOT erase past messages/citations/copied answers, already-sent provider context or older external exports. A later explicit attachment using the deleted ID returns404 before writing new messages or reserving inference. No uploaded code is executed. The local UI blocks deletion during a running reply, but another client cannot unsend already-copied context.
 
-CI38862653312 succeeded on this exact source, including backend/Godot/browser and actual PostgreSQL note restoration. https://github.com/Sayedmah/Modax/actions/runs/38862653312
-Render dep-db8se7c9v7es7398n3k0 is live on the authorized existing free service. Hosted API note restoration201, consent422, owner404, corrupt ZIP422, new IDs/UTF-8/CRLF, unchanged disabled memory and no chat copies were verified. The first probe completed all semantic assertions, then cleanup stopped on an incorrect harness expectation (logout actually204). The corrected retry confirmed import201 but later lost HTTP transport, including cleanup requests. Three harmless synthetic fixture notes remain in isolated disposable guest workspaces; no user data/secrets were included. Do not claim complete cleanup or a successful whole-probe duration.
+Validation:137Python tests passed,1localPostgreSQLskip in31.57s with actual Godot4.6. Ruff/JS and4Node regressions passed. Chromium normal15+6notes+7file checks and guest6+6notes+7file checks passed with zero page errors. New cases cover ownership/auth, chunk cascade/search/export removal, unchanged history, rejected stale attachment without side effects, rollback and concurrent deletion. Actual PostgreSQL integration covers owner rejection, cascade, search and unchanged chats.
 
-Direct remote HTML/browser verification from this runner remains unverified: curl root returned502/timed out; Chromium ERR_EMPTY_RESPONSE. Hosted API requests succeeded and Render records its root health probe200. Do not infer the root cause or claim a successful hosted browser test from local/CI checks.
+CI39011097558 succeeded on the exact source, both backend-and-godot and postgres-integration:
+https://github.com/Sayedmah/Modax/actions/runs/39011097558
+Existing free Render deploy dep-db9hj2u1egvs73cpppug is live. Root HTTP request returned200. Hosted health0.4.1/guest mode, upload201/delete204, removed document read404 and explicit attachment404, empty search and unchanged historical messages passed. The current probe files/chat were removed and its session revoked. Whole probe49.59s includes auth/upload/parser/chat/deletion/cleanup and network, not inference latency.
 
-Production storage remains local/ephemeral until DATABASE_URL is securely bound. Aborted dashboard sign-in must not be retried automatically. Archive restoration is not whole-account recovery or permanent storage. Generated-code execution requires the dedicated sandbox; native SDK/signing/export and GPU/media workers remain unavailable.
+Hosted browser verification remains incomplete: direct Chromium ERR_EMPTY_RESPONSE; using the runner's configured proxy reaches a certificate-trust error ERR_CERT_AUTHORITY_INVALID. TLS checks were not bypassed. This is not evidence of an invalid public MODAX certificate. Local/CI browser results do not substitute for a successful hosted browser test.
 
-Next: owner-scoped document deletion with attachment/reference handling and tests. Use [skip render] for docs/state-only checkpoints. No full-platform completion or continuous runtime is claimed.
+Production PostgreSQL binding remains blocked on an authorized secure connection-secret mechanism. Do not retry aborted dashboard sign-in. Current hosted storage is ephemeral; previous synthetic-note cleanup was incomplete and is historical, not claimed repaired. Native/GPU/media/dedicated generated-code runtime remain unverified. OpenRouter free inference was last checked2026-10-14; Gemini remains unverified.
+
+Next: bounded owner-scoped custom Arena datasets, versioned results and explicit external-call consent. Keep main unchanged and PR draft. Documentation-only checkpoints use [skip render] to avoid unnecessary host restarts. No complete-platform or continuous-runtime promise.
 

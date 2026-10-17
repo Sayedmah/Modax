@@ -17,3 +17,5 @@
 | Release | Incomplete | Durable storage, real inference, security/performance evidence |
 
 Never mark the full MVP or a phase complete from documentation or mock transport tests alone. GPU, credentials and resource-dependent work remains explicitly blocked until available.
+
+Next bounded increment after verified0.4.1: owner-scoped custom Arena datasets with validated task/expected pairs, versioned evaluation records and explicit external-inference consent. Do not execute dataset code or claim model superiority from small fixtures. Document deletion safety and its retention limits are implemented; do not repeat that milestone.
