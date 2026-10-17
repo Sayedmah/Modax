@@ -100,6 +100,21 @@ def test_genuine_postgres_migrations_auth_documents_and_tasks(tmp_path):
             assert notes[0]["id"] != note["id"]
             assert c.get("/api/v1/settings", headers=guest_headers).json()["use_memory"] is False
             assert c.delete("/api/v1/memory/" + notes[0]["id"], headers=h).status_code == 404
+            fid = c.get("/api/v1/files", headers=h).json()[0]["id"]
+            assert c.delete("/api/v1/files/" + fid, headers=guest_headers).status_code == 404
+            assert c.delete("/api/v1/files/" + fid, headers=h).status_code == 204
+            assert c.delete("/api/v1/files/" + fid, headers=h).status_code == 404
+            assert not c.app.state.store.query("SELECT id FROM chunks WHERE document_id=?", (fid,))
+            assert c.get("/api/v1/files/search?q=Persistent", headers=h).json() == []
+            assert (
+                c.post(
+                    f"/api/v1/chats/{cid}/messages",
+                    headers=h,
+                    json={"content": "deleted attachment", "attachment_ids": [fid]},
+                ).status_code
+                == 404
+            )
+            assert len(c.get(f"/api/v1/chats/{cid}", headers=h).json()["messages"]) == 2
     finally:
         with psycopg.connect(url, autocommit=True) as c:
             c.execute(sql.SQL("DROP SCHEMA {} CASCADE").format(sql.Identifier(schema)))

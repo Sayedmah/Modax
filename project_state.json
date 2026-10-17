@@ -56,15 +56,17 @@
     "bounded_archive_chat_restore",
     "transactional_restore_owner_isolation",
     "explicit_opt_in_note_restore",
-    "transactional_note_quotas"
+    "transactional_note_quotas",
+    "confirmed_atomic_document_delete",
+    "stale_document_view_guards"
   ],
   "test_results": {
     "python": {
-      "passed": 134,
+      "passed": 137,
       "skipped": 1,
-      "seconds": 16.52,
-      "skip_reason": "local PostgreSQL credentials absent; genuine PostgreSQL CI38862653312 passed",
-      "engine_check": "Godot 4.6"
+      "seconds": 31.57,
+      "skip_reason": "local PostgreSQL credentials missing; current CI pending",
+      "engine_check": "Godot4.6"
     },
     "ruff": "passed",
     "javascript_syntax": "passed",
@@ -102,7 +104,7 @@
       "url": "https://github.com/Sayedmah/Modax/actions/runs/38862653312"
     },
     "node_session_regressions": {
-      "passed": 3
+      "passed": 4
     },
     "live_http": [
       "health v0.2 200",
@@ -204,6 +206,13 @@
         "no_partial_copy": true,
         "cleanup": "incomplete: first harness expected logout200 rather than actual204; corrected retry later lost HTTP transport. Three harmless synthetic notes remain in isolated disposable guest workspaces; no user data/secrets included."
       }
+    },
+    "document_delete": {
+      "backend_tests": 3,
+      "local": "passed",
+      "browser": "normal15+6notes+7files;guest6+6notes+7files;zero page errors",
+      "postgres": "current CI pending",
+      "live": "pending"
     }
   },
   "blocked_features": [
@@ -225,7 +234,7 @@
     "comprehensive benchmarks/training",
     "expand multi-agent OMEGA beyond same-provider isolated code reviews"
   ],
-  "next_exact_executable_action": "Implement owner-scoped document deletion, including safe chat-attachment/reference handling, UI confirmation, and SQLite/PostgreSQL/isolation tests. Do not execute uploaded files.",
+  "next_exact_executable_action": "Verify 0.4.1 CI and existing free hosted service, then implement bounded owner-scoped custom Arena datasets with versioned results and tests; never execute benchmark code or incur unauthorized inference costs.",
   "resume_commands": [
     "pip install -e .[dev]",
     "python -m pytest -q",
@@ -265,5 +274,9 @@
     "verified_schedule": "BEGIN:VEVENT\nDTSTART;TZID=Africa/Cairo:20261014T090000\nRRULE:FREQ=DAILY;COUNT=6;BYHOUR=9;BYMINUTE=0;BYSECOND=0\nEND:VEVENT",
     "verified_at": "2026-10-14T05:07:16Z",
     "note": "Stored weekly cadence discovered and corrected; no continuous-runtime guarantee"
+  },
+  "pending_release": {
+    "version": "0.4.1",
+    "status": "Python/Ruff/Node/normal+guest Chromium passed; CI and live pending"
   }
 }

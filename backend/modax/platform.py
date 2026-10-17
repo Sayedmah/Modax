@@ -328,8 +328,23 @@ def install_platform(app):
 
     @app.delete("/api/v1/files/{file_id}", status_code=204)
     def delete_file(file_id: str, user=Depends(owner)):
-        require("documents", user, file_id)
-        store.execute("DELETE FROM documents WHERE id=? AND owner=?", (file_id, user))
+        try:
+            with store.connect() as db:
+                store.lock_user(db, user)
+                record = db.execute(
+                    "SELECT id FROM documents WHERE id=? AND owner=?", (file_id, user)
+                ).fetchone()
+                if not record:
+                    raise HTTPException(404, "Document not found")
+                db.execute("DELETE FROM documents WHERE id=? AND owner=?", (file_id, user))
+                db.execute(
+                    "INSERT INTO audit(owner,action,details,created) VALUES(?,?,?,?)",
+                    (user, "documents.delete", json.dumps({"file_id": file_id}), time.time()),
+                )
+        except HTTPException:
+            raise
+        except Exception:
+            raise HTTPException(503, "Document deletion failed; retry later") from None
 
     @app.get("/api/v1/arena/runs")
     def runs(user=Depends(owner)):

@@ -3,8 +3,10 @@ const $ = id => document.getElementById(id);
 let token = sessionStorage.getItem('modax-token') || '';
 let chatId = null, currentChat = null, controller = null, sessionEpoch = 0;
 let guestMode = false;
+let fileEpoch = 0;
 const requests = new Set();
 function resetOwnerView() {
+  fileEpoch++;
   $('account-import-file').value='';
   $('notes-import-file').value='';$('confirm-note-restore').checked=false;$('restore-notes').disabled=true;
   sessionEpoch++; controller?.abort(); controller=null;
@@ -141,9 +143,31 @@ function renderMarkdown(container,text){
 }
 $('import-chat').onclick=()=>$('chat-import-file').click();
 $('chat-import-file').onchange=safe(async()=>{const file=$('chat-import-file').files[0];if(!file)return;if(file.size>200000)throw Error('Import is too large');const data=JSON.parse(await file.text());const chat=await(await post('/chats/import',{title:data.title||'Imported chat',messages:(data.messages||[]).map(m=>({role:m.role,content:m.content}))})).json();await openChat(chat.id);$('chat-import-file').value='';});
-async function documents(){const records=await(await api('/files')).json();$('file-list').replaceChildren();$('chat-attachment').replaceChildren();const none=document.createElement('option');none.value='';none.textContent='بدون مستند';$('chat-attachment').append(none);for(const file of records){const option=document.createElement('option');option.value=file.id;option.textContent=file.filename;$('chat-attachment').append(option);const panel=document.createElement('div');panel.className='panel';const name=document.createElement('strong');name.textContent=file.filename;const preview=document.createElement('button');preview.className='secondary';preview.textContent='عرض النص';preview.onclick=safe(async()=>{const doc=await(await api('/files/'+file.id)).json();const text=document.createElement('pre');text.textContent=doc.content;panel.append(text);preview.disabled=true;});const remove=document.createElement('button');remove.className='secondary';remove.textContent='حذف';remove.onclick=safe(async()=>{await api('/files/'+file.id,{method:'DELETE'});await documents();});panel.append(name,preview,remove);$('file-list').append(panel);}}
-$('file-form').onsubmit=safe(async event=>{event.preventDefault();const file=$('document-file').files[0];if(file.size>200000)throw Error('حد الملف 200 KB');const data=new FormData();data.append('file',file);await api('/files',{method:'POST',body:data});$('document-file').value='';await documents();notify('تم استخراج المستند وحفظ مقاطعه');});
-$('file-search-form').onsubmit=safe(async event=>{event.preventDefault();const hits=await(await api('/files/search?q='+encodeURIComponent($('file-search').value))).json();$('file-hits').replaceChildren();for(const hit of hits){const pre=document.createElement('pre');pre.textContent=hit.filename+' / '+hit.ordinal+'\n'+hit.content;$('file-hits').append(pre);}});
+async function documents(){
+  const epoch=++fileEpoch,selected=$('chat-attachment').value;
+  const records=await(await api('/files')).json();if(epoch!==fileEpoch)return;
+  $('file-list').replaceChildren();$('chat-attachment').replaceChildren();
+  const none=document.createElement('option');none.value='';none.textContent='بدون مستند';$('chat-attachment').append(none);
+  for(const file of records){
+    const option=document.createElement('option');option.value=file.id;option.textContent=file.filename;$('chat-attachment').append(option);
+    const panel=document.createElement('div');panel.className='panel';panel.dataset.fileId=file.id;
+    const name=document.createElement('strong');name.textContent=file.filename;
+    const preview=document.createElement('button');preview.className='secondary';preview.textContent='عرض النص';
+    preview.onclick=safe(async()=>{const current=fileEpoch;const doc=await(await api('/files/'+file.id)).json();if(current!==fileEpoch)return;const text=document.createElement('pre');text.textContent=doc.content;panel.append(text);preview.disabled=true;});
+    const remove=document.createElement('button');remove.className='secondary file-delete';remove.textContent='حذف المستند';remove.setAttribute('aria-label','حذف المستند '+file.filename);
+    remove.onclick=safe(async()=>{
+      if(controller)throw Error('أوقف الرد الجاري قبل حذف المستند');
+      if(!window.confirm('حذف «'+file.filename+'» نهائيًا مع مقاطع البحث؟ لن تُمحى المحادثات السابقة أو البيانات التي أُرسلت إلى نموذج.'))return;
+      remove.disabled=true;fileEpoch++;
+      try{await api('/files/'+file.id,{method:'DELETE'});fileEpoch++;$('file-hits').replaceChildren();await documents();notify('حُذف المستند ومقاطع البحث. المحادثات السابقة لم تتغير.');}
+      finally{remove.disabled=false;}
+    });
+    panel.append(name,preview,remove);$('file-list').append(panel);
+  }
+  if(records.some(file=>file.id===selected))$('chat-attachment').value=selected;
+}
+$('file-form').onsubmit=safe(async event=>{event.preventDefault();const file=$('document-file').files[0];if(file.size>200000)throw Error('حد الملف 200 KB');const data=new FormData();data.append('file',file);await(await api('/files',{method:'POST',body:data})).json();$('document-file').value='';await documents();notify('تم استخراج المستند وحفظ مقاطعه');});
+$('file-search-form').onsubmit=safe(async event=>{event.preventDefault();const epoch=fileEpoch;const hits=await(await api('/files/search?q='+encodeURIComponent($('file-search').value))).json();if(epoch!==fileEpoch)return;$('file-hits').replaceChildren();for(const hit of hits){const pre=document.createElement('pre');pre.textContent=hit.filename+' / '+hit.ordinal+'\n'+hit.content;$('file-hits').append(pre);}});
 async function settings(){const records=await(await api('/providers')).json();$('provider-list').replaceChildren();for(const item of records){const panel=document.createElement('div');panel.className='panel';const name=document.createElement('p');name.textContent=item.family+' / '+item.model;const remove=document.createElement('button');remove.className='secondary';remove.textContent='إزالة الاتصال';remove.onclick=safe(async()=>{await api('/providers/'+item.id,{method:'DELETE'});await settings();await enter();});panel.append(name,remove);$('provider-list').append(panel);}const prefs=await(await api('/settings')).json();$('use-memory').checked=prefs.use_memory;$('daily-requests').value=prefs.requests_per_day;}
 function syncProviderEndpoint(){const endpoints={gemini:'https://generativelanguage.googleapis.com/v1beta/openai',openrouter:'https://openrouter.ai/api/v1',anthropic:'https://api.anthropic.com/v1',compatible:'https://api.openai.com/v1'};const family=$('provider-family').value;$('provider-url').value=endpoints[family];$('provider-url').disabled=family!=='compatible';}
 $('provider-family').onchange=syncProviderEndpoint;

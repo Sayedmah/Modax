@@ -8,6 +8,8 @@ Chat archives can be restored from Settings into the current guest session as ne
 
 Saved notes have a separate, explicitly confirmed restore button. Restoration never changes memory-context preferences or restores provider keys. See [note restore limits and workflow](docs/NOTE_RESTORE.md).
 
+Document deletion requires UI confirmation and atomically removes extracted text/search chunks. Previous chat transcripts and already-sent provider context are not erased. See [document deletion and reference retention](docs/DOCUMENT_DELETION.md).
+
 The current Render service is https://modax-omega.onrender.com, deployed from the development branch. This is a free preview, not a production release. PostgreSQL was created but its connection secret could not be bound because dashboard sign-in was not completed. Until DATABASE_URL is configured, hosted account data uses local ephemeral storage and can be lost on sleep/redeploy. Do not treat it as durable production storage.
 
 ### Added in web milestone 0.2
