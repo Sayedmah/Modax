@@ -66,7 +66,7 @@ def create_app(settings=None):
         finally:
             await app.state.task_engine.shutdown()
 
-    app = FastAPI(title="MODAX OMEGA", version="0.4.1", lifespan=lifespan)
+    app = FastAPI(title="MODAX OMEGA", version="0.5.0", lifespan=lifespan)
     app.state.settings, app.state.store, app.state.registry = settings, store, registry
     limiter = defaultdict(deque)
     guest_limiter = defaultdict(deque)
@@ -147,7 +147,7 @@ def create_app(settings=None):
     def health():
         return {
             "status": "ok",
-            "version": "0.4.1",
+            "version": "0.5.0",
             "guest_mode": settings.guest_mode,
             "demo": settings.demo,
             "persistence": "postgres" if settings.database_url else "local",
@@ -385,4 +385,7 @@ def create_app(settings=None):
     from .account_import import install_account_import
 
     install_account_import(app)
+    from .arena_datasets import install_datasets
+
+    install_datasets(app)
     return app

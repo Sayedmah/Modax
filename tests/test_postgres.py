@@ -61,9 +61,28 @@ def test_genuine_postgres_migrations_auth_documents_and_tasks(tmp_path):
                 == 201
             )
             note = c.post("/api/v1/memory", headers=h, json={"content": "Portable note"}).json()
+            dataset = c.post(
+                "/api/v1/arena/datasets",
+                headers=h,
+                json={
+                    "name": "PG fixture",
+                    "cases": [{"id": "one", "task": "Return MODAX", "expected": "MODAX"}],
+                },
+            ).json()
         with TestClient(create_app(settings)) as c:
             assert len(c.get(f"/api/v1/chats/{cid}", headers=h).json()["messages"]) == 2
             assert len(c.get("/api/v1/files", headers=h).json()) == 1
+            dataset_path = "/api/v1/arena/datasets/" + dataset["id"]
+            assert c.get(dataset_path, headers=h).json()["version"] == dataset["version"]
+            assert c.get(dataset_path, headers=guest_headers).status_code == 404
+            run = c.post(
+                "/api/v1/arena/runs",
+                headers=h,
+                json={"models": ["demo"], "dataset_id": dataset["id"]},
+            )
+            assert run.status_code == 201, run.text
+            assert run.json()["dataset_snapshot"]["version"] == dataset["version"]
+            assert run.json()["results"][0]["score"] == 0
             import io
             import json
             import zipfile
@@ -74,6 +93,7 @@ def test_genuine_postgres_migrations_auth_documents_and_tasks(tmp_path):
                 manifest = json.loads(archive.read("manifest.json"))
                 assert manifest["counts"]["documents"] == 1
                 assert manifest["counts"]["tasks"] == 1
+                assert manifest["counts"]["arena_datasets"] == 1
             restored = c.post(
                 "/api/v1/account/import-chats",
                 headers=guest_headers,
@@ -115,6 +135,11 @@ def test_genuine_postgres_migrations_auth_documents_and_tasks(tmp_path):
                 == 404
             )
             assert len(c.get(f"/api/v1/chats/{cid}", headers=h).json()["messages"]) == 2
+            assert c.delete(dataset_path, headers=h).status_code == 204
+            assert (
+                c.get("/api/v1/arena/runs", headers=h).json()[0]["dataset_snapshot"]["version"]
+                == dataset["version"]
+            )
     finally:
         with psycopg.connect(url, autocommit=True) as c:
             c.execute(sql.SQL("DROP SCHEMA {} CASCADE").format(sql.Identifier(schema)))

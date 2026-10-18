@@ -58,14 +58,17 @@
     "explicit_opt_in_note_restore",
     "transactional_note_quotas",
     "confirmed_atomic_document_delete",
-    "stale_document_view_guards"
+    "stale_document_view_guards",
+    "immutable_owner_arena_datasets",
+    "content_versioned_evaluation_snapshots",
+    "bounded_canonical_output_grading"
   ],
   "test_results": {
     "python": {
-      "passed": 137,
+      "passed": 151,
       "skipped": 1,
-      "seconds": 31.57,
-      "skip_reason": "local PostgreSQL credentials absent; actual PostgreSQL CI39011097558 passed",
+      "seconds": 20.04,
+      "skip_reason": "local PostgreSQL credentials absent; new CI pending",
       "engine_check": "Godot4.6"
     },
     "ruff": "passed",
@@ -107,7 +110,7 @@
       "url": "https://github.com/Sayedmah/Modax/actions/runs/39011097558"
     },
     "node_session_regressions": {
-      "passed": 4
+      "passed": 5
     },
     "live_http": [
       "health v0.2 200",
@@ -227,6 +230,13 @@
         "probe_seconds": 49.59,
         "measurement": "auth/upload/parse/chat/delete/cleanup plus network; not inference latency"
       }
+    },
+    "custom_arena": {
+      "backend_tests": 14,
+      "local": "passed",
+      "browser": "normal15+6notes+7files+5Arena flows;guest6+6notes+7files+5Arena flows;mobile check passed;zero page errors",
+      "postgres": "pending current CI",
+      "live": "pending"
     }
   },
   "blocked_features": [
@@ -248,7 +258,7 @@
     "comprehensive benchmarks/training",
     "expand multi-agent OMEGA beyond same-provider isolated code reviews"
   ],
-  "next_exact_executable_action": "Implement bounded owner-scoped custom Arena datasets with validated task/expected pairs, versioned results, explicit external-call consent, and SQLite/PostgreSQL/isolation tests. Never execute benchmark code or incur unauthorized inference costs.",
+  "next_exact_executable_action": "Verify 0.5.0 CI and hosted custom Arena, then implement owner-scoped evaluation-history JSON export/delete controls to manage the 100-run quota and retained dataset snapshots. No unauthorized inference or executable graders.",
   "resume_commands": [
     "pip install -e .[dev]",
     "python -m pytest -q",
@@ -288,5 +298,9 @@
     "verified_schedule": "BEGIN:VEVENT\nDTSTART;TZID=Africa/Cairo:20261014T090000\nRRULE:FREQ=DAILY;COUNT=6;BYHOUR=9;BYMINUTE=0;BYSECOND=0\nEND:VEVENT",
     "verified_at": "2026-10-14T05:07:16Z",
     "note": "Stored weekly cadence discovered and corrected; no continuous-runtime guarantee"
+  },
+  "pending_release": {
+    "version": "0.5.0",
+    "status": "local Python/Ruff/Node and both isolated Chromium modes passed; CI/live pending"
   }
 }

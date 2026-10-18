@@ -17,7 +17,7 @@ from cryptography.fernet import Fernet
 from fastapi import Depends, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
-from .providers import HTTPProvider, Model, ProviderError
+from .providers import HTTPProvider, Model
 from .store import uid
 from .workspace import SECRET
 
@@ -45,6 +45,7 @@ class ArenaInput(BaseModel):
     models: list[str] = Field(min_length=1, max_length=3)
     confirm_external_calls: bool = False
     template: str = Field(default="{task}", max_length=1000)
+    dataset_id: str | None = Field(default=None, pattern=r"^[a-f0-9]{32}$")
 
 
 DATASET = [
@@ -207,6 +208,7 @@ def install_platform(app):
     store, settings, registry = app.state.store, app.state.settings, app.state.registry
     owner, require = app.state.owner_dependency, app.state.require_resource
     parser_gate = asyncio.Semaphore(1)
+    arena_lock = asyncio.Lock()
     accounts = UserProviders(store, settings, registry)
     app.state.user_providers = accounts
 
@@ -358,61 +360,27 @@ def install_platform(app):
 
     @app.post("/api/v1/arena/runs", status_code=201)
     async def evaluate(body: ArenaInput, user=Depends(owner)):
+        from .arena_datasets import dataset_for
+        from .arena_runner import run_arena
+
         if "{task}" not in body.template:
             raise HTTPException(422, "Template must contain {task}")
+        snapshot = dataset_for(store, user, body.dataset_id) if body.dataset_id else None
+        cases = snapshot["cases"] if snapshot else DATASET
         selected = [accounts.select(user, model) for model in dict.fromkeys(body.models)]
         if any(not p.model.demo for p in selected) and not body.confirm_external_calls:
             raise HTTPException(403, "Confirm external inference calls before a benchmark")
-        result = {
-            "id": uid(),
-            "dataset": "core-v1",
-            "created": time.time(),
-            "results": [],
-            "grading": "exact-match; JSON normalized; small smoke benchmark, not a frontier intelligence evaluation",
-        }
-        for provider in selected:
-            cases = []
-            for item in DATASET:
-                started = time.perf_counter()
-                try:
-                    import asyncio
-
-                    async with asyncio.timeout(90):
-                        response = await provider.generate_text(
-                            [
-                                {
-                                    "role": "user",
-                                    "content": body.template.replace("{task}", item["task"]),
-                                }
-                            ]
-                        )
-                    if item["id"] == "json":
-                        try:
-                            passed = json.loads(response) == json.loads(item["expected"])
-                        except ValueError:
-                            passed = False
-                    else:
-                        passed = response.strip() == item["expected"]
-                    cases.append(
-                        {
-                            "id": item["id"],
-                            "passed": passed,
-                            "response": response[:1000],
-                            "latency_ms": round((time.perf_counter() - started) * 1000, 2),
-                        }
-                    )
-                except (ProviderError, TimeoutError):
-                    cases.append({"id": item["id"], "error": "Provider failed", "passed": False})
-            result["results"].append(
-                {
-                    "model": provider.model.id,
-                    "demo": provider.model.demo,
-                    "score": sum(c["passed"] for c in cases) / len(cases),
-                    "cases": cases,
-                }
+        if arena_lock.locked():
+            raise HTTPException(429, "Another Arena run is active; retry later")
+        async with arena_lock:
+            if (
+                store.query("SELECT COUNT(*) AS n FROM evaluations WHERE owner=?", (user,))[0]["n"]
+                >= 100
+            ):
+                raise HTTPException(429, "Stored evaluation quota reached")
+            result = await run_arena(selected, cases, body.template, snapshot)
+            store.execute(
+                "INSERT INTO evaluations VALUES(?,?,?,?)",
+                (result["id"], user, json.dumps(result), time.time()),
             )
-        store.execute(
-            "INSERT INTO evaluations VALUES(?,?,?,?)",
-            (result["id"], user, json.dumps(result), time.time()),
-        )
-        return result
+            return result

@@ -26,6 +26,7 @@ COLLECTIONS = {
     "settings": "SELECT settings FROM user_settings WHERE owner=?",
     "providers": "SELECT id,family,model,base_url,created FROM provider_profiles WHERE owner=? ORDER BY created,id",
     "evaluations": "SELECT id,results,created FROM evaluations WHERE owner=? ORDER BY created,id",
+    "arena_datasets": "SELECT id,name,cases,version,created FROM arena_datasets WHERE owner=? ORDER BY created,id",
     "usage": "SELECT model,input_tokens,output_tokens,cost,latency_ms,created FROM usage WHERE owner=? ORDER BY created,id",
 }
 

@@ -10,6 +10,8 @@ Saved notes have a separate, explicitly confirmed restore button. Restoration ne
 
 Document deletion requires UI confirmation and atomically removes extracted text/search chunks. Previous chat transcripts and already-sent provider context are not erased. See [document deletion and reference retention](docs/DOCUMENT_DELETION.md).
 
+Model Arena supports private immutable JSON datasets, content-versioned result snapshots and bounded exact/JSON output grading. External models require explicit consent; datasets never execute code. See [custom Arena datasets and limits](docs/ARENA_DATASETS.md).
+
 The current Render service is https://modax-omega.onrender.com, deployed from the development branch. This is a free preview, not a production release. PostgreSQL was created but its connection secret could not be bound because dashboard sign-in was not completed. Until DATABASE_URL is configured, hosted account data uses local ephemeral storage and can be lost on sleep/redeploy. Do not treat it as durable production storage.
 
 ### Added in web milestone 0.2

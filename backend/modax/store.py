@@ -49,6 +49,12 @@ CREATE INDEX reservations_owner ON inference_reservations(owner,created);
 """)
 
 
+MIGRATIONS.append("""
+CREATE TABLE arena_datasets(id TEXT PRIMARY KEY, owner TEXT NOT NULL REFERENCES users(id), name TEXT NOT NULL, cases TEXT NOT NULL, version TEXT NOT NULL, created REAL NOT NULL);
+CREATE INDEX arena_datasets_owner ON arena_datasets(owner,created);
+""")
+
+
 def uid():
     return secrets.token_hex(16)
 

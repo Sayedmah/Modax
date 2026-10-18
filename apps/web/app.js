@@ -4,9 +4,11 @@ let token = sessionStorage.getItem('modax-token') || '';
 let chatId = null, currentChat = null, controller = null, sessionEpoch = 0;
 let guestMode = false;
 let fileEpoch = 0;
+let arenaDatasetEpoch = 0;
 const requests = new Set();
 function resetOwnerView() {
   fileEpoch++;
+  arenaDatasetEpoch++;$('dataset-name').value='';$('dataset-cases').value='[{"id":"greeting","task":"Return only MODAX","expected":"MODAX","match":"exact"}]';$('arena-dataset').replaceChildren();$('dataset-export').disabled=true;$('dataset-delete').disabled=true;
   $('account-import-file').value='';
   $('notes-import-file').value='';$('confirm-note-restore').checked=false;$('restore-notes').disabled=true;
   sessionEpoch++; controller?.abort(); controller=null;
@@ -179,7 +181,20 @@ $('account-export').onclick=safe(async()=>{
   try{notify('تجهيز بياناتك للتنزيل…');await download(await api('/account/export'),'modax-account.zip');notify('نُزّل ملف خاص غير مشفر؛ احتفظ به بأمان.');}
   finally{button.disabled=false;}
 });
-async function arenaHistory(){const runs=await(await api('/arena/runs')).json();$('arena-results').replaceChildren();for(const run of runs){const panel=document.createElement('div');panel.className='panel';const pre=document.createElement('pre');pre.textContent=JSON.stringify(run,null,2);panel.append(pre);$('arena-results').append(panel);}}
+async function arenaDatasets(preferred=null){
+  const epoch=++arenaDatasetEpoch,selected=preferred??$('arena-dataset').value;
+  const records=await(await api('/arena/datasets')).json();if(epoch!==arenaDatasetEpoch)return;
+  $('arena-dataset').replaceChildren();const core=document.createElement('option');core.value='';core.textContent='core-v1 — الاختبارات الأساسية';$('arena-dataset').append(core);
+  for(const record of records){const option=document.createElement('option');option.value=record.id;option.textContent=record.name+' · '+record.version.slice(0,12)+' · '+record.case_count+' أسئلة';$('arena-dataset').append(option);}
+  if(records.some(record=>record.id===selected))$('arena-dataset').value=selected;
+  syncDatasetControls();
+}
+function syncDatasetControls(){const chosen=!!$('arena-dataset').value;$('dataset-export').disabled=!chosen;$('dataset-delete').disabled=!chosen;}
+$('arena-dataset').onchange=syncDatasetControls;
+$('dataset-form').onsubmit=safe(async event=>{event.preventDefault();let cases;try{cases=JSON.parse($('dataset-cases').value);}catch{throw Error('مصفوفة JSON غير صالحة');}if(!Array.isArray(cases)||cases.length<1||cases.length>10)throw Error('اختر من 1 إلى 10 أسئلة');const button=$('dataset-save');button.disabled=true;try{const data=await(await post('/arena/datasets',{name:$('dataset-name').value,cases})).json();await arenaDatasets(data.id);notify('حُفظت نسخة ثابتة ببصمة محتوى؛ لا يُعد ذلك تدريبًا لنموذج.');}finally{button.disabled=false;}});
+$('dataset-export').onclick=safe(async()=>{const id=$('arena-dataset').value;if(!id)return;await download(await api('/arena/datasets/'+id),'modax-arena-dataset.json');});
+$('dataset-delete').onclick=safe(async()=>{const id=$('arena-dataset').value;if(!id||!window.confirm('حذف المجموعة؟ تبقى النتائج السابقة ونسخة الأسئلة محفوظة في سجل التقييم.'))return;arenaDatasetEpoch++;await api('/arena/datasets/'+id,{method:'DELETE'});await arenaDatasets('');notify('حُذفت المجموعة، ولم تتغير نتائج التقييم السابقة.');});
+async function arenaHistory(){await arenaDatasets();const runs=await(await api('/arena/runs')).json();$('arena-results').replaceChildren();for(const run of runs){const panel=document.createElement('div');panel.className='panel';const pre=document.createElement('pre');pre.textContent=JSON.stringify(run,null,2);panel.append(pre);$('arena-results').append(panel);}}
 $('restore-chats').onclick=()=>$('account-import-file').click();
 $('confirm-note-restore').onchange=()=>{$('restore-notes').disabled=!$('confirm-note-restore').checked;};
 $('restore-notes').onclick=()=>{if($('confirm-note-restore').checked)$('notes-import-file').click();};
@@ -204,7 +219,7 @@ $('account-import-file').onchange=safe(async()=>{
     notify('تمت استعادة '+result.chats.length+' محادثة و'+result.imported_messages+' رسالة.'+(result.interrupted_messages?' أُوقفت الردود التي كانت جارية في الأرشيف.':''));
   }finally{input.value='';button.disabled=false;}
 });
-$('arena-form').onsubmit=safe(async event=>{event.preventDefault();notify('التقييم قيد التنفيذ…');await post('/arena/runs',{models:Array.from($('arena-models').selectedOptions).map(o=>o.value),confirm_external_calls:$('arena-confirm').checked,template:$('arena-template').value});await arenaHistory();notify('نتائج محسوبة من الردود الفعلية');});
+$('arena-form').onsubmit=safe(async event=>{event.preventDefault();const button=$('arena-form').querySelector('button[type=submit]');button.disabled=true;try{notify('التقييم قيد التنفيذ…');await(await post('/arena/runs',{models:Array.from($('arena-models').selectedOptions).map(o=>o.value),confirm_external_calls:$('arena-confirm').checked,template:$('arena-template').value,dataset_id:$('arena-dataset').value||null})).json();await arenaHistory();notify('نتائج محسوبة من الردود الفعلية');}finally{button.disabled=false;}});
 
 async function bootstrap(){
   $('boot-state').hidden=false;$('auth').hidden=true;$('boot-message').textContent='جاري فتح MODAX…';$('boot-retry').disabled=true;
