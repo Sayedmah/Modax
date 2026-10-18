@@ -224,7 +224,7 @@ $('arena-form').onsubmit=safe(async event=>{event.preventDefault();const button=
 async function bootstrap(){
   $('boot-state').hidden=false;$('auth').hidden=true;$('boot-message').textContent='جاري فتح MODAX…';$('boot-retry').disabled=true;
   try{
-    const health=await(await api('/health')).json();guestMode=health.guest_mode===true;
+    const health=await(await api('/health')).json();$('app-version').textContent='v'+health.version;guestMode=health.guest_mode===true;
     $('logout').textContent=guestMode?'جلسة جديدة':'تسجيل الخروج';
     if(token){try{await enter();return;}catch(error){if(error.status!==401)throw error;}}
     if(guestMode){const data=await(await post('/auth/guest',{})).json();resetOwnerView();token=data.token;sessionStorage.setItem('modax-token',token);await enter();}
