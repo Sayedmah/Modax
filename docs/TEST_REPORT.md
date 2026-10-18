@@ -1,5 +1,17 @@
 # Executed test report — 2026-10-13
 
+
+Final source5dcb5e035b9dd59a7031244a758e3ed71f6d7c10: CI39105565536 and39105563110 both succeeded; backend-and-godot and postgres-integration completed successfully. Render dep-dba6p5h42hec73da81o0 is live. Cloud-browser reload verified v0.5.0/direct guest entry and published Arena controls. No runtime error logs returned since deployment. CI:https://github.com/Sayedmah/Modax/actions/runs/39105565536
+
+## 2026-10-18 — Arena datasets0.5.0
+
+Implemented owner-only immutable datasets (20/owner,10cases,32KiB), exact/finite canonical-JSON grading, content SHA-256 versions and retained run snapshots. Added real create/select/JSON-export/delete controls, additive migration5, account ZIP inclusion,180s run budget/per-process concurrency gate and100run quota. External-model consent is checked before inference; no dataset code executes and expected answers are not sent in prompts. See ARENA_DATASETS.md for limits and retention.
+
+151localPythonpassed/1localPGskip20.04s with actual Godot4.6; Ruff/JS passed;6Node regressions passed after fixing stale release badge. Normal15+6notes+7files+5Arena and guest6+6notes+7files+5Arena flows passed with mobile overflow check and zero page errors. Isolated smoke servers avoid accidental120rpm fixture exhaustion without weakening production limits. Feature77bb5c7 CI39105168962 both jobs passed, including real PostgreSQL restart/isolation/export/retention.
+
+Hosted0.5.0 API create201,foreign404,external-consent403,explicit DEMO score0 and snapshot retention passed. Probe51.38s includes network/auth/cleanup,not model latency. Source fixture deleted and two sessions revoked; one harmless evaluation remains intentionally. Cloud browser opened direct guest/Arena UI without login/TLS bypass; two extension-origin metadata errors only. Follow-up5dcb5e0 binds the visible release badge to health rather than stale v0.3.6. No paid inference/training/services or credential changes.
+
+Remaining: ephemeral production storage until secure PostgreSQL binding; Gemini/real GPU media/native/dedicated Docker unverified. Next: owner-scoped evaluation-history export/delete with retention-aware confirmation and quota tests. This is not a complete platform or general-intelligence benchmark.
 Development environment: Linux, Python 3.12.14, Node 24.19.0, Godot 4.6.stable.official.89cea1439, Playwright 1.55.1 / Chromium 140. Tests used temporary databases and mocked remote providers; no paid inference or GPU calls.
 
 | Check | Actual result |

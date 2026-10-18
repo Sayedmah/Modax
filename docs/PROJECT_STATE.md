@@ -1,27 +1,24 @@
 # Current project state
 
-Release:0.4.1,2026-10-17
+
+Final source5dcb5e035b9dd59a7031244a758e3ed71f6d7c10: CI39105565536 and39105563110 both succeeded; backend-and-godot and postgres-integration completed successfully. Render dep-dba6p5h42hec73da81o0 is live. Cloud-browser reload verified v0.5.0/direct guest entry and published Arena controls. No runtime error logs returned since deployment. CI:https://github.com/Sayedmah/Modax/actions/runs/39105565536
+Release:0.5.0,2026-10-18
 Repository:https://github.com/Sayedmah/Modax
 Branch:feat/modax-omega-foundation
 Draft PR:https://github.com/Sayedmah/Modax/pull/2
 Website:https://modax-omega.onrender.com/
-Verified source:b0c89eec9a898625bceb9909d498d013d72d35f5
+Feature source:77bb5c7dc80eb16c3fa7b4e87e548b19d5192abc
+Header correction:5dcb5e035b9dd59a7031244a758e3ed71f6d7c10
 
-Configured direct isolated guest entry and existing provider/chat/Coder/Game Forge/notes/Arena workflows are preserved. No inference, paid service, training or secret configuration change occurred in this increment.
+Implemented private immutable Arena datasets, validated exact/JSON cases, full SHA-256 content versions and historical dataset snapshots. Actual create/select/export/delete UI, additive migration5 and account ZIP inclusion are integrated. Up to20datasets/owner,10cases/dataset,32KiB input,3models/run,180seconds total,100stored runs/owner; one active run/process. External models require explicit consent before inference. Expected answers are never appended to model prompts; datasets never execute code. See ARENA_DATASETS.md.
 
-The checkpoint called for document deletion, but inspection found it already existed.0.4.1 completes its missing safety: filename/retention confirmation, no DELETE on cancel, atomic owner-locked document/chunk deletion plus ID-only audit, sanitized503 with rollback, stale-response guards, attachment/search/preview cleanup and preservation of unrelated selections. Upload now consumes its JSON response to finish body processing and release its request tracker; the new real browser test first exposed a response.json hang before that correction. See DOCUMENT_DELETION.md.
+Local validation:151Python passed/1localPGskip in20.04s with actual Godot4.6; Ruff/JS passed;6Node tests passed after header correction. Normal15+6notes+7files+5Arena and guest6+6notes+7files+5Arena Chromium flows passed, mobile check passed,zero page errors. QA now uses separate temporary servers/databases per smoke script: the former shared fixture exceeded the unchanged production120requests/minute limit.
 
-Document deletion does NOT erase past messages/citations/copied answers, already-sent provider context or older external exports. A later explicit attachment using the deleted ID returns404 before writing new messages or reserving inference. No uploaded code is executed. The local UI blocks deletion during a running reply, but another client cannot unsend already-copied context.
+Feature CI39105168962 succeeded, including genuine PostgreSQL persistence/restart, owner rejection, account export and retained result snapshots. Feature Render deploy dep-dba6m0942hec73da5em0 was live. Hosted API0.5.0 verified create201,foreign-owner read/run404,non-demo without consent403,explicit DEMO score0 and historical version/cases retained after dataset deletion. Entire probe51.38s includes network/auth/CRUD/cleanup,not inference latency. Source dataset removed and both sessions revoked; one harmless synthetic evaluation remains because history deletion is not implemented.
 
-Validation:137Python tests passed,1localPostgreSQLskip in31.57s with actual Godot4.6. Ruff/JS and4Node regressions passed. Chromium normal15+6notes+7file checks and guest6+6notes+7file checks passed with zero page errors. New cases cover ownership/auth, chunk cascade/search/export removal, unchanged history, rejected stale attachment without side effects, rollback and concurrent deletion. Actual PostgreSQL integration covers owner rejection, cascade, search and unchanged chats.
+Hosted cloud browser directly opened the guest workspace and new Arena controls without login or TLS bypass. This resolves the previously unverified hosted UI path; older shell Chromium proxy/trust failures are not public-site TLS evidence. Browser console contained two extension-origin metadata errors, not MODAX-origin errors. Header correction removes stale hardcoded v0.3.6 in favor of /health version.
 
-CI39011097558 succeeded on the exact source, both backend-and-godot and postgres-integration:
-https://github.com/Sayedmah/Modax/actions/runs/39011097558
-Existing free Render deploy dep-db9hj2u1egvs73cpppug is live. Root HTTP request returned200. Hosted health0.4.1/guest mode, upload201/delete204, removed document read404 and explicit attachment404, empty search and unchanged historical messages passed. The current probe files/chat were removed and its session revoked. Whole probe49.59s includes auth/upload/parser/chat/deletion/cleanup and network, not inference latency.
+Production DATABASE_URL remains unbound; do not retry aborted dashboard sign-in. Hosted storage remains ephemeral. OpenRouter free inference was last verified2026-10-14; no real provider inference or paid service/training occurred this increment. Gemini/GPU/media/native/dedicated Docker and full editor import on free host remain unverified. Preserve earlier historical fixture-cleanup caveats.
 
-Hosted browser verification remains incomplete: direct Chromium ERR_EMPTY_RESPONSE; using the runner's configured proxy reaches a certificate-trust error ERR_CERT_AUTHORITY_INVALID. TLS checks were not bypassed. This is not evidence of an invalid public MODAX certificate. Local/CI browser results do not substitute for a successful hosted browser test.
-
-Production PostgreSQL binding remains blocked on an authorized secure connection-secret mechanism. Do not retry aborted dashboard sign-in. Current hosted storage is ephemeral; previous synthetic-note cleanup was incomplete and is historical, not claimed repaired. Native/GPU/media/dedicated generated-code runtime remain unverified. OpenRouter free inference was last checked2026-10-14; Gemini remains unverified.
-
-Next: bounded owner-scoped custom Arena datasets, versioned results and explicit external-call consent. Keep main unchanged and PR draft. Documentation-only checkpoints use [skip render] to avoid unnecessary host restarts. No complete-platform or continuous-runtime promise.
+Next: owner-scoped evaluation-history JSON export/delete controls for quota management and retained snapshots, with explicit confirmation, owner isolation and no inference. Keep main unchanged and PR draft. Documentation-only checkpoints use [skip render].
 
