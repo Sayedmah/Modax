@@ -1,0 +1,34 @@
+name: SearXNG container contract
+on:
+  push:
+    paths: ['deployment/searxng/**', '.github/workflows/search-container.yml']
+  pull_request:
+    paths: ['deployment/searxng/**', '.github/workflows/search-container.yml']
+permissions:
+  contents: read
+jobs:
+  container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build pinned SearXNG gateway
+        run: docker build -f deployment/searxng/Dockerfile -t modax-search-check .
+      - name: Verify real container readiness and authentication
+        run: |
+          docker run -d --name search-check -p 127.0.0.1:8780:8080 -e MODAX_SEARCH_TOKEN=disposable-container-check-token-1234567890 modax-search-check
+          ready=false
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8780/health > /tmp/search-health.json; then ready=true; break; fi
+            sleep 2
+          done
+          test "$ready" = true
+          python -c 'import json; d=json.load(open("/tmp/search-health.json")); assert d["status"]=="ready"'
+          test "$(curl -s -o /dev/null -w '%{http_code}' 'http://127.0.0.1:8780/search?q=Python')" = 401
+          curl --fail --silent http://127.0.0.1:8780/source | python -c 'import json,sys; assert "github.com" in json.load(sys.stdin)["source"]'
+      - name: Container diagnostics
+        if: failure()
+        run: docker logs search-check
+      - name: Clean up owned container
+        if: always()
+        run: docker rm -f search-check || true

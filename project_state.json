@@ -1,0 +1,505 @@
+{
+  "schema_version": 1,
+  "repository": "https://github.com/Sayedmah/Modax",
+  "active_branch": "feat/modax-omega-foundation",
+  "baseline_commit": "bb0295d55483a9e1733fdc09399058afd3979534",
+  "latest_verified_commit": "8cc27119d55dc5158bb304b367db914537bf298f",
+  "pull_request": "https://github.com/Sayedmah/Modax/pull/2",
+  "last_completed_phase": "0.6.4 source attachments/reports and authenticated dedicated Docker sandbox workflow verified in CI; hosted execution awaits a dedicated worker",
+  "implemented_modules": [
+    "auth",
+    "sqlite_migrations",
+    "chat_history_streaming",
+    "demo_provider",
+    "compatible_http_adapter",
+    "ollama_adapter",
+    "rule_based_task_plans",
+    "task_state_recovery",
+    "bounded_coder_files",
+    "snapshot_rollback",
+    "workspace_zip",
+    "explicit_notes",
+    "usage_latency",
+    "godot_crystal_island_generator",
+    "comfyui_transport",
+    "adaptive_web_console",
+    "encrypted_user_provider_profiles",
+    "anthropic_streaming",
+    "document_extraction",
+    "chunk_search",
+    "explicit_attachment_grounding",
+    "opt_in_note_context",
+    "chat_import_edit_delete",
+    "markdown_code_rendering",
+    "small_measured_arena",
+    "bounded_syntax_repair",
+    "transactional_chat_quotas",
+    "postgres_store",
+    "database_artifact_storage",
+    "background_task_acceptance",
+    "task_history_resume_ui",
+    "thread_cancellation_drain",
+    "isolated_code_reviews",
+    "godot_failure_diagnostics",
+    "safe_source_project_import",
+    "project_context_inspection",
+    "unified_patch_export",
+    "provider_reported_token_usage",
+    "trusted_primitive_runtime_validation",
+    "owner_account_data_export",
+    "consistent_readonly_export_snapshots",
+    "gemini_named_provider",
+    "openrouter_named_provider",
+    "server_named_provider_configuration",
+    "isolated_guest_sessions",
+    "automatic_guest_bootstrap",
+    "bounded_archive_chat_restore",
+    "transactional_restore_owner_isolation",
+    "explicit_opt_in_note_restore",
+    "transactional_note_quotas",
+    "confirmed_atomic_document_delete",
+    "stale_document_view_guards",
+    "immutable_owner_arena_datasets",
+    "content_versioned_evaluation_snapshots",
+    "bounded_canonical_output_grading",
+    "m_x_workspace_modes",
+    "mode_scoped_chat_history_and_archives",
+    "opt_in_bounded_searxng_adapter",
+    "single_file_html_forge",
+    "owner_html_attachment_download",
+    "modax_companion_brand",
+    "productivity_starters_and_keyboard_send",
+    "context_scoped_reported_model_identity",
+    "versioned_web_assets",
+    "authenticated_searxng_gateway",
+    "pinned_search_container_ci",
+    "explicit_partial_search_results",
+    "owner_source_attachments",
+    "downloadable_task_verification_reports",
+    "source_only_sandbox_import",
+    "authenticated_dedicated_docker_worker",
+    "sandbox_transport_and_consent",
+    "actual_docker_isolation_ci"
+  ],
+  "test_results": {
+    "python": {
+      "passed": 180,
+      "skipped": 3,
+      "seconds": 32.91,
+      "environment": "local Python3.12; before the additional Docker-only E2E test",
+      "skip_reason": "local Godot, PostgreSQL and Docker unavailable; corresponding real CI jobs are separate"
+    },
+    "ruff": "passed",
+    "javascript_syntax": "passed",
+    "browser": {
+      "passed": true,
+      "page_errors": 0,
+      "checks": [
+        "signup",
+        "demo streaming",
+        "coder generation",
+        "notes create/delete",
+        "mobile overflow",
+        "account-switch isolation",
+        "CSV upload/search",
+        "Arena scoring",
+        "preferences",
+        "background task history",
+        "project ZIP import",
+        "patch download",
+        "account export download",
+        "Gemini/OpenRouter endpoint selection",
+        "account chat restore",
+        "explicit opt-in note archive restore",
+        "literal note rendering and reload/delete",
+        "document delete confirmation/cancel",
+        "document search/preview/attachment cleanup",
+        "unrelated document selection and reload",
+        "custom Arena create/select/JSON export/delete/versioned snapshots",
+        "mobile custom Arena layout",
+        "server-version header",
+        "single HTML creation/direct download/history/reload/320px",
+        "sandbox source upload, exact attachment bytes, explicit unavailable status, downloadable blocked report, history,320px layout"
+      ]
+    },
+    "github_actions": {
+      "commit": "8cc27119d55dc5158bb304b367db914537bf298f",
+      "run_id": 39291052944,
+      "conclusion": "success",
+      "jobs": [
+        "backend-and-godot",
+        "postgres-integration"
+      ],
+      "url": "https://github.com/Sayedmah/Modax/actions/runs/39291052944"
+    },
+    "node_session_regressions": {
+      "passed": 9
+    },
+    "live_http": [
+      "health v0.2 200",
+      "profile encrypted 201",
+      "CSV upload 201",
+      "DEMO streaming 200",
+      "Arena 201 score 0 on demo",
+      "Coder COMPLETED",
+      "project ZIP 200"
+    ],
+    "live_godot": {
+      "state": "COMPLETED",
+      "status": "passed",
+      "engine": "4.6.stable.official.89cea1439",
+      "stage": "gameplay",
+      "command_seconds": 5.8,
+      "probe_seconds": 20.24,
+      "marker": "GAMEPLAY_CHECKS_PASSED: collision movement jump camera touch collect save load",
+      "import": "not_required_for_trusted_primitive_template",
+      "export": "not_attempted",
+      "full_editor_import": "still blocked on free host; passes in CI"
+    },
+    "live_http_current_commit": [
+      "health0.6.4/direct guest UI",
+      "Sandbox capabilities configured=false; no false runtime success",
+      "source upload201, exact93byte attachment200, BLOCKED report200, logout204"
+    ],
+    "account_export": {
+      "local": "7 new tests passed",
+      "github_ci": "PostgreSQL export passed",
+      "live": "verified",
+      "bytes": 2222,
+      "probe_seconds": 2.72,
+      "fixture": "one imported message and one note; no credentials exported"
+    },
+    "named_providers": {
+      "protocol_tests": 7,
+      "real_inference": "OpenRouter free actual reply and provider-reported model verified; Gemini request failed and its model setting remains disabled"
+    },
+    "live_openrouter": {
+      "configured_model": "openrouter/free",
+      "status": "completed",
+      "characters": 11,
+      "expected_marker": true,
+      "done_event": true,
+      "error_event": false,
+      "probe_seconds": 18.74,
+      "cost": "not reported; free router selected; no paid model"
+    },
+    "guest_browser": {
+      "passed": true,
+      "page_errors": 0,
+      "checks": [
+        "direct entry",
+        "demo streaming",
+        "reload session",
+        "guest isolation",
+        "new session",
+        "archive restore into new guest",
+        "opt-in note restore with consent reset and unchanged preferences",
+        "confirmed document deletion and retained unrelated selection",
+        "custom Arena dataset workflows"
+      ],
+      "live_network": "2026-10-19 cloud browser final0.6.0 direct guest M/X and corrected reading direction/right rail verified. Feature API probe e98aef3 passed, fixtures cleaned."
+    },
+    "chat_restore": {
+      "backend_tests": 12,
+      "local": "passed",
+      "browser": "15 normal and6guest flows passed",
+      "postgres": "CI38695366873 passed",
+      "live": "verified",
+      "restore_status": 201,
+      "ownership_status": 404,
+      "invalid_archive_status": 422,
+      "new_ids": true,
+      "utf8_crlf": true,
+      "no_partial_copy": true,
+      "export_bytes": 2137,
+      "probe_seconds": 55.82,
+      "cleanup": "probe chats deleted and sessions revoked; no inference"
+    },
+    "note_restore": {
+      "backend_tests": 12,
+      "local": "134 passed,1 skipped with Godot4.6",
+      "browser": "15 normal+6 note checks;6 guest+6 note checks;zero page errors",
+      "postgres": "CI38862653312 passed",
+      "live": {
+        "semantics": "verified before cleanup assertion in first probe",
+        "restore_status": 201,
+        "consent_status": 422,
+        "owner_status": 404,
+        "corrupt_status": 422,
+        "utf8_crlf": true,
+        "new_ids": true,
+        "memory_preferences_unchanged": true,
+        "no_chat_copy": true,
+        "no_partial_copy": true,
+        "cleanup": "incomplete: first harness expected logout200 rather than actual204; corrected retry later lost HTTP transport. Three harmless synthetic notes remain in isolated disposable guest workspaces; no user data/secrets included."
+      }
+    },
+    "document_delete": {
+      "backend_tests": 3,
+      "local": "137passed/1PGskip in31.57s with Godot4.6",
+      "browser": "normal15+6notes+7files;guest6+6notes+7files;zero page errors",
+      "postgres": "CI39011097558 passed",
+      "live": {
+        "health_version": "0.4.1",
+        "delete_status": 204,
+        "read_status": 404,
+        "attachment_status": 404,
+        "search_empty": true,
+        "history_unchanged": true,
+        "cleanup": true,
+        "probe_seconds": 49.59,
+        "measurement": "auth/upload/parse/chat/delete/cleanup plus network; not inference latency"
+      }
+    },
+    "custom_arena": {
+      "backend_tests": 14,
+      "local": "passed",
+      "browser": "normal15+6notes+7files+5Arena flows;guest6+6notes+7files+5Arena flows;mobile check passed;zero page errors",
+      "postgres": "CI39105565536 both jobs passed including actual PostgreSQL integration",
+      "live": {
+        "commit": "5dcb5e035b9dd59a7031244a758e3ed71f6d7c10",
+        "create_status": 201,
+        "foreign_owner_status": 404,
+        "external_consent_status": 403,
+        "demo_score": 0,
+        "version_retained": true,
+        "source_deleted": true,
+        "sessions_revoked": true,
+        "synthetic_evaluation_retained": 1,
+        "probe_seconds": 51.38,
+        "measurement": "whole auth/CRUD/demo/cleanup plus network; not inference latency"
+      }
+    },
+    "workspace_modes": {
+      "local_backend_tests": 7,
+      "browser": "normal15+6notes+7files+5Arena+6modes and guest6+6notes+7files+5Arena+6modes passed; no page errors; right rail/mobile320,390,768,1440",
+      "source_commit": "e98aef3b2bc8130791cb8b9b7c28bae80a26f5ad",
+      "live": {
+        "health_version": "0.6.0",
+        "separate_mode_history": true,
+        "owner_status": 404,
+        "explicit_demo_stream": true,
+        "search_without_consent": 403,
+        "unconfigured_search": 503,
+        "fixture_cleanup": true,
+        "probe_seconds": 110.73,
+        "measurement": "whole auth/chat/demo/search-denial/cleanup plus network; not LLM latency"
+      },
+      "search": "0.6.3 supersedes the historical unconfigured state: authenticated own SearXNG service live; Arabic/English results verified, partial engines explicit.",
+      "fix": "PostgreSQL optional filter now CAST AS TEXT; real PG filtered/unfiltered/restart checks passed. LTR direction, chat-submit gating and stale chat-load guards passed final CI.",
+      "final_source": "fc19eb827f2baccc3e8b6296415e56104dd0914f",
+      "live_ui": "Final fc19eb8 cloud browser direct guest M/X, v0.6.0, LTR content with physical right rail verified; no TLS bypass"
+    },
+    "python_local_full": {
+      "passed": 168,
+      "skipped": 1,
+      "seconds": 96.74,
+      "scope": "before one added provider-contract regression; final HTML focused11passed5.21s"
+    },
+    "html_forge": {
+      "backend_tests": 11,
+      "browser": "normal5 and guest5 HTML checks passed, including direct download/reload/320px; final full CI normal44/guest35 flow checks passed",
+      "live": {
+        "version": "0.6.1",
+        "configured_model": "openrouter/free",
+        "demo": false,
+        "foreign_owner": 404,
+        "state": "COMPLETED",
+        "download_status": 200,
+        "bytes": 417,
+        "requested_marker_present": true,
+        "scripts_executed": false,
+        "usage": {
+          "input_tokens": 130,
+          "output_tokens": 239
+        },
+        "sessions_revoked": true,
+        "synthetic_task_retained": true,
+        "probe_seconds": 70.08,
+        "measurement": "whole auth/model routing/polling/download/cleanup/network; not isolated model latency",
+        "cost": "not reported; only explicitly configured free alias used; resolved model weights unknown"
+      }
+    },
+    "model_identity": {
+      "backend_cases": 3,
+      "browser_cases": 7,
+      "normal_browser_named_flows": 51,
+      "guest_browser_named_flows": 42,
+      "node_session_regressions": 8,
+      "page_errors": 0,
+      "responsive_widths": [
+        320,
+        768,
+        1024,
+        1440
+      ],
+      "actual_openrouter": {
+        "source": "ec1fceb030cc7b9f97c9b6529fc42e6c1f71a2ac",
+        "configured_model": "openrouter/free",
+        "reported_model": "minimax/minimax-m3.1-flash:free",
+        "status": "completed",
+        "history_name_matches": true,
+        "chat_deleted": true,
+        "session_revoked": true,
+        "cost": "not reported; existing free router only"
+      },
+      "cloud_browser": "final0.6.2 logo/new welcome/model badge/history reload verified; one harmless demo chat remains in disposable browser guest"
+    },
+    "searxng": {
+      "gateway_cases": 4,
+      "container_ci": {
+        "run_id": 39276320489,
+        "conclusion": "success",
+        "scope": "actual pinned Docker build/start/health/source/unauthenticated401; no public engine queries in CI"
+      },
+      "live": {
+        "version": "0.6.3",
+        "search_without_consent": 403,
+        "private_gateway_without_token": 401,
+        "queries": [
+          {
+            "query": "Python",
+            "status": 200,
+            "results": 5,
+            "partial": true,
+            "unavailable_engines": 2,
+            "probe_seconds": 13.53
+          },
+          {
+            "query": "القاهرة",
+            "status": 200,
+            "results": 5,
+            "partial": true,
+            "unavailable_engines": 2,
+            "probe_seconds": 13.58
+          }
+        ],
+        "measurement": "whole API request plus proxy/network, not isolated engine latency",
+        "cloud_browser": "Python documentation and Cairo Arabic results with clickable sources and partial-result warning verified",
+        "cleanup": "no chat/file/note fixtures created. First probe session invalidated by deployment. Successful search probe logout returned an empty response that its JSON-only harness could not parse; no logout verification is inferred from that harness."
+      },
+      "failure_recovery": "First live queries failed; upstream Bing and Mwmbl defaulted disabled. Explicitly enabled them and removed nonresponsive Brave. No CAPTCHA bypass. Initial CI notes test raced logout/navigation; now waits for auth view before navigating; final full CI passed."
+    },
+    "sandbox": {
+      "unit_contract_cases": 5,
+      "dedicated_docker_ci": {
+        "run_id": 39291053000,
+        "conclusion": "success",
+        "source_commit": "8cc27119d55dc5158bb304b367db914537bf298f",
+        "scope": "actual restricted Docker isolation, zero tests, failed tests, premature exit and full API-to-HTTP-worker-to-container/report/download path",
+        "image": "python@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1"
+      },
+      "local_browser": {
+        "normal_flows": 57,
+        "guest_flows": 48,
+        "page_errors": 0
+      },
+      "live": {
+        "deployed_source": "c0fd220703054a70a4f146f97dafa8cbccafb8c7",
+        "version": "0.6.4",
+        "configured": false,
+        "upload_status": 201,
+        "run_state": "BLOCKED",
+        "attachment_status": 200,
+        "attachment_bytes": 93,
+        "attachment_exact_match": true,
+        "report_status": 200,
+        "report_state": "BLOCKED",
+        "model_called": false,
+        "logout_status": 204,
+        "fixture": "one harmless source task retained in disposable guest; no task-delete API",
+        "cloud_browser": "Sandbox form and explicit worker-not-connected warning verified"
+      },
+      "production_execution": "not activated; dedicated Docker host not connected",
+      "supported_artifacts": [
+        "UTF-8 source files and ZIP",
+        "JSON verification report"
+      ],
+      "unsupported": [
+        "general Python script runner",
+        "package installation",
+        "internet access",
+        "returned runtime-generated binary files",
+        "browser/JS/native execution"
+      ]
+    }
+  },
+  "blocked_features": [
+    "production DATABASE_URL binding requires authorized Render dashboard connection secret",
+    "Dedicated public sandbox Docker worker not connected; actual isolated Docker and API/HTTP integration verified in CI only",
+    "native SDK/signing/export templates unavailable",
+    "GPU media workers and compatible model licenses not configured",
+    "Full editor import/custom-asset validation on free Render remains blocked; exact primitive template gameplay is verified",
+    "Gemini key copied in previous authorized operation but real inference failed; MODAX_GEMINI_MODEL blank keeps AUTO on OpenRouter",
+    "Some search engines fail from free hosting; results can be partial. Cold wake-up may exceed bounded API time budget."
+  ],
+  "remaining_tasks": [
+    "bind production PostgreSQL",
+    "verify real provider inference and usage",
+    "verify dedicated Docker runtime",
+    "internal GitHub workflow integration",
+    "real media worker",
+    "native client/export",
+    "comprehensive benchmarks/training",
+    "expand multi-agent OMEGA beyond same-provider isolated code reviews"
+  ],
+  "next_exact_executable_action": "Connect an explicitly authorized dedicated disposable Docker host using server-only MODAX_SANDBOX_URL/TOKEN; run a real hosted Python unittest job and verify owner-only reports/downloads. Never expose Docker in public Render or reuse another application host without authorization. Then resume Arena history lifecycle.",
+  "resume_commands": [
+    "pip install -e .[dev]",
+    "python -m pytest -q",
+    "python -m ruff check backend tests scripts",
+    "node --check apps/web/app.js",
+    "npm ci --ignore-scripts",
+    "npx playwright install chromium",
+    "npm run test:ui"
+  ],
+  "background_work": "scheduled daily attempts only",
+  "notes": "Documentation checkpoints can follow the verified code commit. Use [skip render] only for docs/state-only commits to avoid unnecessary ephemeral-host restarts. No paid inference, training, generated media or native executable is claimed.",
+  "website": "https://modax-omega.onrender.com/",
+  "render": {
+    "workspace": "tea-dalrl82d0e5s738de4j0",
+    "service": "srv-db75ucmi0phs738mfg6g",
+    "plan": "free",
+    "deploy": "dep-dbb4qmrm8hqs73etj3eg",
+    "status": "live",
+    "postgres": "dpg-db74kajncjis73fgelo0-a",
+    "database_connection": "DATABASE_URL unbound; no database changes in this increment",
+    "database_expires": "2026-11-12",
+    "active_storage": "local ephemeral until DATABASE_URL bound",
+    "guest_mode": true,
+    "public_signup": false,
+    "source_commit": "c0fd220703054a70a4f146f97dafa8cbccafb8c7",
+    "search_service": {
+      "id": "srv-dbb34k3bc2fs73dbt5o0",
+      "url": "https://modax-search.onrender.com",
+      "plan": "free",
+      "deploy": "dep-dbb37vbbc2fs73dc7gbg",
+      "status": "live",
+      "source_commit": "4b2b08d4f00a2350c862baf540ec005946370ca9",
+      "auto_deploy": false,
+      "token": "server-only matching environment variables; never export values",
+      "limits": "shared free hours; sleep/cold wake-up; no keepalive job or paid upgrade"
+    },
+    "sandbox": {
+      "configured": false,
+      "host_created": false,
+      "paid_service_created": false,
+      "notice": "UI/source delivery deployed; public execution not activated"
+    }
+  },
+  "scheduled_continuation": {
+    "enabled": true,
+    "count": 6,
+    "date_range": [
+      "2026-10-14",
+      "2026-10-19"
+    ],
+    "approximate_local_time": "09:00",
+    "timezone": "Africa/Cairo",
+    "scope": "daily continuation attempts if execution tools available; not continuous or guaranteed complete",
+    "frequency": "DAILY",
+    "verified_schedule": "BEGIN:VEVENT\nDTSTART;TZID=Africa/Cairo:20261014T090000\nRRULE:FREQ=DAILY;COUNT=6;BYHOUR=9;BYMINUTE=0;BYSECOND=0\nEND:VEVENT",
+    "verified_at": "2026-10-14T05:07:16Z",
+    "note": "Stored weekly cadence discovered and corrected; no continuous-runtime guarantee"
+  }
+}
