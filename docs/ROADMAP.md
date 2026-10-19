@@ -7,6 +7,7 @@
 | Providers/chat | Protocol adapters, encrypted profiles and demo verified | Authorized real inference, actual model/version and usage |
 | Orchestration | Bounded task states, background workers and isolated review roles | Dependency graph and distinct configured specialist models |
 | Coder | Source ZIP context, syntax repair, snapshots and verified patches | Dedicated Docker runtime; authorized app GitHub integration |
+| HTML Forge | Actual single-file generation, basic validation and owner-only attachment/history; live free-provider verified | Optional isolated browser validation on a suitable worker; never run generated scripts in MODAX origin |
 | Game Forge | Original playable primitive project, local/CI engine checks | Hosted direct runtime verified; exports with matching templates/SDKs |
 | Procedural worlds | Seeded terrain/objects and persistence in game | Prompt-driven supported scene variations and navigation |
 | Image/video | ComfyUI adapter contract only | Licensed models, authorized GPU worker, real output validation |

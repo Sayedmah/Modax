@@ -1,5 +1,7 @@
 # Resume MODAX development
 
+Latest0.6.1: HTML Forge is complete,do not recreate it. Source0fb1b68e6df073c6e84a1d58c56e5e00e683de60; CI39243436830 successful169Python/8Node plus realPostgreSQL and full normal/guest browser. Read HTML_FORGE.md. Sidebar/X creates one index.html and saves it in task history; scripts never execute. Hosted actual openrouter/free generation/download verified417bytes,130input/239output reported tokens,70.08s whole probe. Sessions revoked; one private synthetic task retained. No paid services/new resources or secrets. Resume authorized SearXNG connection and pending owner-scoped history deletion. Production storage remains ephemeral; preserve all restrictions below.
+
 1. Read GitHub AGENTS.md, project_state.json and PROJECT_STATE.md first. Branch:feat/modax-omega-foundation; draft PR#2; main stays unchanged. Keep direct isolated guest entry and existing workflows.
 2.0.6.0 M/X modes are implemented. M is concise chat; X plans and hands off to bounded Coder/Godot/task history. Right rail M above X, independent filtered conversations, archive preservation and optional private notes are done. Read WORKSPACE_MODES.md. Neither mode changes model weights.
 3. Next: authorized JSON-enabled HTTPS SearXNG connection and actual snippets/citation verification. No working instance is configured; search.inetol.net returned security-check HTML, do not bypass it or rotate blocked instances. Current API returns403 without consent/503 unconfigured and starts no inference.

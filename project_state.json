@@ -3,9 +3,9 @@
   "repository": "https://github.com/Sayedmah/Modax",
   "active_branch": "feat/modax-omega-foundation",
   "baseline_commit": "bb0295d55483a9e1733fdc09399058afd3979534",
-  "latest_verified_commit": "fc19eb827f2baccc3e8b6296415e56104dd0914f",
+  "latest_verified_commit": "0fb1b68e6df073c6e84a1d58c56e5e00e683de60",
   "pull_request": "https://github.com/Sayedmah/Modax/pull/2",
-  "last_completed_phase": "0.6.0 M chat/X workspaces verified local/CI/live; SearXNG adapter implemented but live search remains unconfigured",
+  "last_completed_phase": "0.6.1 single HTML file generation/download verified locally, in CI/PostgreSQL and live with configured OpenRouter free inference",
   "implemented_modules": [
     "auth",
     "sqlite_migrations",
@@ -64,16 +64,18 @@
     "bounded_canonical_output_grading",
     "m_x_workspace_modes",
     "mode_scoped_chat_history_and_archives",
-    "opt_in_bounded_searxng_adapter"
+    "opt_in_bounded_searxng_adapter",
+    "single_file_html_forge",
+    "owner_html_attachment_download"
   ],
   "test_results": {
     "python": {
-      "passed": 158,
+      "passed": 169,
       "skipped": 1,
-      "seconds": 20.88,
-      "environment": "GitHub Actions final source fc19eb8",
+      "seconds": 21.71,
+      "environment": "GitHub Actions0fb1b68",
       "engine_check": "Godot4.6",
-      "skip_reason": "backend job skips PostgreSQL; actual PostgreSQL integration passed in separate job"
+      "skip_reason": "backend job skips PostgreSQL; genuine separate PostgreSQL integration passed"
     },
     "ruff": "passed",
     "javascript_syntax": "passed",
@@ -103,18 +105,19 @@
         "unrelated document selection and reload",
         "custom Arena create/select/JSON export/delete/versioned snapshots",
         "mobile custom Arena layout",
-        "server-version header"
+        "server-version header",
+        "single HTML creation/direct download/history/reload/320px"
       ]
     },
     "github_actions": {
-      "commit": "fc19eb827f2baccc3e8b6296415e56104dd0914f",
-      "run_id": 39239307570,
+      "commit": "0fb1b68e6df073c6e84a1d58c56e5e00e683de60",
+      "run_id": 39243436830,
       "conclusion": "success",
       "jobs": [
         "backend-and-godot",
         "postgres-integration"
       ],
-      "url": "https://github.com/Sayedmah/Modax/actions/runs/39239307570"
+      "url": "https://github.com/Sayedmah/Modax/actions/runs/39243436830"
     },
     "node_session_regressions": {
       "passed": 8
@@ -141,11 +144,10 @@
       "full_editor_import": "still blocked on free host; passes in CI"
     },
     "live_http_current_commit": [
-      "feature e98aef3 health0.6.0/direct guest UI M/X verified",
-      "M and X history separated; foreign owner404",
-      "explicit DEMO streamed; search403 without consent and503 unconfigured",
-      "test chats removed and sessions revoked",
-      "final fc19eb8 Render live; cloud browser right rail and actual LTR content verified"
+      "health0.6.1/direct guest UI HTML form and configured models verified",
+      "one actual openrouter/free HTML task COMPLETED;417byte attachment HTTP200 and requested marker",
+      "foreign owner404; server/client did not execute generated scripts",
+      "two sessions revoked; one harmless private synthetic HTML task retained"
     ],
     "account_export": {
       "local": "7 new tests passed",
@@ -277,10 +279,34 @@
       "live_ui": "Final fc19eb8 cloud browser direct guest M/X, v0.6.0, LTR content with physical right rail verified; no TLS bypass"
     },
     "python_local_full": {
-      "passed": 157,
+      "passed": 168,
       "skipped": 1,
-      "seconds": 158.89,
-      "scope": "before one added concurrency regression; final focused7passed8.69s"
+      "seconds": 96.74,
+      "scope": "before one added provider-contract regression; final HTML focused11passed5.21s"
+    },
+    "html_forge": {
+      "backend_tests": 11,
+      "browser": "normal5 and guest5 HTML checks passed, including direct download/reload/320px; final full CI normal44/guest35 flow checks passed",
+      "live": {
+        "version": "0.6.1",
+        "configured_model": "openrouter/free",
+        "demo": false,
+        "foreign_owner": 404,
+        "state": "COMPLETED",
+        "download_status": 200,
+        "bytes": 417,
+        "requested_marker_present": true,
+        "scripts_executed": false,
+        "usage": {
+          "input_tokens": 130,
+          "output_tokens": 239
+        },
+        "sessions_revoked": true,
+        "synthetic_task_retained": true,
+        "probe_seconds": 70.08,
+        "measurement": "whole auth/model routing/polling/download/cleanup/network; not isolated model latency",
+        "cost": "not reported; only explicitly configured free alias used; resolved model weights unknown"
+      }
     }
   },
   "blocked_features": [
@@ -302,7 +328,7 @@
     "comprehensive benchmarks/training",
     "expand multi-agent OMEGA beyond same-provider isolated code reviews"
   ],
-  "next_exact_executable_action": "Connect an authorized JSON-enabled SearXNG service and verify actual results/grounded citations under existing free-service authorization; never bypass security checks or claim weight training. Owner-scoped evaluation-history export/delete remains pending.",
+  "next_exact_executable_action": "Resume authorized JSON-enabled SearXNG connection and actual grounded search verification; do not recreate completed HTML Forge. Owner-scoped task/evaluation deletion remains pending; existing hosted storage still ephemeral.",
   "resume_commands": [
     "pip install -e .[dev]",
     "python -m pytest -q",
@@ -319,7 +345,7 @@
     "workspace": "tea-dalrl82d0e5s738de4j0",
     "service": "srv-db75ucmi0phs738mfg6g",
     "plan": "free",
-    "deploy": "dep-dbav7svlk1mc73da026g",
+    "deploy": "dep-dbavo01srm7s73atjlrg",
     "status": "live",
     "postgres": "dpg-db74kajncjis73fgelo0-a",
     "database_connection": "blocked; secure browser sign-in aborted",
@@ -327,7 +353,7 @@
     "active_storage": "local ephemeral until DATABASE_URL bound",
     "guest_mode": true,
     "public_signup": false,
-    "source_commit": "fc19eb827f2baccc3e8b6296415e56104dd0914f"
+    "source_commit": "0fb1b68e6df073c6e84a1d58c56e5e00e683de60"
   },
   "scheduled_continuation": {
     "enabled": true,
