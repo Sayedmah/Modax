@@ -1,0 +1,24 @@
+name: Dedicated Docker sandbox verification
+on:
+  push:
+    paths: ['backend/modax/**', 'tests/test_sandbox*', '.github/workflows/sandbox.yml']
+  pull_request:
+    paths: ['backend/modax/**', 'tests/test_sandbox*', '.github/workflows/sandbox.yml']
+permissions:
+  contents: read
+jobs:
+  isolation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -e '.[dev]'
+      - name: Pre-pull official operator-pinned Python image
+        run: docker pull python@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1
+      - name: Execute submitted source only inside restricted Docker
+        run: python -m pytest -q tests/test_sandbox_docker.py
+        env:
+          MODAX_TEST_SANDBOX_IMAGE: python@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1

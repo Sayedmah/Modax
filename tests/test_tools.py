@@ -157,7 +157,7 @@ def test_docker_staging_permissions_and_immutable_image(tmp_path, monkeypatch):
         assert (cwd / "hello.py").stat().st_mode & 0o777 == 0o644
         assert "--network=none" in args and "--read-only" in args and digest in args
         assert str(w.root) not in args[args.index("--mount") + 1]
-        return {"exit_code": 0, "output": "synthetic transport result"}
+        return {"exit_code": 0, "output": "synthetic transport result\nMODAX_RUN_COMPLETED 1\n"}
 
     monkeypatch.setattr(module, "bounded_command", check_command)
     monkeypatch.setattr(module.subprocess, "run", lambda *args, **kwargs: None)

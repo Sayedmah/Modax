@@ -25,6 +25,8 @@ class Settings:
     ollama_model: str = field(default_factory=lambda: os.getenv("MODAX_OLLAMA_MODEL", ""))
     docker_tests: bool = field(default_factory=lambda: os.getenv("MODAX_DOCKER_TESTS") == "true")
     test_image: str = field(default_factory=lambda: os.getenv("MODAX_TEST_IMAGE", ""))
+    sandbox_url: str = field(default_factory=lambda: os.getenv("MODAX_SANDBOX_URL", ""))
+    sandbox_token: str = field(default_factory=lambda: os.getenv("MODAX_SANDBOX_TOKEN", ""))
     godot_binary: str = field(default_factory=lambda: os.getenv("MODAX_GODOT_BINARY", "godot"))
     comfy_url: str = field(default_factory=lambda: os.getenv("MODAX_COMFY_URL", ""))
     searxng_url: str = field(default_factory=lambda: os.getenv("MODAX_SEARXNG_URL", ""))
@@ -32,6 +34,6 @@ class Settings:
 
     def __post_init__(self):
         object.__setattr__(self, "data_dir", Path(self.data_dir).absolute())
-        for url in (self.provider_url, self.ollama_url, self.comfy_url):
+        for url in (self.provider_url, self.ollama_url, self.comfy_url, self.sandbox_url):
             if url and not url.startswith(("https://", "http://localhost:", "http://127.0.0.1:")):
                 raise ValueError("Provider endpoints require HTTPS or explicit loopback HTTP")

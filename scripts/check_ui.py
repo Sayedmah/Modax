@@ -24,6 +24,8 @@ def run_check(script):
             GEMINI_API_KEY="",
             OPENROUTER_API_KEY="",
             MODAX_OLLAMA_URL="",
+            MODAX_SANDBOX_URL="",
+            MODAX_SANDBOX_TOKEN="",
             MODAX_QA_DIR=temporary,
         )
         with open(Path(temporary) / "server.log", "w") as log:
@@ -70,5 +72,6 @@ for script in [
     "scripts/modes_smoke.cjs",
     "scripts/html_smoke.cjs",
     "scripts/identity_smoke.cjs",
+    "scripts/sandbox_smoke.cjs",
 ]:
     run_check(script)

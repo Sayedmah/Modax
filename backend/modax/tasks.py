@@ -57,6 +57,11 @@ class TaskEngine:
                 "Verify and deliver",
             ],
             "html": ["Generate one HTML document", "Inspect basic structure", "Deliver index.html"],
+            "sandbox": [
+                "Receive source files",
+                "Run unittest in isolated Docker worker",
+                "Deliver files and observed test report",
+            ],
         }
         if kind not in plans or mode not in {"FAST", "SMART", "OMEGA"}:
             raise ValueError("Unsupported kind or execution mode")
@@ -277,12 +282,19 @@ class TaskEngine:
                         )
                         return self.store.require("tasks", owner, task_id)
                 if execute:
-                    runtime = await self.threaded(
-                        task_id,
-                        workspace.run_tests,
-                        self.settings.docker_tests,
-                        self.settings.test_image,
-                    )
+                    from .sandbox import run_sandbox, sandbox_configured
+
+                    if sandbox_configured(self.settings):
+                        runtime = await self.threaded(
+                            task_id, run_sandbox, workspace, self.settings
+                        )
+                    else:
+                        runtime = await self.threaded(
+                            task_id,
+                            workspace.run_tests,
+                            self.settings.docker_tests,
+                            self.settings.test_image,
+                        )
                     result["runtime_tests"] = runtime
                     if runtime["exit_code"] != 0:
                         self.store.execute(
@@ -295,6 +307,47 @@ class TaskEngine:
                             {"reason": "Runtime tests failed; no success claimed"},
                         )
                         return self.store.require("tasks", owner, task_id)
+            elif task["kind"] == "sandbox":
+                from .sandbox import run_sandbox
+
+                if not execute:
+                    raise ToolDenied("Explicit sandbox execution confirmation required")
+                self.transition(owner, task_id, "VERIFYING")
+                try:
+                    runtime = await self.threaded(task_id, run_sandbox, workspace, self.settings)
+                except ToolDenied as exc:
+                    self.store.execute(
+                        "UPDATE tasks SET result=? WHERE id=? AND owner=?",
+                        (
+                            json.dumps(
+                                {
+                                    "files": workspace.files(),
+                                    "error": str(exc),
+                                    "model_called": False,
+                                }
+                            ),
+                            task_id,
+                            owner,
+                        ),
+                    )
+                    self.transition(owner, task_id, "BLOCKED", {"reason": str(exc)})
+                    return self.store.require("tasks", owner, task_id)
+                result = {
+                    "files": workspace.files(),
+                    "runtime_tests": runtime,
+                    "model_called": False,
+                    "network": False,
+                    "runner": "python_unittest",
+                }
+                if runtime["exit_code"] != 0:
+                    self.store.execute(
+                        "UPDATE tasks SET result=? WHERE id=? AND owner=?",
+                        (json.dumps(result), task_id, owner),
+                    )
+                    self.transition(
+                        owner, task_id, "FAILED", {"reason": "Sandbox returned a nonzero exit code"}
+                    )
+                    return self.store.require("tasks", owner, task_id)
             elif task["kind"] == "html":
                 from .html_forge import HTML_PROMPT, html_file
 

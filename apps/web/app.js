@@ -19,10 +19,11 @@ function resetOwnerView() {
   arenaDatasetEpoch++;$('dataset-name').value='';$('dataset-cases').value='[{"id":"greeting","task":"Return only MODAX","expected":"MODAX","match":"exact"}]';$('arena-dataset').replaceChildren();$('dataset-export').disabled=true;$('dataset-delete').disabled=true;
   $('account-import-file').value='';
   $('notes-import-file').value='';$('confirm-note-restore').checked=false;$('restore-notes').disabled=true;
+  $('sandbox-source').value='';$('sandbox-consent').checked=false;$('sandbox-submit').disabled=false;$('sandbox-status').textContent='';
   sessionEpoch++; controller?.abort(); controller=null;
   for(const request of requests) request.abort(); requests.clear();
   chatId=null; currentChat=null;
-  for(const id of ['messages','chat-list','coder-result','game-result','memory-list','usage-list','model','file-list','file-hits','arena-results','provider-list','arena-models','task-history']) $(id).replaceChildren();
+  for(const id of ['messages','chat-list','coder-result','sandbox-result','game-result','memory-list','usage-list','model','file-list','file-hits','arena-results','provider-list','arena-models','task-history']) $(id).replaceChildren();
   for(const id of ['prompt','code-goal','memory-text','search','provider-key','provider-model','file-search']) $(id).value='';
   $('execute-tests').checked=false;$('code-project').value='';$('review-confirm').checked=false;$('code-mode').value='FAST';$('document-file').value='';$('chat-import-file').value='';$('chat-attachment').replaceChildren();$('use-memory').checked=false;$('daily-requests').value='100';$('arena-confirm').checked=false;$('arena-template').value='{task}'; $('stop').hidden=true; $('send').disabled=false;
   $('chat-title').textContent='مساحة للتفكير والبناء'; notify('');
@@ -30,7 +31,7 @@ function resetOwnerView() {
   for(const nav of document.querySelectorAll('.nav')) nav.classList.toggle('active',nav.dataset.view==='chat');
   $('view-title').textContent='المحادثة';
 }
-const titleMap = {chat:'المحادثة',coder:'Coder',html:'إنشاء ملف HTML',game:'Game Forge',memory:'الذاكرة',usage:'الاستخدام',files:'الملفات',arena:'Model Arena',settings:'الإعدادات',tasks:'سجل المهام',research:'بحث الإنترنت',about:'القدرات والذاكرة'};
+const titleMap = {chat:'المحادثة',coder:'Coder',sandbox:'Sandbox',html:'إنشاء ملف HTML',game:'Game Forge',memory:'الذاكرة',usage:'الاستخدام',files:'الملفات',arena:'Model Arena',settings:'الإعدادات',tasks:'سجل المهام',research:'بحث الإنترنت',about:'القدرات والذاكرة'};
 function notify(text, error=false) { $('notice').textContent=text; $('notice').className=error?'error':''; }
 async function api(path, options={}) {
   const epoch=sessionEpoch, requestController=new AbortController(); requests.add(requestController);
@@ -133,12 +134,12 @@ $('stop').onclick=()=>controller?.abort();
 async function download(response,filename){const blob=await response.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 $('export-chat').onclick=safe(async()=>{if(!chatId)throw new Error('اختر محادثة أولاً');const chat=await (await api('/chats/'+chatId)).json();await download(new Response(JSON.stringify(chat,null,2)),'modax-chat.json');});
 async function runTask(kind,goal,seed=42){
-  const epoch=sessionEpoch;const resultId=kind==='code'?'coder-result':kind==='html'?'html-result':'game-result';$(resultId).replaceChildren();notify('المهمة قيد التنفيذ…');
+  const epoch=sessionEpoch;const resultId=kind==='code'?'coder-result':kind==='sandbox'?'sandbox-result':kind==='html'?'html-result':'game-result';$(resultId).replaceChildren();notify('المهمة قيد التنفيذ…');
   const task=await (await post('/tasks',{goal,kind,mode:kind==='code'?$('code-mode').value:'FAST'})).json();
-  if(kind==='code'&&$('code-project').files.length){const body=new FormData();body.append('file',$('code-project').files[0]);await (await api('/tasks/'+task.id+'/project',{method:'POST',body})).json();}
+  if((kind==='code'&&$('code-project').files.length)||kind==='sandbox'){const body=new FormData();body.append('file',kind==='sandbox'?$('sandbox-source').files[0]:$('code-project').files[0]);await (await api('/tasks/'+task.id+'/project',{method:'POST',body})).json();}
   const panel=document.createElement('div');panel.className='panel';const state=document.createElement('p');state.className='task-status';state.textContent='RUNNING · '+task.id;panel.append(state);$(resultId).append(panel);
   const cancel=document.createElement('button');cancel.className='secondary';cancel.textContent='إلغاء المهمة';cancel.onclick=safe(async()=>{await post('/tasks/'+task.id+'/cancel',{});notify('تم طلب الإلغاء');});panel.append(cancel);
-  let final=await (await post('/tasks/'+task.id+'/start',{model:kind==='html'?$('html-model').value:$('model').value,execute:kind==='code'&&$('execute-tests').checked,seed,confirm_external_reviews:$('review-confirm').checked})).json();
+  let final=await (await post('/tasks/'+task.id+'/start',{model:kind==='html'?$('html-model').value:$('model').value,execute:kind==='sandbox'||(kind==='code'&&$('execute-tests').checked),seed,confirm_external_reviews:$('review-confirm').checked})).json();
   for(let attempt=0;['RUNNING','VERIFYING'].includes(final.state)&&attempt<100;attempt++){
     await new Promise(resolve=>setTimeout(resolve,3000));
     if(epoch!==sessionEpoch)return;
@@ -146,6 +147,7 @@ async function runTask(kind,goal,seed=42){
   }
   if(epoch!==sessionEpoch)return;cancel.remove();state.textContent=final.state+' · '+task.id;const pre=document.createElement('pre');pre.textContent=JSON.stringify(final.result?JSON.parse(final.result):{},null,2);panel.append(pre);
   const button=document.createElement('button');button.textContent='تنزيل ملفات المشروع';button.onclick=safe(async()=>download(await api('/tasks/'+task.id+'/download'),'modax-project.zip'));panel.append(button);if(kind==='code'){const patch=document.createElement('button');patch.className='patch-download';patch.textContent='تنزيل التغييرات .patch';patch.onclick=safe(async()=>download(await api('/tasks/'+task.id+'/patch'),'modax-change.patch'));panel.append(patch);}
+  artifactButtons(panel,final);
   if(kind==='html'&&final.state==='COMPLETED')htmlDownloadButton(panel,task.id);
   await taskHistory();notify(final.state==='COMPLETED'?'اكتملت الخطوات المحددة؛ راجع سجل التحقق.':'راجع سجل المهام لعرض الحالة والملفات.',final.state!=='COMPLETED');
 }
@@ -159,8 +161,8 @@ async function taskHistory(){
     const downloadButton=document.createElement('button');downloadButton.textContent='تنزيل الملفات';downloadButton.onclick=safe(async()=>download(await api('/tasks/'+task.id+'/download'),'modax-project.zip'));panel.append(downloadButton);if(task.kind==='code'&&task.result&&JSON.parse(task.result).snapshot){const patch=document.createElement('button');patch.textContent='تنزيل التغييرات .patch';patch.onclick=safe(async()=>download(await api('/tasks/'+task.id+'/patch'),'modax-change.patch'));panel.append(patch);}
     if(['RUNNING','VERIFYING','READY'].includes(task.state)){const cancel=document.createElement('button');cancel.textContent='إلغاء';cancel.onclick=safe(async()=>{await post('/tasks/'+task.id+'/cancel',{});await taskHistory();});panel.append(cancel);}
     if(['FAILED','BLOCKED'].includes(task.state)){const resume=document.createElement('button');resume.textContent='تجهيز لإعادة المحاولة';resume.onclick=safe(async()=>{await post('/tasks/'+task.id+'/resume',{});await taskHistory();});panel.append(resume);}
-    if(task.state==='READY'){const run=document.createElement('button');run.textContent='تشغيل المهمة';run.onclick=safe(async()=>{await post('/tasks/'+task.id+'/start',{model:$('model').value,seed:task.result?(JSON.parse(task.result).seed??42):42,confirm_external_reviews:$('review-confirm').checked});await taskHistory();});panel.append(run);}
-    $('task-history').append(panel);
+    if(task.state==='READY'){const run=document.createElement('button');run.textContent='تشغيل المهمة';run.onclick=safe(async()=>{if(task.kind==='sandbox'&&!confirm('هل توافق على إرسال ملفات هذه المهمة لعامل Sandbox وتشغيل اختبارات Python؟'))return;await post('/tasks/'+task.id+'/start',{model:$('model').value,execute:task.kind==='sandbox',seed:task.result?(JSON.parse(task.result).seed??42):42,confirm_external_reviews:$('review-confirm').checked});await taskHistory();});panel.append(run);}
+    artifactButtons(panel,task);$('task-history').append(panel);
   }
 }
 $('refresh-tasks').onclick=safe(taskHistory);
@@ -171,7 +173,7 @@ $('game-form').onsubmit=safe(async e=>{e.preventDefault();await runTask('game',$
 async function memory(){const items=await (await api('/memory')).json();$('memory-list').replaceChildren();for(const item of items){const panel=document.createElement('div');panel.className='panel';const text=document.createElement('p');text.textContent=item.content;const button=document.createElement('button');button.className='secondary';button.textContent='حذف';button.onclick=safe(async()=>{await api('/memory/'+item.id,{method:'DELETE'});await memory();});panel.append(text,button);$('memory-list').append(panel);}}
 $('memory-form').onsubmit=safe(async e=>{e.preventDefault();await post('/memory',{content:$('memory-text').value});$('memory-text').value='';await memory();});
 async function usage(){const data=await (await api('/usage')).json();const table=document.createElement('table');const tr=document.createElement('tr');for(const text of ['النموذج','المدة ms','رموز الإدخال','رموز الإخراج','التكلفة']){const th=document.createElement('th');th.textContent=text;tr.append(th);}table.append(tr);for(const r of data.records){const row=document.createElement('tr');for(const value of [r.model,Math.round(r.latency_ms),r.input_tokens??'غير متاح',r.output_tokens??'غير متاح',r.cost??'غير متاح']){const cell=document.createElement('td');cell.textContent=value;row.append(cell);}table.append(row);}$('usage-list').replaceChildren(table);}
-for(const button of document.querySelectorAll('[data-view]'))button.onclick=safe(async()=>{const view=button.dataset.view;for(const panel of document.querySelectorAll('.view'))panel.hidden=panel.id!=='view-'+view;for(const nav of document.querySelectorAll('.nav'))nav.classList.toggle('active',nav.dataset.view===view);$('view-title').textContent=titleMap[view];notify('');if(view==='memory')await memory();if(view==='usage')await usage();if(view==='files')await documents();if(view==='arena')await arenaHistory();if(view==='tasks')await taskHistory();if(view==='settings')await settings();});
+for(const button of document.querySelectorAll('[data-view]'))button.onclick=safe(async()=>{const view=button.dataset.view;for(const panel of document.querySelectorAll('.view'))panel.hidden=panel.id!=='view-'+view;for(const nav of document.querySelectorAll('.nav'))nav.classList.toggle('active',nav.dataset.view===view);$('view-title').textContent=titleMap[view];notify('');if(view==='memory')await memory();if(view==='usage')await usage();if(view==='files')await documents();if(view==='arena')await arenaHistory();if(view==='tasks')await taskHistory();if(view==='settings')await settings();if(view==='sandbox')await sandboxStatus();});
 $('language').onclick=()=>{const rtl=document.documentElement.dir==='rtl';document.documentElement.dir=rtl?'ltr':'rtl';document.documentElement.lang='ar';};
 
 
@@ -310,3 +312,12 @@ $('boot-retry').onclick=()=>bootstrap();
 $('prompt').onkeydown=event=>{if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();$('chat-form').requestSubmit();}};
 for(const button of document.querySelectorAll('[data-quick-view]'))button.onclick=()=>{document.querySelector('.nav[data-view="'+button.dataset.quickView+'"]').click();const field=$(button.dataset.quickField);field.value=button.dataset.quickPrompt;field.focus();if(innerWidth<=760){$('app').classList.add('sidebar-closed');for(const id of ['mode-m','mode-x'])$(id).setAttribute('aria-expanded','false');}};
 if(typeof window!=='undefined')bootstrap();
+
+async function sandboxStatus(){const result=await(await api('/sandbox/capabilities')).json();$('sandbox-status').textContent=result.configured?'العامل مُهيأ؛ تُفحص جاهزيته عند التشغيل. Python / unittest، دون شبكة، بحد 60 ثانية.':'العامل غير متصل حاليًا. يمكن حفظ الملفات وتنزيلها؛ سيُسجل طلب التشغيل كمتعذر، ولن يُنفذ الكود على خادم الموقع.';}
+$('sandbox-form').onsubmit=safe(async event=>{event.preventDefault();const epoch=sessionEpoch;$('sandbox-submit').disabled=true;try{await runTask('sandbox','اختبار الملفات المرفوعة داخل Sandbox');}finally{if(epoch===sessionEpoch)$('sandbox-submit').disabled=false;}});
+function artifactButtons(panel,task){
+  if(['RUNNING','VERIFYING'].includes(task.state))return;
+  const result=task.result?JSON.parse(task.result):{};
+  for(const path of (result.files||[])){const button=document.createElement('button');button.className='secondary artifact-download';button.textContent='تنزيل '+path;button.onclick=safe(async()=>download(await api('/tasks/'+task.id+'/attachment/'+path.split('/').map(encodeURIComponent).join('/')),path.split('/').pop()));panel.append(button);}
+  if(['COMPLETED','FAILED','BLOCKED','CANCELLED'].includes(task.state)){const report=document.createElement('button');report.className='secondary report-download';report.textContent='تنزيل تقرير التحقق';report.onclick=safe(async()=>download(await api('/tasks/'+task.id+'/report'),'modax-test-report.json'));panel.append(report);}
+}

@@ -68,8 +68,12 @@ def install_project_tools(app):
     @app.post("/api/v1/tasks/{task_id}/project", status_code=201)
     async def upload(task_id: str, file: UploadFile, user=Depends(owner)):
         task = require("tasks", user, task_id)
-        if task["kind"] != "code" or task["state"] != "READY" or task_id in engine.running:
-            raise HTTPException(409, "Project import requires an idle READY code task")
+        if (
+            task["kind"] not in {"code", "sandbox"}
+            or task["state"] != "READY"
+            or task_id in engine.running
+        ):
+            raise HTTPException(409, "Project import requires an idle READY code/sandbox task")
         try:
             data = await file.read(200001)
         finally:
@@ -79,7 +83,17 @@ def install_project_tools(app):
         if task["state"] != "READY" or task_id in engine.running:
             raise HTTPException(409, "Task is no longer idle")
         workspace = engine.workspace(user, task_id)
-        snapshot = import_project(workspace, data)
+        if task["kind"] == "sandbox" and (file.filename or "").lower().endswith(".py"):
+            try:
+                if len(data) > 120000:
+                    raise ToolDenied("Python source exceeds 120 KB")
+                snapshot = workspace.apply(
+                    [{"path": file.filename, "content": data.decode("utf-8-sig")}]
+                )
+            except UnicodeError:
+                raise ToolDenied("Source must be UTF-8") from None
+        else:
+            snapshot = import_project(workspace, data)
         app.state.store.audit(
             user, "workspace.import", {"task": task_id, "files": workspace.files()}
         )

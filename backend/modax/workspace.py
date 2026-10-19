@@ -223,6 +223,10 @@ class Workspace:
             "--security-opt=no-new-privileges",
             "--pids-limit=64",
             "--memory=256m",
+            "--memory-swap=256m",
+            "--ulimit=nofile=128:128",
+            "--log-driver=none",
+            "--no-healthcheck",
             "--cpus=1",
             "--user=65534:65534",
             "--tmpfs=/tmp:rw,noexec,nosuid,size=16m",
@@ -231,11 +235,15 @@ class Workspace:
             "--workdir=/project",
             image,
             "python",
+            "-I",
             "-B",
-            "-m",
-            "unittest",
-            "discover",
-            "-v",
+            "-c",
+            "import os,sys,unittest; sys.path.insert(0,os.getcwd()); "
+            "s=unittest.defaultTestLoader.discover('.'); "
+            "n=s.countTestCases(); print('MODAX_DISCOVERED_TESTS',n,flush=True); "
+            "sys.exit(5) if n==0 else None; "
+            "r=unittest.TextTestRunner(verbosity=2).run(s); "
+            "print('MODAX_RUN_COMPLETED',n,flush=True); sys.exit(0 if r.wasSuccessful() else 1)",
         ]
         try:
             with tempfile.TemporaryDirectory(prefix="modax-runtime-") as directory:
@@ -247,7 +255,12 @@ class Workspace:
                 mount_index = args.index("--mount") + 1
                 args[mount_index] = f"type=bind,src={stage},dst=/project,readonly"
                 options = {"cancel_event": cancel_event} if cancel_event is not None else {}
-                return bounded_command(args, stage, timeout=60, **options)
+                result = bounded_command(args, stage, timeout=60, **options)
+                if result["exit_code"] == 0 and not re.search(
+                    r"(?m)^MODAX_RUN_COMPLETED [1-9][0-9]*$", result["output"]
+                ):
+                    result["exit_code"] = 6
+                return result
         finally:
             subprocess.run(
                 ["docker", "rm", "-f", container], capture_output=True, timeout=10, check=False

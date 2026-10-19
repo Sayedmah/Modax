@@ -12,7 +12,7 @@ from .workspace import SECRET, ToolDenied
 
 class TaskInput(BaseModel):
     goal: str = Field(min_length=3, max_length=10000)
-    kind: Literal["plan", "code", "game", "html"] = "plan"
+    kind: Literal["plan", "code", "game", "html", "sandbox"] = "plan"
     mode: Literal["FAST", "SMART", "OMEGA"] = "FAST"
 
 
@@ -55,8 +55,8 @@ def install_workflows(app):
             raise HTTPException(429, "Task quota reached")
         if not body.goal.strip():
             raise HTTPException(422, "Task goal is empty")
-        if body.kind == "html" and body.mode != "FAST":
-            raise HTTPException(422, "HTML generation supports FAST only")
+        if body.kind in {"html", "sandbox"} and body.mode != "FAST":
+            raise HTTPException(422, "HTML and sandbox workflows support FAST only")
         return engine.create(user, body.goal, body.kind, body.mode)
 
     @app.get("/api/v1/tasks")
@@ -85,6 +85,8 @@ def install_workflows(app):
         task = require("tasks", user, task_id)
         if task["kind"] == "html" and body.execute:
             raise HTTPException(422, "HTML scripts are not executed by this workflow")
+        if task["kind"] == "sandbox" and not body.execute:
+            raise HTTPException(422, "Explicit sandbox execution confirmation required")
         if task["kind"] == "code" and task["mode"] != "FAST":
             provider = app.state.user_providers.select(user, body.model, "code")
             if not provider.model.demo and not body.confirm_external_reviews:
@@ -140,6 +142,24 @@ def install_workflows(app):
             },
         )
 
+    @app.get("/api/v1/tasks/{task_id}/attachment/{path:path}")
+    def attachment(task_id: str, path: str, user=Depends(owner)):
+        task = require("tasks", user, task_id)
+        if task["state"] in {"RUNNING", "VERIFYING"} or task_id in engine.running:
+            raise HTTPException(409, "Wait for worker completion before downloading files")
+        from pathlib import Path
+
+        suffix = Path(path).suffix.lower()
+        content = engine.workspace(user, task_id).read(path).encode()
+        return Response(
+            content,
+            media_type="application/octet-stream",
+            headers={
+                "Content-Disposition": f'attachment; filename="modax-file{suffix}"',
+                "Content-Security-Policy": "sandbox; default-src 'none'",
+            },
+        )
+
     @app.get("/api/v1/tasks/{task_id}/download")
     def download(task_id: str, user=Depends(owner)):
         require("tasks", user, task_id)
@@ -148,6 +168,39 @@ def install_workflows(app):
             media_type="application/zip",
             headers={"Content-Disposition": f'attachment; filename="modax-{task_id}.zip"'},
         )
+
+    @app.get("/api/v1/tasks/{task_id}/report")
+    def report(task_id: str, user=Depends(owner)):
+        task = require("tasks", user, task_id)
+        if task["state"] in {"CREATED", "PLANNING", "READY", "RUNNING", "VERIFYING"}:
+            raise HTTPException(409, "Wait for a recorded terminal result")
+        return Response(
+            json.dumps(
+                {
+                    "id": task_id,
+                    "state": task["state"],
+                    "result": json.loads(task["result"] or "{}"),
+                },
+                ensure_ascii=False,
+            ),
+            media_type="application/octet-stream",
+            headers={"Content-Disposition": 'attachment; filename="modax-test-report.json"'},
+        )
+
+    @app.get("/api/v1/sandbox/capabilities")
+    def sandbox_capabilities(user=Depends(owner)):
+        from .sandbox import sandbox_configured
+
+        return {
+            "configured": sandbox_configured(settings),
+            "verified_online": False,
+            "language": "python",
+            "runner": "unittest",
+            "network": False,
+            "max_seconds": 60,
+            "max_source_bytes": 120000,
+            "notice": "Worker connectivity and Docker readiness are checked only during a run",
+        }
 
     @app.get("/api/v1/memory")
     def memory(user=Depends(owner)):
