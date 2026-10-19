@@ -60,3 +60,7 @@ Local168passed/1PGskip96.74s preceded one added case; final focused11passed5.21s
 Existing free Render dep-dbavo01srm7s73atjlrg live; cloud guest UI0.6.1 HTML form verified. Actual configured openrouter/free non-demo generation COMPLETED; downloaded417bytes/HTTP200/requested marker,foreign-owner404,scripts_executed=false. Provider reported130input/239output tokens; cost/resolved weights unknown. Whole probe70.08s includes network/auth/polling/download/cleanup,not model latency. Both sessions revoked; one harmless private synthetic task/file remains(no task deletion API). No paid model/service/new resources/training/key changes.
 
 Basic structure validation is not JavaScript/CSS/browser/security validation; generated pages are untrusted and never previewed inline. Production storage still ephemeral. Live SearXNG remains unconfigured. Next: resume authorized search connection; task/Arena history deletion remains pending.
+
+
+## Model labels and branding (0.6.2)
+Provider-reported names are not independent model attestation. If a router supplies only its alias, the final model stays unknown. Old adapter-only rows cannot recover their historical model. New history stores the name,not full provider provenance. The logo is raster and has no trademark clearance claim. No speedup or intelligence gain is claimed. Gemini's previous request failed and remains disabled; copied secret validity is not established.

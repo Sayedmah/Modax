@@ -20,3 +20,5 @@
 Never mark the full MVP or a phase complete from documentation or mock transport tests alone. GPU, credentials and resource-dependent work remains explicitly blocked until available.
 
 User-prioritized0.6.0 M/X modes and SearXNG adapter are implemented. Next: authorized JSON-enabled SearXNG connection and actual grounded search verification. Owner-scoped evaluation-history export/delete remains pending. Never bypass blocked endpoints, execute benchmark code or claim general model superiority/weight training from these features.
+
+- 0.6.2: companion logo, responsive identity, real productivity starters and persisted configured/reported model names — implemented and verified; provider identities are not model-weight attestation.

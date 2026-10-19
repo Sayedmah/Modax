@@ -12,3 +12,6 @@ Latest0.6.1: HTML Forge is complete,do not recreate it. Source0fb1b68e6df073c6e8
 8. Existing free Render service srv-db75ucmi0phs738mfg6g in workspace tea-dalrl82d0e5s738de4j0. Preserve other services/env secrets. Code auto-deploys; docs/state-only commits use [skip render]. Production DATABASE_URL is still unbound/ephemeral; do not retry aborted secure dashboard sign-in.
 9. Hosted feature probe0.6.0 passed separate M/X histories,owner404,explicitDEMOstream,search403/503. Chats removed/sessions revoked.110.73s is whole auth/network/demo/cleanup,not model latency. Cloud guest UI M/X verified without TLS bypass. Check latest source CI/deploy in project_state.json.
 10. OpenRouter free inference last verified2026-10-14; no paid inference/training/secret/new-service changes this increment. Gemini/GPU/native/dedicated Docker/full editor import remain unverified. Preserve exact evidence; no complete-platform or continuous-work promise.
+
+
+Latest:0.6.2 source f9c8acd,CI39269779512 successful,free Render dep-dbb2jktg1s2s73btbihg live. Identity/starters/model labels are implemented; do not repeat them. Read PROJECT_STATE.md and VISUAL_IDENTITY.md. Keep versioned static references when changing frontend releases. Real free OpenRouter reported minimax/minimax-m3.1-flash:free; no Gemini success or model training was established.

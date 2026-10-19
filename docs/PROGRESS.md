@@ -105,3 +105,12 @@ Existing free Render dep-dbavo01srm7s73atjlrg live; cloud guest UI0.6.1 HTML for
 
 Basic structure validation is not JavaScript/CSS/browser/security validation; generated pages are untrusted and never previewed inline. Production storage still ephemeral. Live SearXNG remains unconfigured. Next: resume authorized search connection; task/Arena history deletion remains pending.
 
+
+
+## 0.6.2 — identity, productivity and model transparency
+- Source ec1fceb implements the companion logo, refined responsive surfaces, real quick starters, Ctrl/Cmd+Enter and copy replies.
+- Chat identity is captured from selected configuration and optional provider-reported stream metadata, bounded/context-local and persisted. No final router model is invented.
+- Source f9c8acd versions JS/CSS after live browser evidence of a mixed cached interface.
+- Final local172passed/1PGskip25.98s with Godot4.6;8Node/Ruff/JS and normal51/guest42 UI flows passed. Final CI39269779512 successful including actual PostgreSQL integration.
+- Existing free Render dep-dbb2jktg1s2s73btbihg live; cloud UI/model history verified. Actual free OpenRouter returned reported minimax/minimax-m3.1-flash:free and matching persisted name; API fixture removed/session revoked. One harmless browser DEMO chat retained.
+- No paid inference/service,training,other-service mutation or secret changes in this increment. Gemini remains disabled after the previous failed inference; ephemeral production storage remains a limitation.

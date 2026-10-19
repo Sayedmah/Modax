@@ -1,21 +1,20 @@
 # Current project state
 
-Release:0.6.1,2026-10-19
-Repository:https://github.com/Sayedmah/Modax
-Branch:feat/modax-omega-foundation
-Draft PR:https://github.com/Sayedmah/Modax/pull/2
-Website:https://modax-omega.onrender.com/
-Verified source:0fb1b68e6df073c6e84a1d58c56e5e00e683de60
+Release: 0.6.2, 2026-10-19
+Repository: https://github.com/Sayedmah/Modax
+Branch: feat/modax-omega-foundation
+Draft PR: https://github.com/Sayedmah/Modax/pull/2
+Website: https://modax-omega.onrender.com/
+Verified source: f9c8acd821a68a386e9777599ce38ed03d6dc578
 
-Added Create HTML in sidebar and X shortcut. A description plus configured model creates one index.html; download directly or from persisted task history/ZIP. The HTML workflow is a real bounded background task,FAST only,90s generation,64KiB source. It rejects malformed/oversized/secret-like output before saving and never executes scripts. The owner-only attachment uses octet-stream,explicit filename,nosniff,no-store and restrictive sandbox CSP. See HTML_FORGE.md. Existing modes/chat/Coder/Godot/research/Arena/private notes remain.
+MODAX now ships a generated transparent M/robot companion logo, charcoal/mint interface, responsive starters that open real chat/HTML/Coder workflows, keyboard send and reply copying. Existing M/X and tools remain. Read VISUAL_IDENTITY.md for the five requested skill packages and their applicable source-first/evidence principles; no REA engine installation or use is claimed.
 
-Validation is basic HTML structure inspection,not a browser/JS/CSS/security test. There is no inline preview or guarantee every generated page works. External resources are discouraged by the prompt,not an enforced offline-only sanitizer. DEMO produces a fixed labeled page; actual model selection is preserved. No new schema migration is needed; .html is allowed for workspace storage/export. Coder ZIP import remains its original subset.
+Chat start/done events expose selected provider/configured model and any actual provider-reported model. Names use context-local state and persist in assistant messages; reopening history retains names. Legacy adapter-only history is marked unknown rather than inferred from current configuration. Router aliases are explicit when the final name is not reported. These are provider claims, not model-weight attestation.
 
-Local full168passed/1PGskip96.74s with actual Godot4.6 preceded one extra provider-contract case. Final HTML focused11passed5.21s; Ruff/JS/8Node checks passed. Normal HTML5checks and guest HTML5checks passed; final full CI runs normal44/guest35 flows including320px direct download/reload. CI39243436830 succeeded on the exact source:169passed/1backendPGskip21.71s,8Nodepassed and genuine separate PostgreSQL integration. PG checks HTML download bytes across restart,owner404 and account export.
+Local final172passed/1PGskip25.98s with genuine Godot4.6;8Node session checks,Ruff/JS passed. Normal51/guest42named UI flows passed,including7identity flows and320/768/1024/1440px;0page errors. Final CI39269779512 succeeded on exact source with backend/Godot and separate real PostgreSQL job. Earlier ec1fceb CI39269268576 also passed.
 
-Existing free Render dep-dbavo01srm7s73atjlrg is live on the verified source. Cloud browser directly opened guest workspace and actual HTML form/model selector atv0.6.1. Live API selected ONLY the existing configured openrouter/free alias: actual non-demo generation COMPLETED,HTTP200 downloaded417UTF-8bytes,requested MODAX HTML CHECK marker present,foreign-owner404. No generated script execution occurred. Provider reported130input/239output tokens; dollar cost/resolved foundation weights not reported. Whole probe70.08s includes auth/network/polling/download/cleanup,not model latency. Both sessions revoked; one harmless private synthetic HTML task/file remains because task deletion is not implemented.
+Live free Render dep-dbb2jktg1s2s73btbihg is on final source. Cloud browser verified new logo/visuals,versioned script0.6.2,model badge and reopening a DEMO conversation. A pre-fix browser retained old JavaScript; adding versioned JS/CSS URLs corrected the observed mixed interface. Actual authorized openrouter/free API probe on ec1fceb completed and reported minimax/minimax-m3.1-flash:free; the same name persisted in history. Test chat deleted and API session revoked. One harmless DEMO chat remains in the disposable browser guest. No paid service/model,training,new secret or other Render service change occurred in this increment.
 
-No paid model/service,new resource,key update,training or secret disclosure occurred. Production DATABASE_URL remains unbound/ephemeral; do not retry aborted dashboard sign-in. SearXNG live search remains unconfigured; prior public security check was not bypassed. Gemini,GPU/media,native/export,dedicated Docker/full editor import remain unverified. Earlier fixture caveats remain historical.
+Gemini inference previously failed; copied server secret retained but MODAX_GEMINI_MODEL remains blank to preserve OpenRouter AUTO. No Gemini activation is claimed. Production DATABASE_URL remains unbound/SQLite ephemeral; existing export warning remains. Search/GPU/native/Docker/full hosted custom-asset import limitations remain. No weight training or automatic cross-user learning.
 
-Next: resume authorized SearXNG connection and actual grounded search verification; do not recreate HTML Forge or modes. Owner-scoped task/Arena-history deletion is pending. Keep main unchanged and PR draft. Documentation-only checkpoints use [skip render].
-
+Next: diagnose Gemini using sanitized status without exposing keys; then resume authorized SearXNG and owner task/Arena lifecycle work. Do not recreate identity,HTML Forge or M/X modes. Keep main unchanged and PR draft. Documentation checkpoints use [skip render].
