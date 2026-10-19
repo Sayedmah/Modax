@@ -77,3 +77,7 @@ MODAX_TEST_GODOT=/path/to/godot python -m pytest -q
 ```
 
 The optional engine test skips unless MODAX_TEST_GODOT is set. Read [TEST_REPORT](docs/TEST_REPORT.md), [KNOWN_LIMITATIONS](docs/KNOWN_LIMITATIONS.md), [REFERENCE_PROJECT_AUDIT](docs/REFERENCE_PROJECT_AUDIT.md) and [RESUME_INSTRUCTIONS](docs/RESUME_INSTRUCTIONS.md). Docker Compose configuration is provided; Docker itself has not been available to verify an image build. Native Flutter/Windows/Android/iOS clients are not built in this milestone. The present client is a web operator console.
+
+## Files and Sandbox (0.6.4)
+
+Use Sandbox in the website to upload UTF-8 Python source or a source-only ZIP,save/download exact files and receive a JSON verification report. Coder/history also offer individual file attachments and reports. Supported runtime is standard-library Python unittest on a separate authenticated Docker worker; network-disabled,non-root,read-only and bounded. Actual container and API-to-worker integration are tested in dedicated CI. Public Render execution is not enabled until an authorized dedicated worker is connected; it records BLOCKED rather than executing on the website host. See [Sandbox setup and limits](docs/SANDBOX.md). No paid runtime is created automatically.

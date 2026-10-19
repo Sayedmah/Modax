@@ -3,9 +3,9 @@
   "repository": "https://github.com/Sayedmah/Modax",
   "active_branch": "feat/modax-omega-foundation",
   "baseline_commit": "bb0295d55483a9e1733fdc09399058afd3979534",
-  "latest_verified_commit": "4b2b08d4f00a2350c862baf540ec005946370ca9",
+  "latest_verified_commit": "8cc27119d55dc5158bb304b367db914537bf298f",
   "pull_request": "https://github.com/Sayedmah/Modax/pull/2",
-  "last_completed_phase": "0.6.3 authenticated independent SearXNG service and actual Arabic/English search verified in MODAX; partial-engine failures explicit",
+  "last_completed_phase": "0.6.4 source attachments/reports and authenticated dedicated Docker sandbox workflow verified in CI; hosted execution awaits a dedicated worker",
   "implemented_modules": [
     "auth",
     "sqlite_migrations",
@@ -73,15 +73,21 @@
     "versioned_web_assets",
     "authenticated_searxng_gateway",
     "pinned_search_container_ci",
-    "explicit_partial_search_results"
+    "explicit_partial_search_results",
+    "owner_source_attachments",
+    "downloadable_task_verification_reports",
+    "source_only_sandbox_import",
+    "authenticated_dedicated_docker_worker",
+    "sandbox_transport_and_consent",
+    "actual_docker_isolation_ci"
   ],
   "test_results": {
     "python": {
-      "passed": 176,
-      "skipped": 1,
-      "seconds": 24.05,
-      "environment": "local Python3.12 with actual Godot4.6",
-      "skip_reason": "local PostgreSQL absent; separate final-source CI PostgreSQL job passed"
+      "passed": 180,
+      "skipped": 3,
+      "seconds": 32.91,
+      "environment": "local Python3.12; before the additional Docker-only E2E test",
+      "skip_reason": "local Godot, PostgreSQL and Docker unavailable; corresponding real CI jobs are separate"
     },
     "ruff": "passed",
     "javascript_syntax": "passed",
@@ -112,21 +118,22 @@
         "custom Arena create/select/JSON export/delete/versioned snapshots",
         "mobile custom Arena layout",
         "server-version header",
-        "single HTML creation/direct download/history/reload/320px"
+        "single HTML creation/direct download/history/reload/320px",
+        "sandbox source upload, exact attachment bytes, explicit unavailable status, downloadable blocked report, history,320px layout"
       ]
     },
     "github_actions": {
-      "commit": "4b2b08d4f00a2350c862baf540ec005946370ca9",
-      "run_id": 39276320379,
+      "commit": "8cc27119d55dc5158bb304b367db914537bf298f",
+      "run_id": 39291052944,
       "conclusion": "success",
       "jobs": [
         "backend-and-godot",
         "postgres-integration"
       ],
-      "url": "https://github.com/Sayedmah/Modax/actions/runs/39276320379"
+      "url": "https://github.com/Sayedmah/Modax/actions/runs/39291052944"
     },
     "node_session_regressions": {
-      "passed": 8
+      "passed": 9
     },
     "live_http": [
       "health v0.2 200",
@@ -150,9 +157,9 @@
       "full_editor_import": "still blocked on free host; passes in CI"
     },
     "live_http_current_commit": [
-      "health0.6.3 and direct guest UI",
-      "Arabic/English actual SearXNG results200; consent403; private service token gate401",
-      "cloud browser partial-result warning and HTTPS source links"
+      "health0.6.4/direct guest UI",
+      "Sandbox capabilities configured=false; no false runtime success",
+      "source upload201, exact93byte attachment200, BLOCKED report200, logout204"
     ],
     "account_export": {
       "local": "7 new tests passed",
@@ -372,11 +379,54 @@
         "cleanup": "no chat/file/note fixtures created. First probe session invalidated by deployment. Successful search probe logout returned an empty response that its JSON-only harness could not parse; no logout verification is inferred from that harness."
       },
       "failure_recovery": "First live queries failed; upstream Bing and Mwmbl defaulted disabled. Explicitly enabled them and removed nonresponsive Brave. No CAPTCHA bypass. Initial CI notes test raced logout/navigation; now waits for auth view before navigating; final full CI passed."
+    },
+    "sandbox": {
+      "unit_contract_cases": 5,
+      "dedicated_docker_ci": {
+        "run_id": 39291053000,
+        "conclusion": "success",
+        "source_commit": "8cc27119d55dc5158bb304b367db914537bf298f",
+        "scope": "actual restricted Docker isolation, zero tests, failed tests, premature exit and full API-to-HTTP-worker-to-container/report/download path",
+        "image": "python@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1"
+      },
+      "local_browser": {
+        "normal_flows": 57,
+        "guest_flows": 48,
+        "page_errors": 0
+      },
+      "live": {
+        "deployed_source": "c0fd220703054a70a4f146f97dafa8cbccafb8c7",
+        "version": "0.6.4",
+        "configured": false,
+        "upload_status": 201,
+        "run_state": "BLOCKED",
+        "attachment_status": 200,
+        "attachment_bytes": 93,
+        "attachment_exact_match": true,
+        "report_status": 200,
+        "report_state": "BLOCKED",
+        "model_called": false,
+        "logout_status": 204,
+        "fixture": "one harmless source task retained in disposable guest; no task-delete API",
+        "cloud_browser": "Sandbox form and explicit worker-not-connected warning verified"
+      },
+      "production_execution": "not activated; dedicated Docker host not connected",
+      "supported_artifacts": [
+        "UTF-8 source files and ZIP",
+        "JSON verification report"
+      ],
+      "unsupported": [
+        "general Python script runner",
+        "package installation",
+        "internet access",
+        "returned runtime-generated binary files",
+        "browser/JS/native execution"
+      ]
     }
   },
   "blocked_features": [
     "production DATABASE_URL binding requires authorized Render dashboard connection secret",
-    "actual Docker runtime unavailable",
+    "Dedicated public sandbox Docker worker not connected; actual isolated Docker and API/HTTP integration verified in CI only",
     "native SDK/signing/export templates unavailable",
     "GPU media workers and compatible model licenses not configured",
     "Full editor import/custom-asset validation on free Render remains blocked; exact primitive template gameplay is verified",
@@ -393,7 +443,7 @@
     "comprehensive benchmarks/training",
     "expand multi-agent OMEGA beyond same-provider isolated code reviews"
   ],
-  "next_exact_executable_action": "Implement owner-scoped Arena evaluation-history JSON export/delete with retained-dataset snapshots, quota release and cross-owner tests. Keep working SearXNG/model routes; inspect current state before editing.",
+  "next_exact_executable_action": "Connect an explicitly authorized dedicated disposable Docker host using server-only MODAX_SANDBOX_URL/TOKEN; run a real hosted Python unittest job and verify owner-only reports/downloads. Never expose Docker in public Render or reuse another application host without authorization. Then resume Arena history lifecycle.",
   "resume_commands": [
     "pip install -e .[dev]",
     "python -m pytest -q",
@@ -410,7 +460,7 @@
     "workspace": "tea-dalrl82d0e5s738de4j0",
     "service": "srv-db75ucmi0phs738mfg6g",
     "plan": "free",
-    "deploy": "dep-dbb37u67bikc73f8nc50",
+    "deploy": "dep-dbb4qmrm8hqs73etj3eg",
     "status": "live",
     "postgres": "dpg-db74kajncjis73fgelo0-a",
     "database_connection": "DATABASE_URL unbound; no database changes in this increment",
@@ -418,7 +468,7 @@
     "active_storage": "local ephemeral until DATABASE_URL bound",
     "guest_mode": true,
     "public_signup": false,
-    "source_commit": "4b2b08d4f00a2350c862baf540ec005946370ca9",
+    "source_commit": "c0fd220703054a70a4f146f97dafa8cbccafb8c7",
     "search_service": {
       "id": "srv-dbb34k3bc2fs73dbt5o0",
       "url": "https://modax-search.onrender.com",
@@ -429,6 +479,12 @@
       "auto_deploy": false,
       "token": "server-only matching environment variables; never export values",
       "limits": "shared free hours; sleep/cold wake-up; no keepalive job or paid upgrade"
+    },
+    "sandbox": {
+      "configured": false,
+      "host_created": false,
+      "paid_service_created": false,
+      "notice": "UI/source delivery deployed; public execution not activated"
     }
   },
   "scheduled_continuation": {

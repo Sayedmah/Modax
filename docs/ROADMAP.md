@@ -24,3 +24,5 @@ User-prioritized0.6.0 M/X modes and SearXNG adapter are implemented. Next: autho
 - 0.6.2: companion logo, responsive identity, real productivity starters and persisted configured/reported model names — implemented and verified; provider identities are not model-weight attestation.
 
 -0.6.3: independent authenticated free SearXNG service and actual English/Arabic source results verified; earlier connection-pending entries are superseded. Partial-engine/cold-start limits remain. Next executable milestone: owner-scoped Arena evaluation-history JSON export/delete, quota recovery and cross-owner tests.
+
+-0.6.4: individual source attachments,verification reports,Python/ZIP Sandbox tasks and authenticated dedicated worker implemented. Actual isolated Docker and full API→HTTP→container path verified in CI. Next acceptance:connect an authorized dedicated host and verify public execution; current Render source delivery works but runtime remains BLOCKED. Do not equate the UI/configuration with activation. Arena history lifecycle remains pending.
