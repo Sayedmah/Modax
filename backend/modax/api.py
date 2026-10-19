@@ -241,7 +241,7 @@ def create_app(settings=None):
         if len(q) > 120:
             raise HTTPException(422, "Search too long")
         return store.query(
-            "SELECT c.*,COALESCE(m.mode,'M') AS workspace_mode FROM chats c LEFT JOIN chat_modes m ON m.chat_id=c.id WHERE c.owner=? AND c.title LIKE ? AND (? IS NULL OR COALESCE(m.mode,'M')=?) ORDER BY c.created DESC LIMIT 200",
+            "SELECT c.*,COALESCE(m.mode,'M') AS workspace_mode FROM chats c LEFT JOIN chat_modes m ON m.chat_id=c.id WHERE c.owner=? AND c.title LIKE ? AND (CAST(? AS TEXT) IS NULL OR COALESCE(m.mode,'M')=?) ORDER BY c.created DESC LIMIT 200",
             (user, "%" + q + "%", workspace_mode, workspace_mode),
         )
 

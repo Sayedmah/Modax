@@ -36,6 +36,7 @@ def test_genuine_postgres_migrations_auth_documents_and_tasks(tmp_path):
             cid = c.post("/api/v1/chats", headers=h, json={"workspace_mode": "X"}).json()["id"]
             assert c.get("/api/v1/chats?workspace_mode=M", headers=h).json() == []
             assert c.get("/api/v1/chats?workspace_mode=X", headers=h).json()[0]["id"] == cid
+            assert len(c.get("/api/v1/chats", headers=h).json()) == 1
             guest = c.post("/api/v1/auth/guest")
             assert guest.status_code == 201, guest.text
             guest_headers = {"Authorization": "Bearer " + guest.json()["token"]}
