@@ -8,6 +8,7 @@ from dataclasses import dataclass
 import httpx
 
 _USAGE = ContextVar("modax_provider_usage", default=None)
+_IDENTITY = ContextVar("modax_provider_identity", default=None)
 
 
 class CapabilityError(ValueError):
@@ -43,6 +44,21 @@ class Provider:
 
     def reset_usage(self):
         _USAGE.set((self, {"input_tokens": None, "output_tokens": None, "complete": False}))
+        _IDENTITY.set((self, None))
+
+    def record_model(self, name):
+        if isinstance(name, str) and 0 < len(name) <= 100 and name.isprintable():
+            _IDENTITY.set((self, name))
+
+    def get_identity(self):
+        current = _IDENTITY.get()
+        reported = current[1] if current and current[0] is self else None
+        return {
+            "provider": self.model.provider,
+            "configured_model": self.model.model,
+            "reported_model": reported,
+            "demo": self.model.demo,
+        }
 
     def record_usage(self, input_tokens=None, output_tokens=None, complete=False):
         current = _USAGE.get()
@@ -163,6 +179,7 @@ class HTTPProvider(Provider):
                             raise ProviderError("Malformed provider event")
                         if record.get("error"):
                             raise ProviderError("Provider returned an error")
+                        self.record_model(record.get("model"))
                         usage = record.get("usage")
                         if isinstance(usage, dict):
                             self.record_usage(

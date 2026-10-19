@@ -70,7 +70,7 @@ def create_app(settings=None):
         finally:
             await app.state.task_engine.shutdown()
 
-    app = FastAPI(title="MODAX OMEGA", version="0.6.1", lifespan=lifespan)
+    app = FastAPI(title="MODAX OMEGA", version="0.6.2", lifespan=lifespan)
     app.state.settings, app.state.store, app.state.registry = settings, store, registry
     limiter = defaultdict(deque)
     guest_limiter = defaultdict(deque)
@@ -152,7 +152,7 @@ def create_app(settings=None):
     def health():
         return {
             "status": "ok",
-            "version": "0.6.1",
+            "version": "0.6.2",
             "guest_mode": settings.guest_mode,
             "demo": settings.demo,
             "persistence": "postgres" if settings.database_url else "local",
@@ -325,7 +325,7 @@ def create_app(settings=None):
                     chat_id,
                     "assistant",
                     "",
-                    provider.model.id,
+                    provider.model.model,
                     "running",
                     now + 0.000001,
                 ),
@@ -344,10 +344,11 @@ def create_app(settings=None):
         async def stream():
             chunks, status = [], "interrupted"
             started = time.perf_counter()
+            provider.reset_usage()
             try:
                 yield event(
                     "start",
-                    {"id": assistant_id, "model": provider.model.id, "demo": provider.model.demo},
+                    {"id": assistant_id, "model": provider.model.id, **provider.get_identity()},
                 )
                 async with asyncio.timeout(180):
                     async for part in provider.stream_text(messages):
@@ -362,7 +363,9 @@ def create_app(settings=None):
                     chunks.append(sources)
                     yield event("delta", {"text": sources})
                 status = "completed"
-                yield event("done", {"id": assistant_id, "status": status})
+                yield event(
+                    "done", {"id": assistant_id, "status": status, **provider.get_identity()}
+                )
             except (ProviderError, TimeoutError):
                 status = "failed"
                 yield event(
@@ -370,8 +373,13 @@ def create_app(settings=None):
                 )
             finally:
                 store.execute(
-                    "UPDATE messages SET content=?, status=? WHERE id=?",
-                    ("".join(chunks), status, assistant_id),
+                    "UPDATE messages SET content=?, status=?, model=? WHERE id=?",
+                    (
+                        "".join(chunks),
+                        status,
+                        provider.get_identity()["reported_model"] or provider.model.model,
+                        assistant_id,
+                    ),
                 )
                 with store.connect() as db:
                     measured_usage = provider.get_usage()

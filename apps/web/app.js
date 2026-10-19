@@ -10,6 +10,7 @@ let chatSubmitting = false;
 let chatViewEpoch = 0;
 const requests = new Set();
 function resetOwnerView() {
+  $('quick-start').hidden=false;
   $('html-goal').value='';$('html-model').replaceChildren();$('html-result').replaceChildren();$('html-submit').disabled=false;
   chatViewEpoch++;
   chatSubmitting=false;$('mode-m').disabled=false;$('mode-x').disabled=false;
@@ -52,11 +53,26 @@ async function api(path, options={}) {
 const post = async (path, data) => (await api(path,{method:'POST',body:JSON.stringify(data)}));
 function safe(handler) { return async event => { try { await handler(event); } catch(error) { notify(error.message,true); } }; }
 function message(role,content,status='') {
+  $('quick-start').hidden=true;
   const box=document.createElement('article');box.className='message '+role;
   const label=document.createElement('small');label.textContent=(role==='user'?'أنت':'MODAX')+(status?' · '+status:'');
-  const body=document.createElement(role==='assistant'?'div':'pre');body.textContent=content;box.append(label,body);$('messages').append(box);
+  const identity=document.createElement('span');identity.className='model-badge';identity.hidden=role!=='assistant';identity.textContent='جارٍ تحديد النموذج…';
+  const body=document.createElement(role==='assistant'?'div':'pre');body.textContent=content;box.append(label,identity,body);$('messages').append(box);
+  if(role==='assistant'){
+    const copy=document.createElement('button');copy.type='button';copy.className='copy-answer secondary';copy.textContent='نسخ الرد';
+    copy.onclick=safe(async()=>{await navigator.clipboard.writeText(body.textContent);notify('نُسخ الرد');});box.append(copy);
+  }
   $('messages').scrollTop=$('messages').scrollHeight;
-  return {box,body,label};
+  return {box,body,label,identity};
+}
+function showModel(target,data){
+  const name=data.reported_model||data.configured_model||data.model;
+  const legacy=['demo','gemini','openrouter','compatible','ollama','anthropic'].includes(name);
+  target.textContent=!name?'النموذج غير مسجل':legacy?(name==='demo'?'DEMO · محاكاة':name+' · اسم النموذج التاريخي غير محفوظ'):name;
+  if(name==='openrouter/free'||name==='auto')target.textContent+=' · موجّه؛ النموذج النهائي غير مُعلن';
+  if(data.demo&&!target.textContent.includes('محاكاة'))target.textContent+=' · محاكاة';
+  if(data.provider&&!data.demo)target.textContent=data.provider+' · '+target.textContent;
+  target.dir='auto';
 }
 async function history() {
   const epoch=++historyEpoch;
@@ -70,7 +86,8 @@ async function openChat(id) {
   const epoch=++chatViewEpoch;const fetched=await (await api('/chats/'+id)).json();if(epoch!==chatViewEpoch)return;
   currentChat=fetched;chatId=id;$('chat-title').textContent=currentChat.title;$('messages').replaceChildren();
   workspaceMode=currentChat.workspace_mode||'M';modePresentation();
-  for(const m of currentChat.messages) message(m.role,m.content,m.status);
+  $('quick-start').hidden=currentChat.messages.length>0;
+  for(const m of currentChat.messages){const rendered=message(m.role,m.content,m.status);if(m.role==='assistant'){showModel(rendered.identity,{model:m.model});renderMarkdown(rendered.body,m.content);}}
   await history();
 }
 async function enter() {
@@ -91,7 +108,7 @@ async function authenticate(register=false) {
 }
 $('auth-form').onsubmit=e=>{e.preventDefault();authenticate();};$('register').onclick=()=>authenticate(true);
 $('logout').onclick=safe(async()=>{await post('/auth/logout',{});resetOwnerView();token='';sessionStorage.removeItem('modax-token');$('app').hidden=true;if(guestMode)await bootstrap();else $('auth').hidden=false;});
-$('new-chat').onclick=safe(async()=>{if(controller||chatSubmitting) throw new Error('أوقف الرد الجاري أولاً');chatViewEpoch++;chatId=null;currentChat=null;$('messages').replaceChildren();$('chat-title').textContent='محادثة جديدة';});
+$('new-chat').onclick=safe(async()=>{if(controller||chatSubmitting) throw new Error('أوقف الرد الجاري أولاً');chatViewEpoch++;chatId=null;currentChat=null;$('messages').replaceChildren();$('quick-start').hidden=false;$('chat-title').textContent='محادثة جديدة';$('prompt').focus();});
 $('search').oninput=safe(history);
 $('chat-form').onsubmit=safe(async e=>{
   e.preventDefault();const epoch=sessionEpoch;const content=$('prompt').value.trim();if(!content||controller||chatSubmitting)return;
@@ -106,7 +123,7 @@ $('chat-form').onsubmit=safe(async e=>{
     const response=await api('/chats/'+chatId+'/messages',{method:'POST',body:JSON.stringify({content,model:$('model').value,attachment_ids:$('chat-attachment').value?[$('chat-attachment').value]:[],web_query:web?content:'',confirm_external_search:web}),signal:controller.signal});
     const reader=response.body.getReader(),decoder=new TextDecoder();const streamController=response.modaxController;reader.closed.finally(()=>requests.delete(streamController)).catch(()=>{});let buffer='';
     while(true){const {value,done}=await reader.read();if(done)break;buffer+=decoder.decode(value,{stream:true});
-      let boundary;while((boundary=buffer.indexOf('\n\n'))>=0){const block=buffer.slice(0,boundary);buffer=buffer.slice(boundary+2);const eventName=block.split('\n').find(x=>x.startsWith('event: '))?.slice(7);const line=block.split('\n').find(x=>x.startsWith('data: '));if(!line)continue;const data=JSON.parse(line.slice(6));if(eventName==='delta')assistant.body.textContent+=data.text;if(eventName==='done'){assistant.label.textContent='MODAX · completed';renderMarkdown(assistant.body,assistant.body.textContent);}if(eventName==='error')throw new Error(data.message);$('messages').scrollTop=$('messages').scrollHeight;}
+      let boundary;while((boundary=buffer.indexOf('\n\n'))>=0){const block=buffer.slice(0,boundary);buffer=buffer.slice(boundary+2);const eventName=block.split('\n').find(x=>x.startsWith('event: '))?.slice(7);const line=block.split('\n').find(x=>x.startsWith('data: '));if(!line)continue;const data=JSON.parse(line.slice(6));if(eventName==='start'||eventName==='done')showModel(assistant.identity,data);if(eventName==='delta')assistant.body.textContent+=data.text;if(eventName==='done'){assistant.label.textContent='MODAX · completed';renderMarkdown(assistant.body,assistant.body.textContent);}if(eventName==='error')throw new Error(data.message);$('messages').scrollTop=$('messages').scrollHeight;}
     }
   }catch(error){assistant.label.textContent=error.name==='AbortError'?'MODAX · interrupted':'MODAX · failed';if(error.name!=='AbortError')notify(error.message,true);}
   finally{if(epoch!==sessionEpoch)return;controller=null;$('stop').hidden=true;$('send').disabled=false;currentChat=await (await api('/chats/'+chatId)).json();}
@@ -257,6 +274,7 @@ async function bootstrap(){
   finally{$('boot-retry').disabled=false;if(!$('app').hidden||!$('auth').hidden)$('boot-state').hidden=true;}
 }
 function modePresentation(){
+  if(!chatId)$('quick-start').hidden=false;
   $('mode-name').textContent=workspaceMode==='M'?'M · دردشة خفيفة':'X · مساحة العمل';
   $('mode-description').textContent=workspaceMode==='M'?'أسئلة وإجابات وملفات وملاحظات خاصة بك.':'خطط، أنشئ الملفات، وراجع نتائج التحقق.';
   $('work-actions').hidden=workspaceMode!=='X';
@@ -288,4 +306,6 @@ $('web-search-form').onsubmit=safe(async event=>{
   finally{if(epoch===researchEpoch)$('web-search-submit').disabled=false;}
 });
 $('boot-retry').onclick=()=>bootstrap();
+$('prompt').onkeydown=event=>{if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){event.preventDefault();$('chat-form').requestSubmit();}};
+for(const button of document.querySelectorAll('[data-quick-view]'))button.onclick=()=>{document.querySelector('.nav[data-view="'+button.dataset.quickView+'"]').click();const field=$(button.dataset.quickField);field.value=button.dataset.quickPrompt;field.focus();if(innerWidth<=760){$('app').classList.add('sidebar-closed');for(const id of ['mode-m','mode-x'])$(id).setAttribute('aria-expanded','false');}};
 if(typeof window!=='undefined')bootstrap();

@@ -69,5 +69,6 @@ for script in [
     "scripts/arena_smoke.cjs",
     "scripts/modes_smoke.cjs",
     "scripts/html_smoke.cjs",
+    "scripts/identity_smoke.cjs",
 ]:
     run_check(script)
