@@ -1,11 +1,18 @@
 """Opt-in real Docker checks. No submitted source is ever imported on the host."""
 
 import os
+import subprocess
+import sys
+import time
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
+from modax.api import create_app
+from modax.config import Settings
 from modax.sandbox_worker import create_worker
 from modax.workspace import Workspace
+from test_chat import register
 
 IMAGE = os.getenv("MODAX_TEST_SANDBOX_IMAGE", "")
 pytestmark = pytest.mark.skipif(not IMAGE, reason="Dedicated Docker runtime not configured")
@@ -51,3 +58,63 @@ class Isolation(unittest.TestCase):
     assert failed["exit_code"] == 1 and "observed failure" in failed["output"]
     workspace.apply([{"path": "test_failure.py", "content": "import os\nos._exit(0)\n"}])
     assert workspace.run_tests(True, IMAGE)["exit_code"] == 6
+
+
+def test_actual_api_to_http_worker_container_and_download(tmp_path):
+    token = "disposable-e2e-worker-token-1234567890"
+    address = "http://127.0.0.1:8769"
+    process = subprocess.Popen(
+        [
+            sys.executable,
+            "-m",
+            "uvicorn",
+            "modax.sandbox_worker:create_worker",
+            "--factory",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            "8769",
+        ],
+        env={**os.environ, "MODAX_SANDBOX_TOKEN": token, "MODAX_TEST_IMAGE": IMAGE},
+    )
+    try:
+        with httpx.Client(trust_env=False, timeout=1) as http:
+            deadline = time.monotonic() + 15
+            while True:
+                try:
+                    assert http.get(address + "/health").status_code == 200
+                    break
+                except httpx.HTTPError:
+                    if process.poll() is not None or time.monotonic() > deadline:
+                        raise AssertionError("Dedicated test worker did not start") from None
+                    time.sleep(0.1)
+        settings = Settings(
+            data_dir=tmp_path, allow_signup=True, sandbox_url=address, sandbox_token=token
+        )
+        with TestClient(create_app(settings)) as client:
+            headers = register(client)
+            foreign = register(client, "other-sandbox-owner")
+            task = client.post(
+                "/api/v1/tasks",
+                headers=headers,
+                json={"kind": "sandbox", "goal": "Real isolated test"},
+            ).json()
+            route = "/api/v1/tasks/" + task["id"]
+            source = "import unittest\nclass Test(unittest.TestCase):\n def test_sum(self): self.assertEqual(3+4,7)\n"
+            assert (
+                client.post(
+                    route + "/project", headers=headers, files={"file": ("test_sum.py", source)}
+                ).status_code
+                == 201
+            )
+            result = client.post(route + "/run", headers=headers, json={"execute": True}).json()
+            assert result["state"] == "COMPLETED", result
+            report = client.get(route + "/report", headers=headers).json()
+            assert report["result"]["runtime_tests"]["exit_code"] == 0
+            assert "MODAX_RUN_COMPLETED 1" in report["result"]["runtime_tests"]["output"]
+            assert report["result"]["model_called"] is False
+            assert client.get(route + "/attachment/test_sum.py", headers=headers).text == source
+            assert client.get(route + "/report", headers=foreign).status_code == 404
+    finally:
+        process.terminate()
+        process.wait(timeout=10)
