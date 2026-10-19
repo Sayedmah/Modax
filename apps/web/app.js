@@ -301,6 +301,7 @@ $('web-search-form').onsubmit=safe(async event=>{
   event.preventDefault();const epoch=++researchEpoch;$('web-results').replaceChildren();$('web-status').textContent='جاري البحث…';$('web-search-submit').disabled=true;
   try{const data=await(await post('/research/search',{query:$('web-query').value,confirm_external_search:$('web-consent').checked})).json();if(epoch!==researchEpoch)return;
     $('web-status').textContent=data.results.length?'مقتطفات بحث — افتح المصادر للتحقق.':'لم يرجع المحرك نتائج.';
+    if(data.partial)$('web-status').textContent+=' بعض المحركات لم تستجب؛ قد تكون النتائج ناقصة.';
     for(const result of data.results){const panel=document.createElement('article');panel.className='panel';const link=document.createElement('a');link.href=result.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent=result.title||result.url;const snippet=document.createElement('p');snippet.textContent=result.snippet;panel.append(link,snippet);$('web-results').append(panel);}
   }catch(error){if(epoch===researchEpoch)$('web-status').textContent=error.message;}
   finally{if(epoch===researchEpoch)$('web-search-submit').disabled=false;}

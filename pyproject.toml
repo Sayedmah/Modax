@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "modax-omega"
-version = "0.6.2"
+version = "0.6.3"
 requires-python = ">=3.12"
 dependencies = ["fastapi==0.143.0", "uvicorn==0.54.0", "httpx==0.28.1", "starlette==0.52.1", "anyio==4.12.1", "cryptography>=46,<51", "psycopg[binary]>=3.2,<4", "pypdf>=6,<7", "openpyxl==3.1.5", "python-docx==1.2.0", "python-multipart>=0.0.20,<1"]
 

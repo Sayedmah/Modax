@@ -36,18 +36,18 @@ class SearchInput(BaseModel):
 _search_slots = asyncio.Semaphore(2)
 
 
-async def search_web(endpoint, query, confirmed):
+async def search_web(endpoint, query, confirmed, token=""):
     if _search_slots.locked():
         raise HTTPException(429, "Search busy; try again later")
     async with _search_slots:
         try:
             async with asyncio.timeout(15):
-                return await _search(endpoint, query, confirmed)
+                return await _search(endpoint, query, confirmed, token)
         except TimeoutError:
             raise HTTPException(504, "Search time budget exceeded") from None
 
 
-async def _search(endpoint, query, confirmed):
+async def _search(endpoint, query, confirmed, token=""):
     if not confirmed:
         raise HTTPException(403, "Confirm sending this query to the external search service")
     if not query.strip() or len(query) > 240 or SECRET.search(query):
@@ -61,6 +61,7 @@ async def _search(endpoint, query, confirmed):
             async with client.stream(
                 "GET",
                 endpoint.rstrip("/") + "/search",
+                headers={"X-Modax-Search-Token": token} if token else {},
                 params={
                     "q": query,
                     "format": "json",
@@ -92,7 +93,16 @@ async def _search(endpoint, query, confirmed):
             )
             if len(results) == 5:
                 break
-        return {"query": query, "results": results, "kind": "search_snippets_not_page_reads"}
+        failures = data.get("unavailable_engine_count", 0)
+        if type(failures) is not int or not 0 <= failures <= 1000:
+            failures = 0
+        return {
+            "query": query,
+            "results": results,
+            "kind": "search_snippets_not_page_reads",
+            "partial": bool(failures),
+            "unavailable_engine_count": failures,
+        }
     except (httpx.HTTPError, ValueError, TypeError, KeyError):
         raise HTTPException(
             502, "Search failed; check SearXNG availability and JSON support"
@@ -113,5 +123,8 @@ def install_research(app):
     @app.post("/api/v1/research/search")
     async def search(body: SearchInput, user=Depends(app.state.owner_dependency)):
         return await search_web(
-            app.state.settings.searxng_url, body.query, body.confirm_external_search
+            app.state.settings.searxng_url,
+            body.query,
+            body.confirm_external_search,
+            app.state.settings.searxng_token,
         )

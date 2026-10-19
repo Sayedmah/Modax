@@ -70,7 +70,7 @@ def create_app(settings=None):
         finally:
             await app.state.task_engine.shutdown()
 
-    app = FastAPI(title="MODAX OMEGA", version="0.6.2", lifespan=lifespan)
+    app = FastAPI(title="MODAX OMEGA", version="0.6.3", lifespan=lifespan)
     app.state.settings, app.state.store, app.state.registry = settings, store, registry
     limiter = defaultdict(deque)
     guest_limiter = defaultdict(deque)
@@ -152,7 +152,7 @@ def create_app(settings=None):
     def health():
         return {
             "status": "ok",
-            "version": "0.6.2",
+            "version": "0.6.3",
             "guest_mode": settings.guest_mode,
             "demo": settings.demo,
             "persistence": "postgres" if settings.database_url else "local",
@@ -283,7 +283,10 @@ def create_app(settings=None):
             from .research import search_web
 
             research = await search_web(
-                settings.searxng_url, body.web_query, body.confirm_external_search
+                settings.searxng_url,
+                body.web_query,
+                body.confirm_external_search,
+                settings.searxng_token,
             )
             grounding += (
                 "\nWeb search snippets (pages NOT opened; cite provided URLs):\n"
@@ -360,6 +363,8 @@ def create_app(settings=None):
                     sources = "\n\nمصادر البحث (مقتطفات؛ لم تُفتح الصفحات):\n" + "\n".join(
                         item["url"] for item in research["results"]
                     )
+                    if research.get("partial"):
+                        sources += "\nبعض محركات البحث لم تستجب؛ قد تكون النتائج ناقصة."
                     chunks.append(sources)
                     yield event("delta", {"text": sources})
                 status = "completed"
