@@ -16,7 +16,7 @@ MAX_ROWS = 100000
 
 # Explicit column allowlists are intentional: schema additions must not leak secrets.
 COLLECTIONS = {
-    "chats": "SELECT id,title,created FROM chats WHERE owner=? ORDER BY created,id",
+    "chats": "SELECT c.id,c.title,c.created,COALESCE(m.mode,'M') AS workspace_mode FROM chats c LEFT JOIN chat_modes m ON m.chat_id=c.id WHERE c.owner=? ORDER BY c.created,c.id",
     "messages": "SELECT m.id,m.chat_id,m.role,m.content,m.model,m.status,m.created FROM messages m JOIN chats c ON c.id=m.chat_id WHERE c.owner=? ORDER BY m.created,m.id",
     "tasks": "SELECT id,goal,kind,mode,state,plan,result,created FROM tasks WHERE owner=? ORDER BY created,id",
     "task_steps": "SELECT s.task_id,s.phase,s.status,s.details,s.created FROM task_steps s JOIN tasks t ON t.id=s.task_id WHERE t.owner=? ORDER BY s.id",

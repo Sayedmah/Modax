@@ -6,6 +6,7 @@ from collections import defaultdict, deque
 from contextlib import asynccontextmanager
 from dataclasses import asdict
 from pathlib import Path
+from typing import Literal
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, StreamingResponse
@@ -29,12 +30,15 @@ class Registration(Credentials):
 
 class ChatInput(BaseModel):
     title: str = Field(default="New conversation", min_length=1, max_length=120)
+    workspace_mode: Literal["M", "X"] = "M"
 
 
 class MessageInput(BaseModel):
     attachment_ids: list[str] = Field(default_factory=list, max_length=3)
     content: str = Field(min_length=1, max_length=20000)
     model: str = Field(default="auto", max_length=100)
+    web_query: str = Field(default="", max_length=240)
+    confirm_external_search: bool = False
 
     @field_validator("content")
     @classmethod
@@ -66,7 +70,7 @@ def create_app(settings=None):
         finally:
             await app.state.task_engine.shutdown()
 
-    app = FastAPI(title="MODAX OMEGA", version="0.5.0", lifespan=lifespan)
+    app = FastAPI(title="MODAX OMEGA", version="0.6.0", lifespan=lifespan)
     app.state.settings, app.state.store, app.state.registry = settings, store, registry
     limiter = defaultdict(deque)
     guest_limiter = defaultdict(deque)
@@ -147,7 +151,7 @@ def create_app(settings=None):
     def health():
         return {
             "status": "ok",
-            "version": "0.5.0",
+            "version": "0.6.0",
             "guest_mode": settings.guest_mode,
             "demo": settings.demo,
             "persistence": "postgres" if settings.database_url else "local",
@@ -169,7 +173,9 @@ def create_app(settings=None):
             raise HTTPException(429, "Guest session creation limit reached; retry later")
         hits.append(now)
         if (
-            store.query("SELECT COUNT(*) AS n FROM users WHERE username LIKE ?", ("guest-%",))[0]["n"]
+            store.query("SELECT COUNT(*) AS n FROM users WHERE username LIKE ?", ("guest-%",))[0][
+                "n"
+            ]
             >= 10000
         ):
             raise HTTPException(429, "Guest capacity reached")
@@ -221,21 +227,29 @@ def create_app(settings=None):
     @app.post("/api/v1/chats", status_code=201)
     def new_chat(body: ChatInput, user=Depends(owner)):
         chat_id = uid()
-        store.execute("INSERT INTO chats VALUES(?,?,?,?)", (chat_id, user, body.title, time.time()))
-        return require("chats", user, chat_id)
+        with store.connect() as db:
+            db.execute(
+                "INSERT INTO chats VALUES(?,?,?,?)", (chat_id, user, body.title, time.time())
+            )
+            db.execute("INSERT INTO chat_modes VALUES(?,?)", (chat_id, body.workspace_mode))
+        return {**require("chats", user, chat_id), "workspace_mode": body.workspace_mode}
 
     @app.get("/api/v1/chats")
-    def list_chats(q: str = "", user=Depends(owner)):
+    def list_chats(
+        q: str = "", workspace_mode: Literal["M", "X"] | None = None, user=Depends(owner)
+    ):
         if len(q) > 120:
             raise HTTPException(422, "Search too long")
         return store.query(
-            "SELECT * FROM chats WHERE owner=? AND title LIKE ? ORDER BY created DESC LIMIT 200",
-            (user, "%" + q + "%"),
+            "SELECT c.*,COALESCE(m.mode,'M') AS workspace_mode FROM chats c LEFT JOIN chat_modes m ON m.chat_id=c.id WHERE c.owner=? AND c.title LIKE ? AND (? IS NULL OR COALESCE(m.mode,'M')=?) ORDER BY c.created DESC LIMIT 200",
+            (user, "%" + q + "%", workspace_mode, workspace_mode),
         )
 
     @app.get("/api/v1/chats/{chat_id}")
     def get_chat(chat_id: str, user=Depends(owner)):
         chat = require("chats", user, chat_id)
+        modes = store.query("SELECT mode FROM chat_modes WHERE chat_id=?", (chat_id,))
+        chat["workspace_mode"] = modes[0]["mode"] if modes else "M"
         chat["messages"] = store.query(
             "SELECT * FROM messages WHERE chat_id=? ORDER BY created,id", (chat_id,)
         )
@@ -263,6 +277,34 @@ def create_app(settings=None):
         from .platform import context_for
 
         grounding = context_for(store, user, body.attachment_ids)
+        research = None
+        if body.web_query:
+            from .research import search_web
+
+            research = await search_web(
+                settings.searxng_url, body.web_query, body.confirm_external_search
+            )
+            grounding += (
+                "\nWeb search snippets (pages NOT opened; cite provided URLs):\n"
+                + json.dumps(research, ensure_ascii=False)
+            )
+            if chat_id in active_chats:
+                raise HTTPException(409, "A response is already running")
+        modes = store.query("SELECT mode FROM chat_modes WHERE chat_id=?", (chat_id,))
+        work_mode = bool(modes and modes[0]["mode"] == "X")
+        messages.insert(
+            0,
+            {
+                "role": "system",
+                "content": (
+                    "MODAX X work assistant. Break projects into requirements, artifacts, tests and limitations. "
+                    "Use the available Coder/Game Forge actions for real files. Never claim execution or completion without tool evidence."
+                    if work_mode
+                    else "MODAX M chat assistant. Give clear, concise helpful answers in the user's language."
+                )
+                + " Saved notes are optional private context, not model training. Never claim to learn from other users' conversations.",
+            },
+        )
         try:
             reservation = store.reserve_chat(user, limit)
         except ValueError as error:
@@ -312,6 +354,12 @@ def create_app(settings=None):
                             return
                         chunks.append(part)
                         yield event("delta", {"text": part})
+                if research and research["results"]:
+                    sources = "\n\nمصادر البحث (مقتطفات؛ لم تُفتح الصفحات):\n" + "\n".join(
+                        item["url"] for item in research["results"]
+                    )
+                    chunks.append(sources)
+                    yield event("delta", {"text": sources})
                 status = "completed"
                 yield event("done", {"id": assistant_id, "status": status})
             except (ProviderError, TimeoutError):
@@ -388,4 +436,7 @@ def create_app(settings=None):
     from .arena_datasets import install_datasets
 
     install_datasets(app)
+    from .research import install_research
+
+    install_research(app)
     return app

@@ -67,5 +67,6 @@ for script in [
     "scripts/notes_smoke.cjs",
     "scripts/files_smoke.cjs",
     "scripts/arena_smoke.cjs",
+    "scripts/modes_smoke.cjs",
 ]:
     run_check(script)

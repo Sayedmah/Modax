@@ -55,6 +55,11 @@ CREATE INDEX arena_datasets_owner ON arena_datasets(owner,created);
 """)
 
 
+MIGRATIONS.append("""
+CREATE TABLE chat_modes(chat_id TEXT PRIMARY KEY REFERENCES chats(id) ON DELETE CASCADE, mode TEXT NOT NULL CHECK(mode IN ('M','X')));
+""")
+
+
 def uid():
     return secrets.token_hex(16)
 

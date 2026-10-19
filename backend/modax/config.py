@@ -27,6 +27,7 @@ class Settings:
     test_image: str = field(default_factory=lambda: os.getenv("MODAX_TEST_IMAGE", ""))
     godot_binary: str = field(default_factory=lambda: os.getenv("MODAX_GODOT_BINARY", "godot"))
     comfy_url: str = field(default_factory=lambda: os.getenv("MODAX_COMFY_URL", ""))
+    searxng_url: str = field(default_factory=lambda: os.getenv("MODAX_SEARXNG_URL", ""))
 
     def __post_init__(self):
         object.__setattr__(self, "data_dir", Path(self.data_dir).absolute())

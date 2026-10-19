@@ -59,6 +59,12 @@ Open the output's project.godot in Godot 4.6. Export presets are configuration o
 
 ## Verify
 
+M/X workspaces: M is concise chat; X provides project planning and actual Coder,
+Godot and history actions. Each mode has separately filtered private conversations.
+The switch does not train weights or promise complete arbitrary projects.
+Optional SearXNG search needs an authorized JSON-enabled instance; production
+search is currently unconfigured. See [workspace modes and search](docs/WORKSPACE_MODES.md).
+
 ```bash
 python -m pytest -q
 python -m ruff check backend tests

@@ -27,6 +27,7 @@ class ArchiveError(ValueError):
 class SourceChat(BaseModel):
     id: str = Field(min_length=1, max_length=128)
     title: str = Field(min_length=1, max_length=120)
+    workspace_mode: Literal["M", "X"] = "M"
 
 
 class SourceMessage(BaseModel):
@@ -113,7 +114,14 @@ def parse_archive(payload, *, notes_only=False):
                 for key, value in (("chats", len(chats)), ("messages", len(messages)))
             ):
                 raise ArchiveError("Chat record counts do not match the manifest")
-            groups = {chat.id: {"title": chat.title, "messages": []} for chat in chats}
+            groups = {
+                chat.id: {
+                    "title": chat.title,
+                    "workspace_mode": chat.workspace_mode,
+                    "messages": [],
+                }
+                for chat in chats
+            }
             if len(groups) != len(chats) or len({m.id for m in messages}) != len(messages):
                 raise ArchiveError("Duplicate chat or message identifiers")
             if sum(len(m.content.encode("utf-8")) for m in messages) > MAX_TEXT:
@@ -221,6 +229,9 @@ def install_account_import(app):
                         (chat_id, user, group["title"], now + ordinal * 0.001),
                     )
                     created.append({"id": chat_id, "title": group["title"]})
+                    db.execute(
+                        "INSERT INTO chat_modes VALUES(?,?)", (chat_id, group["workspace_mode"])
+                    )
                     for index, message in enumerate(group["messages"]):
                         status = "interrupted" if message.status == "running" else message.status
                         interrupted += message.status == "running"

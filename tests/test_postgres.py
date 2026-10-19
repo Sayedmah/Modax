@@ -33,7 +33,9 @@ def test_genuine_postgres_migrations_auth_documents_and_tasks(tmp_path):
                 ).status_code
                 == 409
             )
-            cid = c.post("/api/v1/chats", headers=h, json={}).json()["id"]
+            cid = c.post("/api/v1/chats", headers=h, json={"workspace_mode": "X"}).json()["id"]
+            assert c.get("/api/v1/chats?workspace_mode=M", headers=h).json() == []
+            assert c.get("/api/v1/chats?workspace_mode=X", headers=h).json()[0]["id"] == cid
             guest = c.post("/api/v1/auth/guest")
             assert guest.status_code == 201, guest.text
             guest_headers = {"Authorization": "Bearer " + guest.json()["token"]}
@@ -71,6 +73,7 @@ def test_genuine_postgres_migrations_auth_documents_and_tasks(tmp_path):
             ).json()
         with TestClient(create_app(settings)) as c:
             assert len(c.get(f"/api/v1/chats/{cid}", headers=h).json()["messages"]) == 2
+            assert c.get(f"/api/v1/chats/{cid}", headers=h).json()["workspace_mode"] == "X"
             assert len(c.get("/api/v1/files", headers=h).json()) == 1
             dataset_path = "/api/v1/arena/datasets/" + dataset["id"]
             assert c.get(dataset_path, headers=h).json()["version"] == dataset["version"]

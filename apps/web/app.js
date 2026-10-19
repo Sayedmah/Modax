@@ -5,8 +5,10 @@ let chatId = null, currentChat = null, controller = null, sessionEpoch = 0;
 let guestMode = false;
 let fileEpoch = 0;
 let arenaDatasetEpoch = 0;
+let workspaceMode = 'M', historyEpoch = 0, researchEpoch = 0;
 const requests = new Set();
 function resetOwnerView() {
+  historyEpoch++;researchEpoch++;workspaceMode='M';$('chat-web').checked=false;$('web-consent').checked=false;$('web-query').value='';$('web-results').replaceChildren();$('web-status').textContent='';$('web-search-submit').disabled=false;
   fileEpoch++;
   arenaDatasetEpoch++;$('dataset-name').value='';$('dataset-cases').value='[{"id":"greeting","task":"Return only MODAX","expected":"MODAX","match":"exact"}]';$('arena-dataset').replaceChildren();$('dataset-export').disabled=true;$('dataset-delete').disabled=true;
   $('account-import-file').value='';
@@ -22,7 +24,7 @@ function resetOwnerView() {
   for(const nav of document.querySelectorAll('.nav')) nav.classList.toggle('active',nav.dataset.view==='chat');
   $('view-title').textContent='المحادثة';
 }
-const titleMap = {chat:'المحادثة',coder:'Coder',game:'Game Forge',memory:'الذاكرة',usage:'الاستخدام',files:'الملفات',arena:'Model Arena',settings:'الإعدادات',tasks:'سجل المهام'};
+const titleMap = {chat:'المحادثة',coder:'Coder',game:'Game Forge',memory:'الذاكرة',usage:'الاستخدام',files:'الملفات',arena:'Model Arena',settings:'الإعدادات',tasks:'سجل المهام',research:'بحث الإنترنت',about:'القدرات والذاكرة'};
 function notify(text, error=false) { $('notice').textContent=text; $('notice').className=error?'error':''; }
 async function api(path, options={}) {
   const epoch=sessionEpoch, requestController=new AbortController(); requests.add(requestController);
@@ -52,18 +54,23 @@ function message(role,content,status='') {
   return {box,body,label};
 }
 async function history() {
-  const chats=await (await api('/chats?q='+encodeURIComponent($('search').value))).json();
+  const epoch=++historyEpoch;
+  const chats=await (await api('/chats?q='+encodeURIComponent($('search').value)+'&workspace_mode='+workspaceMode)).json();
+  if(epoch!==historyEpoch)return;
   $('chat-list').replaceChildren();
   for(const chat of chats) { const button=document.createElement('button');button.className='history-item'+(chat.id===chatId?' selected':'');button.textContent=chat.title;button.onclick=safe(()=>openChat(chat.id));$('chat-list').append(button); }
 }
 async function openChat(id) {
   if(controller) throw new Error('أوقف الرد الجاري قبل تغيير المحادثة');
   currentChat=await (await api('/chats/'+id)).json();chatId=id;$('chat-title').textContent=currentChat.title;$('messages').replaceChildren();
+  workspaceMode=currentChat.workspace_mode||'M';modePresentation();
   for(const m of currentChat.messages) message(m.role,m.content,m.status);
   await history();
 }
 async function enter() {
   $('auth').hidden=true;
+  modePresentation();
+  const capabilities=await(await api('/workspace/capabilities')).json();$('chat-web').disabled=!capabilities.web_search;$('chat-web').checked=false;$('search-availability').textContent=capabilities.web_search?'خدمة البحث مُهيأة؛ يُفحص الاتصال عند الطلب. لن يُرسل سجل المحادثة إلى البحث.':'بحث الويب غير متصل حالياً؛ يحتاج تهيئة خادم SearXNG.';
   const models=await (await api('/models')).json();$('model').replaceChildren();$('arena-models').replaceChildren();
   const auto=document.createElement('option');auto.value='auto';auto.textContent='AUTO';$('model').append(auto);
   for(const m of models){const o=document.createElement('option');o.value=m.id;o.textContent=m.demo?'DEMO / محاكى':m.model;$('model').append(o);$('arena-models').append(o.cloneNode(true));}
@@ -81,11 +88,13 @@ $('new-chat').onclick=safe(async()=>{if(controller) throw new Error('أوقف ا
 $('search').oninput=safe(history);
 $('chat-form').onsubmit=safe(async e=>{
   e.preventDefault();const epoch=sessionEpoch;const content=$('prompt').value.trim();if(!content||controller)return;
-  if(!chatId){const chat=await (await post('/chats',{title:content.slice(0,80)})).json();chatId=chat.id;$('chat-title').textContent=chat.title;$('messages').replaceChildren();await history();}
+  if($('chat-web').checked&&content.length>240)throw Error('اكتب بحثاً لا يتجاوز 240 حرفاً، أو ألغِ بحث الويب.');
+  if(!chatId){const chat=await (await post('/chats',{title:content.slice(0,80),workspace_mode:workspaceMode})).json();chatId=chat.id;$('chat-title').textContent=chat.title;$('messages').replaceChildren();await history();}
   message('user',content);const assistant=message('assistant','','جارٍ التوليد');$('prompt').value='';
   controller=new AbortController();$('stop').hidden=false;$('send').disabled=true;
   try{
-    const response=await api('/chats/'+chatId+'/messages',{method:'POST',body:JSON.stringify({content,model:$('model').value,attachment_ids:$('chat-attachment').value?[$('chat-attachment').value]:[]}),signal:controller.signal});
+    const web=$('chat-web').checked;$('chat-web').checked=false;
+    const response=await api('/chats/'+chatId+'/messages',{method:'POST',body:JSON.stringify({content,model:$('model').value,attachment_ids:$('chat-attachment').value?[$('chat-attachment').value]:[],web_query:web?content:'',confirm_external_search:web}),signal:controller.signal});
     const reader=response.body.getReader(),decoder=new TextDecoder();const streamController=response.modaxController;reader.closed.finally(()=>requests.delete(streamController)).catch(()=>{});let buffer='';
     while(true){const {value,done}=await reader.read();if(done)break;buffer+=decoder.decode(value,{stream:true});
       let boundary;while((boundary=buffer.indexOf('\n\n'))>=0){const block=buffer.slice(0,boundary);buffer=buffer.slice(boundary+2);const eventName=block.split('\n').find(x=>x.startsWith('event: '))?.slice(7);const line=block.split('\n').find(x=>x.startsWith('data: '));if(!line)continue;const data=JSON.parse(line.slice(6));if(eventName==='delta')assistant.body.textContent+=data.text;if(eventName==='done'){assistant.label.textContent='MODAX · completed';renderMarkdown(assistant.body,assistant.body.textContent);}if(eventName==='error')throw new Error(data.message);$('messages').scrollTop=$('messages').scrollHeight;}
@@ -144,7 +153,7 @@ function renderMarkdown(container,text){
   }
 }
 $('import-chat').onclick=()=>$('chat-import-file').click();
-$('chat-import-file').onchange=safe(async()=>{const file=$('chat-import-file').files[0];if(!file)return;if(file.size>200000)throw Error('Import is too large');const data=JSON.parse(await file.text());const chat=await(await post('/chats/import',{title:data.title||'Imported chat',messages:(data.messages||[]).map(m=>({role:m.role,content:m.content}))})).json();await openChat(chat.id);$('chat-import-file').value='';});
+$('chat-import-file').onchange=safe(async()=>{const file=$('chat-import-file').files[0];if(!file)return;if(file.size>200000)throw Error('Import is too large');const data=JSON.parse(await file.text());const chat=await(await post('/chats/import',{title:data.title||'Imported chat',workspace_mode:data.workspace_mode||workspaceMode,messages:(data.messages||[]).map(m=>({role:m.role,content:m.content}))})).json();await openChat(chat.id);$('chat-import-file').value='';});
 async function documents(){
   const epoch=++fileEpoch,selected=$('chat-attachment').value;
   const records=await(await api('/files')).json();if(epoch!==fileEpoch)return;
@@ -222,6 +231,7 @@ $('account-import-file').onchange=safe(async()=>{
 $('arena-form').onsubmit=safe(async event=>{event.preventDefault();const button=$('arena-form').querySelector('button[type=submit]');button.disabled=true;try{notify('التقييم قيد التنفيذ…');await(await post('/arena/runs',{models:Array.from($('arena-models').selectedOptions).map(o=>o.value),confirm_external_calls:$('arena-confirm').checked,template:$('arena-template').value,dataset_id:$('arena-dataset').value||null})).json();await arenaHistory();notify('نتائج محسوبة من الردود الفعلية');}finally{button.disabled=false;}});
 
 async function bootstrap(){
+  if(typeof window!=='undefined'&&window.innerWidth<760)$('app').classList.add('sidebar-closed');
   $('boot-state').hidden=false;$('auth').hidden=true;$('boot-message').textContent='جاري فتح MODAX…';$('boot-retry').disabled=true;
   try{
     const health=await(await api('/health')).json();$('app-version').textContent='v'+health.version;guestMode=health.guest_mode===true;
@@ -232,5 +242,35 @@ async function bootstrap(){
   }catch(error){$('boot-message').textContent='تعذر فتح الموقع: '+error.message;$('boot-state').hidden=false;return;}
   finally{$('boot-retry').disabled=false;if(!$('app').hidden||!$('auth').hidden)$('boot-state').hidden=true;}
 }
+function modePresentation(){
+  $('mode-name').textContent=workspaceMode==='M'?'M · دردشة خفيفة':'X · مساحة العمل';
+  $('mode-description').textContent=workspaceMode==='M'?'أسئلة وإجابات وملفات وملاحظات خاصة بك.':'خطط، أنشئ الملفات، وراجع نتائج التحقق.';
+  $('work-actions').hidden=workspaceMode!=='X';
+  for(const mode of ['M','X']){const button=$('mode-'+mode.toLowerCase());button.setAttribute('aria-pressed',String(mode===workspaceMode));button.setAttribute('aria-expanded',String(!$('app').classList.contains('sidebar-closed')));}
+}
+async function chooseMode(mode){
+  if(controller||requests.size)throw Error('انتظر اكتمال الطلب أو أوقف الرد أولاً');
+  if(mode===workspaceMode){$('app').classList.toggle('sidebar-closed');}
+  else{workspaceMode=mode;historyEpoch++;chatId=null;currentChat=null;$('messages').replaceChildren();$('chat-title').textContent=mode==='M'?'محادثة خفيفة جديدة':'مشروعك التالي';$('search').value='';$('chat-web').checked=false;$('app').classList.remove('sidebar-closed');await history();}
+  modePresentation();
+  const expanded=!$('app').classList.contains('sidebar-closed');for(const id of ['mode-m','mode-x'])$(id).setAttribute('aria-expanded',String(expanded));
+  for(const panel of document.querySelectorAll('.view'))panel.hidden=panel.id!=='view-chat';
+  $('view-title').textContent=workspaceMode==='M'?'المحادثة':'X · مساحة العمل';
+  for(const nav of document.querySelectorAll('.nav'))nav.classList.toggle('active',nav.dataset.view==='chat');
+}
+$('mode-m').onclick=safe(()=>chooseMode('M'));$('mode-x').onclick=safe(()=>chooseMode('X'));
+$('work-code').onclick=safe(async()=>{const goal=$('prompt').value.trim();document.querySelector('[data-view="coder"]').click();if(goal)$('code-goal').value=goal;$('code-goal').focus();});
+$('work-game').onclick=()=>document.querySelector('[data-view="game"]').click();
+$('work-history').onclick=()=>document.querySelector('[data-view="tasks"]').click();
+$('about-memory').onclick=()=>document.querySelector('[data-view="memory"]').click();
+$('about-settings').onclick=()=>document.querySelector('.nav[data-view="settings"]').click();
+$('web-search-form').onsubmit=safe(async event=>{
+  event.preventDefault();const epoch=++researchEpoch;$('web-results').replaceChildren();$('web-status').textContent='جاري البحث…';$('web-search-submit').disabled=true;
+  try{const data=await(await post('/research/search',{query:$('web-query').value,confirm_external_search:$('web-consent').checked})).json();if(epoch!==researchEpoch)return;
+    $('web-status').textContent=data.results.length?'مقتطفات بحث — افتح المصادر للتحقق.':'لم يرجع المحرك نتائج.';
+    for(const result of data.results){const panel=document.createElement('article');panel.className='panel';const link=document.createElement('a');link.href=result.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent=result.title||result.url;const snippet=document.createElement('p');snippet.textContent=result.snippet;panel.append(link,snippet);$('web-results').append(panel);}
+  }catch(error){if(epoch===researchEpoch)$('web-status').textContent=error.message;}
+  finally{if(epoch===researchEpoch)$('web-search-submit').disabled=false;}
+});
 $('boot-retry').onclick=()=>bootstrap();
 if(typeof window!=='undefined')bootstrap();

@@ -15,6 +15,7 @@ class ImportedMessage(BaseModel):
 class ChatImport(BaseModel):
     title: str = Field(default="Imported chat", min_length=1, max_length=120)
     messages: list[ImportedMessage] = Field(max_length=100)
+    workspace_mode: Literal["M", "X"] = "M"
 
 
 class EditMessage(BaseModel):
@@ -34,6 +35,7 @@ def install_chat_tools(app, active):
         now = time.time()
         with store.connect() as db:
             db.execute("INSERT INTO chats VALUES(?,?,?,?)", (cid, user, body.title, now))
+            db.execute("INSERT INTO chat_modes VALUES(?,?)", (cid, body.workspace_mode))
             for i, message in enumerate(body.messages):
                 db.execute(
                     "INSERT INTO messages VALUES(?,?,?,?,?,?,?)",
