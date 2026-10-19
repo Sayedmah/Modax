@@ -31,7 +31,11 @@ const {chromium}=require('playwright');
   if(process.env.MODAX_QA_GUEST==='true'){
     await page.waitForFunction(old=>{const token=sessionStorage.getItem('modax-token');return token&&token!==old;},priorToken);
     await page.locator('#app').waitFor({state:'visible'});
-  }else await enter('target');
+  }else {
+    // Wait for logout to revoke/remove the token before navigation can cancel it.
+    await page.locator('#auth').waitFor({state:'visible'});
+    await enter('target');
+  }
   await page.locator('#connect-api').click();
   if(await page.locator('#confirm-note-restore').isChecked())throw Error('Consent leaked between sessions');
   if(!await page.locator('#restore-notes').isDisabled())throw Error('Restore enabled without consent');
