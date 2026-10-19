@@ -42,6 +42,9 @@ const {chromium}=require('playwright');
     if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1))throw Error('Overflow '+width);
     const rail=await page.locator('.mode-rail').boundingBox();if(rail.x<width-70)throw Error('Rail is not on right');
   }
+  await page.locator('#language').click();
+  if(await page.locator('main').evaluate(el=>getComputedStyle(el).direction)!=='ltr')throw Error('LTR reading direction lost');
+  const englishRail=await page.locator('.mode-rail').boundingBox();if(englishRail.x<1370)throw Error('LTR moved right rail');
   if(errors.length)throw Error(errors.join(';'));
   console.log(JSON.stringify({passed:true,checks:['M/X separate persisted history','work request handoff and real demo Coder files','explicit search unavailable state','memory navigation','reload','right rail and responsive 320/390/768/1440'],errors}));
   await browser.close();

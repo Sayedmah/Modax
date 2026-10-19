@@ -6,8 +6,12 @@ let guestMode = false;
 let fileEpoch = 0;
 let arenaDatasetEpoch = 0;
 let workspaceMode = 'M', historyEpoch = 0, researchEpoch = 0;
+let chatSubmitting = false;
+let chatViewEpoch = 0;
 const requests = new Set();
 function resetOwnerView() {
+  chatViewEpoch++;
+  chatSubmitting=false;$('mode-m').disabled=false;$('mode-x').disabled=false;
   historyEpoch++;researchEpoch++;workspaceMode='M';$('chat-web').checked=false;$('web-consent').checked=false;$('web-query').value='';$('web-results').replaceChildren();$('web-status').textContent='';$('web-search-submit').disabled=false;
   fileEpoch++;
   arenaDatasetEpoch++;$('dataset-name').value='';$('dataset-cases').value='[{"id":"greeting","task":"Return only MODAX","expected":"MODAX","match":"exact"}]';$('arena-dataset').replaceChildren();$('dataset-export').disabled=true;$('dataset-delete').disabled=true;
@@ -61,8 +65,9 @@ async function history() {
   for(const chat of chats) { const button=document.createElement('button');button.className='history-item'+(chat.id===chatId?' selected':'');button.textContent=chat.title;button.onclick=safe(()=>openChat(chat.id));$('chat-list').append(button); }
 }
 async function openChat(id) {
-  if(controller) throw new Error('أوقف الرد الجاري قبل تغيير المحادثة');
-  currentChat=await (await api('/chats/'+id)).json();chatId=id;$('chat-title').textContent=currentChat.title;$('messages').replaceChildren();
+  if(controller||chatSubmitting) throw new Error('أوقف الرد الجاري قبل تغيير المحادثة');
+  const epoch=++chatViewEpoch;const fetched=await (await api('/chats/'+id)).json();if(epoch!==chatViewEpoch)return;
+  currentChat=fetched;chatId=id;$('chat-title').textContent=currentChat.title;$('messages').replaceChildren();
   workspaceMode=currentChat.workspace_mode||'M';modePresentation();
   for(const m of currentChat.messages) message(m.role,m.content,m.status);
   await history();
@@ -84,11 +89,13 @@ async function authenticate(register=false) {
 }
 $('auth-form').onsubmit=e=>{e.preventDefault();authenticate();};$('register').onclick=()=>authenticate(true);
 $('logout').onclick=safe(async()=>{await post('/auth/logout',{});resetOwnerView();token='';sessionStorage.removeItem('modax-token');$('app').hidden=true;if(guestMode)await bootstrap();else $('auth').hidden=false;});
-$('new-chat').onclick=safe(async()=>{if(controller) throw new Error('أوقف الرد الجاري أولاً');chatId=null;currentChat=null;$('messages').replaceChildren();$('chat-title').textContent='محادثة جديدة';});
+$('new-chat').onclick=safe(async()=>{if(controller||chatSubmitting) throw new Error('أوقف الرد الجاري أولاً');chatViewEpoch++;chatId=null;currentChat=null;$('messages').replaceChildren();$('chat-title').textContent='محادثة جديدة';});
 $('search').oninput=safe(history);
 $('chat-form').onsubmit=safe(async e=>{
-  e.preventDefault();const epoch=sessionEpoch;const content=$('prompt').value.trim();if(!content||controller)return;
+  e.preventDefault();const epoch=sessionEpoch;const content=$('prompt').value.trim();if(!content||controller||chatSubmitting)return;
   if($('chat-web').checked&&content.length>240)throw Error('اكتب بحثاً لا يتجاوز 240 حرفاً، أو ألغِ بحث الويب.');
+  chatSubmitting=true;$('mode-m').disabled=true;$('mode-x').disabled=true;
+  try{
   if(!chatId){const chat=await (await post('/chats',{title:content.slice(0,80),workspace_mode:workspaceMode})).json();chatId=chat.id;$('chat-title').textContent=chat.title;$('messages').replaceChildren();await history();}
   message('user',content);const assistant=message('assistant','','جارٍ التوليد');$('prompt').value='';
   controller=new AbortController();$('stop').hidden=false;$('send').disabled=true;
@@ -101,6 +108,7 @@ $('chat-form').onsubmit=safe(async e=>{
     }
   }catch(error){assistant.label.textContent=error.name==='AbortError'?'MODAX · interrupted':'MODAX · failed';if(error.name!=='AbortError')notify(error.message,true);}
   finally{if(epoch!==sessionEpoch)return;controller=null;$('stop').hidden=true;$('send').disabled=false;currentChat=await (await api('/chats/'+chatId)).json();}
+  }finally{if(epoch===sessionEpoch){chatSubmitting=false;$('mode-m').disabled=false;$('mode-x').disabled=false;}}
 });
 $('stop').onclick=()=>controller?.abort();
 async function download(response,filename){const blob=await response.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
@@ -249,9 +257,9 @@ function modePresentation(){
   for(const mode of ['M','X']){const button=$('mode-'+mode.toLowerCase());button.setAttribute('aria-pressed',String(mode===workspaceMode));button.setAttribute('aria-expanded',String(!$('app').classList.contains('sidebar-closed')));}
 }
 async function chooseMode(mode){
-  if(controller||requests.size)throw Error('انتظر اكتمال الطلب أو أوقف الرد أولاً');
+  if(controller||chatSubmitting)throw Error('انتظر اكتمال الطلب أو أوقف الرد أولاً');
   if(mode===workspaceMode){$('app').classList.toggle('sidebar-closed');}
-  else{workspaceMode=mode;historyEpoch++;chatId=null;currentChat=null;$('messages').replaceChildren();$('chat-title').textContent=mode==='M'?'محادثة خفيفة جديدة':'مشروعك التالي';$('search').value='';$('chat-web').checked=false;$('app').classList.remove('sidebar-closed');await history();}
+  else{chatViewEpoch++;workspaceMode=mode;historyEpoch++;chatId=null;currentChat=null;$('messages').replaceChildren();$('chat-title').textContent=mode==='M'?'محادثة خفيفة جديدة':'مشروعك التالي';$('search').value='';$('chat-web').checked=false;$('app').classList.remove('sidebar-closed');await history();}
   modePresentation();
   const expanded=!$('app').classList.contains('sidebar-closed');for(const id of ['mode-m','mode-x'])$(id).setAttribute('aria-expanded',String(expanded));
   for(const panel of document.querySelectorAll('.view'))panel.hidden=panel.id!=='view-chat';

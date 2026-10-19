@@ -4,6 +4,7 @@
 aside{overflow-y:auto}
 /* Physical right rail is stable in both reading directions. */
 .shell{direction:rtl;grid-template-columns:64px 268px minmax(0,1fr)}
+:root[dir=ltr] .shell main,:root[dir=ltr] .shell aside{direction:ltr}
 .mode-rail{border-left:1px solid var(--line);padding:20px 8px;display:flex;flex-direction:column;gap:12px;background:#0d121c;position:sticky;top:0;height:100vh}
 .mode-rail button{padding:12px 4px;background:transparent;color:var(--text);border:1px solid var(--line);font-size:22px}
 .mode-rail button[aria-pressed=true]{background:#d0e8e0;color:#10271f;border-color:#d0e8e0}.mode-rail small{display:block;font-size:10px;color:inherit}
