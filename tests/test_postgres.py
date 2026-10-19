@@ -64,6 +64,16 @@ def test_genuine_postgres_migrations_auth_documents_and_tasks(tmp_path):
                 == 201
             )
             note = c.post("/api/v1/memory", headers=h, json={"content": "Portable note"}).json()
+            html_task = c.post(
+                "/api/v1/tasks", headers=h, json={"kind": "html", "goal": "Create Arabic page"}
+            ).json()["id"]
+            assert (
+                c.post(f"/api/v1/tasks/{html_task}/run", headers=h, json={"model": "demo"}).json()[
+                    "state"
+                ]
+                == "COMPLETED"
+            )
+            html_content = c.get(f"/api/v1/tasks/{html_task}/html", headers=h).content
             dataset = c.post(
                 "/api/v1/arena/datasets",
                 headers=h,
@@ -73,6 +83,10 @@ def test_genuine_postgres_migrations_auth_documents_and_tasks(tmp_path):
                 },
             ).json()
         with TestClient(create_app(settings)) as c:
+            assert c.get(f"/api/v1/tasks/{html_task}/html", headers=h).content == html_content
+            assert (
+                c.get(f"/api/v1/tasks/{html_task}/html", headers=guest_headers).status_code == 404
+            )
             assert len(c.get(f"/api/v1/chats/{cid}", headers=h).json()["messages"]) == 2
             assert c.get(f"/api/v1/chats/{cid}", headers=h).json()["workspace_mode"] == "X"
             assert len(c.get("/api/v1/files", headers=h).json()) == 1
@@ -96,7 +110,7 @@ def test_genuine_postgres_migrations_auth_documents_and_tasks(tmp_path):
             with zipfile.ZipFile(io.BytesIO(exported.content)) as archive:
                 manifest = json.loads(archive.read("manifest.json"))
                 assert manifest["counts"]["documents"] == 1
-                assert manifest["counts"]["tasks"] == 1
+                assert manifest["counts"]["tasks"] == 2
                 assert manifest["counts"]["arena_datasets"] == 1
             restored = c.post(
                 "/api/v1/account/import-chats",

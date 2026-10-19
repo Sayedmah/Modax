@@ -56,6 +56,7 @@ class TaskEngine:
                 "Implement artifacts",
                 "Verify and deliver",
             ],
+            "html": ["Generate one HTML document", "Inspect basic structure", "Deliver index.html"],
         }
         if kind not in plans or mode not in {"FAST", "SMART", "OMEGA"}:
             raise ValueError("Unsupported kind or execution mode")
@@ -294,6 +295,33 @@ class TaskEngine:
                             {"reason": "Runtime tests failed; no success claimed"},
                         )
                         return self.store.require("tasks", owner, task_id)
+            elif task["kind"] == "html":
+                from .html_forge import HTML_PROMPT, html_file
+
+                provider = (
+                    self.user_providers.select(owner, model, "code")
+                    if hasattr(self, "user_providers")
+                    else self.registry.select(model, "code")
+                )
+                async with asyncio.timeout(90):
+                    raw = await provider.generate_text(
+                        [
+                            {"role": "system", "content": HTML_PROMPT},
+                            {"role": "user", "content": task["goal"]},
+                        ]
+                    )
+                edit = html_file(raw)
+                snapshot = workspace.apply([edit])
+                self.transition(owner, task_id, "VERIFYING")
+                result = {
+                    "files": workspace.files(),
+                    "snapshot": snapshot,
+                    "demo": provider.model.demo,
+                    "validation": "basic_html_structure",
+                    "scripts_executed": False,
+                    "model": provider.model.id,
+                    "usage": provider.get_usage(),
+                }
             elif task["kind"] == "game":
                 from .forge import generate_game, validate_game
 

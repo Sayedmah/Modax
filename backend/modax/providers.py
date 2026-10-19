@@ -86,7 +86,13 @@ class DemoProvider(Provider):
 
     async def stream_text(self, messages):
         self.reset_usage()
-        if messages[0].get("content", "").startswith("MODAX_REVIEW_JSON"):
+        if messages[0].get("content", "").startswith("MODAX_HTML_JSON"):
+            answer = json.dumps(
+                {
+                    "html": '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MODAX HTML DEMO</title><style>body{font:18px system-ui;margin:40px;background:#10202b;color:#eef5fa}main{max-width:720px;margin:auto}</style></head><body><main><h1>MODAX HTML — DEMO</h1><p>صفحة اختبار ثابتة؛ ليست نتيجة نموذج ذكاء حقيقي.</p></main></body></html>'
+                }
+            )
+        elif messages[0].get("content", "").startswith("MODAX_REVIEW_JSON"):
             answer = json.dumps({"approved": True, "findings": []})
         elif messages[0].get("content", "").startswith("MODAX_CODE_JSON"):
             answer = json.dumps(

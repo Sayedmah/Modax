@@ -59,6 +59,10 @@ Open the output's project.godot in Godot 4.6. Export presets are configuration o
 
 ## Verify
 
+Create HTML generates a single downloadable `index.html` through a configured
+model or explicit DEMO fixture, with basic structure checks and no script execution.
+See [HTML Forge](docs/HTML_FORGE.md) for API, limits and download behavior.
+
 M/X workspaces: M is concise chat; X provides project planning and actual Coder,
 Godot and history actions. Each mode has separately filtered private conversations.
 The switch does not train weights or promise complete arbitrary projects.

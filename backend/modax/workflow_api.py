@@ -12,7 +12,7 @@ from .workspace import SECRET, ToolDenied
 
 class TaskInput(BaseModel):
     goal: str = Field(min_length=3, max_length=10000)
-    kind: Literal["plan", "code", "game"] = "plan"
+    kind: Literal["plan", "code", "game", "html"] = "plan"
     mode: Literal["FAST", "SMART", "OMEGA"] = "FAST"
 
 
@@ -55,6 +55,8 @@ def install_workflows(app):
             raise HTTPException(429, "Task quota reached")
         if not body.goal.strip():
             raise HTTPException(422, "Task goal is empty")
+        if body.kind == "html" and body.mode != "FAST":
+            raise HTTPException(422, "HTML generation supports FAST only")
         return engine.create(user, body.goal, body.kind, body.mode)
 
     @app.get("/api/v1/tasks")
@@ -81,6 +83,8 @@ def install_workflows(app):
 
     def authorize_reviews(task_id, body, user):
         task = require("tasks", user, task_id)
+        if task["kind"] == "html" and body.execute:
+            raise HTTPException(422, "HTML scripts are not executed by this workflow")
         if task["kind"] == "code" and task["mode"] != "FAST":
             provider = app.state.user_providers.select(user, body.model, "code")
             if not provider.model.demo and not body.confirm_external_reviews:
@@ -121,6 +125,20 @@ def install_workflows(app):
     def file(task_id: str, path: str, user=Depends(owner)):
         require("tasks", user, task_id)
         return Response(engine.workspace(user, task_id).read(path), media_type="text/plain")
+
+    @app.get("/api/v1/tasks/{task_id}/html")
+    def download_html(task_id: str, user=Depends(owner)):
+        task = require("tasks", user, task_id)
+        if task["kind"] != "html" or task["state"] != "COMPLETED":
+            raise HTTPException(409, "Completed HTML task required")
+        return Response(
+            engine.workspace(user, task_id).read("index.html").encode("utf-8"),
+            media_type="application/octet-stream",
+            headers={
+                "Content-Disposition": 'attachment; filename="index.html"',
+                "Content-Security-Policy": "sandbox; default-src 'none'",
+            },
+        )
 
     @app.get("/api/v1/tasks/{task_id}/download")
     def download(task_id: str, user=Depends(owner)):

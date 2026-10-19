@@ -20,7 +20,7 @@ class ToolDenied(ValueError):
     pass
 
 
-SUFFIXES = {".py", ".md", ".txt", ".json", ".gd", ".tscn", ".godot", ".cfg", ".tres"}
+SUFFIXES = {".py", ".md", ".txt", ".json", ".gd", ".tscn", ".godot", ".cfg", ".tres", ".html"}
 SECRET = re.compile(
     r"(?i)(api[_-]?key\s*[:=]|-----BEGIN .*PRIVATE KEY|sk-[A-Za-z0-9_-]{20,}|bearer\s+[A-Za-z0-9_-]{24,})"
 )

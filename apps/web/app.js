@@ -10,6 +10,7 @@ let chatSubmitting = false;
 let chatViewEpoch = 0;
 const requests = new Set();
 function resetOwnerView() {
+  $('html-goal').value='';$('html-model').replaceChildren();$('html-result').replaceChildren();$('html-submit').disabled=false;
   chatViewEpoch++;
   chatSubmitting=false;$('mode-m').disabled=false;$('mode-x').disabled=false;
   historyEpoch++;researchEpoch++;workspaceMode='M';$('chat-web').checked=false;$('web-consent').checked=false;$('web-query').value='';$('web-results').replaceChildren();$('web-status').textContent='';$('web-search-submit').disabled=false;
@@ -28,7 +29,7 @@ function resetOwnerView() {
   for(const nav of document.querySelectorAll('.nav')) nav.classList.toggle('active',nav.dataset.view==='chat');
   $('view-title').textContent='المحادثة';
 }
-const titleMap = {chat:'المحادثة',coder:'Coder',game:'Game Forge',memory:'الذاكرة',usage:'الاستخدام',files:'الملفات',arena:'Model Arena',settings:'الإعدادات',tasks:'سجل المهام',research:'بحث الإنترنت',about:'القدرات والذاكرة'};
+const titleMap = {chat:'المحادثة',coder:'Coder',html:'إنشاء ملف HTML',game:'Game Forge',memory:'الذاكرة',usage:'الاستخدام',files:'الملفات',arena:'Model Arena',settings:'الإعدادات',tasks:'سجل المهام',research:'بحث الإنترنت',about:'القدرات والذاكرة'};
 function notify(text, error=false) { $('notice').textContent=text; $('notice').className=error?'error':''; }
 async function api(path, options={}) {
   const epoch=sessionEpoch, requestController=new AbortController(); requests.add(requestController);
@@ -79,6 +80,7 @@ async function enter() {
   const models=await (await api('/models')).json();$('model').replaceChildren();$('arena-models').replaceChildren();
   const auto=document.createElement('option');auto.value='auto';auto.textContent='AUTO';$('model').append(auto);
   for(const m of models){const o=document.createElement('option');o.value=m.id;o.textContent=m.demo?'DEMO / محاكى':m.model;$('model').append(o);$('arena-models').append(o.cloneNode(true));}
+  $('html-model').replaceChildren(...Array.from($('model').options).map(option=>option.cloneNode(true)));
   $('model').onchange=()=>{$('demo-banner').hidden=!models.some(m=>m.demo&&(m.id===$('model').value||($('model').value==='auto'&&!models.some(x=>!x.demo))));};$('model').onchange();
   await history();await documents();const health=await(await api('/health')).json();if(health.persistence==='local')notify('تنبيه: حفظ البيانات السحابي الدائم ينتظر ربط PostgreSQL؛ صدّر المحادثات المهمة قبل إعادة تشغيل الخدمة.');$('app').hidden=false;
 }
@@ -114,12 +116,12 @@ $('stop').onclick=()=>controller?.abort();
 async function download(response,filename){const blob=await response.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 $('export-chat').onclick=safe(async()=>{if(!chatId)throw new Error('اختر محادثة أولاً');const chat=await (await api('/chats/'+chatId)).json();await download(new Response(JSON.stringify(chat,null,2)),'modax-chat.json');});
 async function runTask(kind,goal,seed=42){
-  const epoch=sessionEpoch;const resultId=kind==='code'?'coder-result':'game-result';$(resultId).replaceChildren();notify('المهمة قيد التنفيذ…');
+  const epoch=sessionEpoch;const resultId=kind==='code'?'coder-result':kind==='html'?'html-result':'game-result';$(resultId).replaceChildren();notify('المهمة قيد التنفيذ…');
   const task=await (await post('/tasks',{goal,kind,mode:kind==='code'?$('code-mode').value:'FAST'})).json();
   if(kind==='code'&&$('code-project').files.length){const body=new FormData();body.append('file',$('code-project').files[0]);await (await api('/tasks/'+task.id+'/project',{method:'POST',body})).json();}
   const panel=document.createElement('div');panel.className='panel';const state=document.createElement('p');state.className='task-status';state.textContent='RUNNING · '+task.id;panel.append(state);$(resultId).append(panel);
   const cancel=document.createElement('button');cancel.className='secondary';cancel.textContent='إلغاء المهمة';cancel.onclick=safe(async()=>{await post('/tasks/'+task.id+'/cancel',{});notify('تم طلب الإلغاء');});panel.append(cancel);
-  let final=await (await post('/tasks/'+task.id+'/start',{model:$('model').value,execute:kind==='code'&&$('execute-tests').checked,seed,confirm_external_reviews:$('review-confirm').checked})).json();
+  let final=await (await post('/tasks/'+task.id+'/start',{model:kind==='html'?$('html-model').value:$('model').value,execute:kind==='code'&&$('execute-tests').checked,seed,confirm_external_reviews:$('review-confirm').checked})).json();
   for(let attempt=0;['RUNNING','VERIFYING'].includes(final.state)&&attempt<100;attempt++){
     await new Promise(resolve=>setTimeout(resolve,3000));
     if(epoch!==sessionEpoch)return;
@@ -127,12 +129,14 @@ async function runTask(kind,goal,seed=42){
   }
   if(epoch!==sessionEpoch)return;cancel.remove();state.textContent=final.state+' · '+task.id;const pre=document.createElement('pre');pre.textContent=JSON.stringify(final.result?JSON.parse(final.result):{},null,2);panel.append(pre);
   const button=document.createElement('button');button.textContent='تنزيل ملفات المشروع';button.onclick=safe(async()=>download(await api('/tasks/'+task.id+'/download'),'modax-project.zip'));panel.append(button);if(kind==='code'){const patch=document.createElement('button');patch.className='patch-download';patch.textContent='تنزيل التغييرات .patch';patch.onclick=safe(async()=>download(await api('/tasks/'+task.id+'/patch'),'modax-change.patch'));panel.append(patch);}
+  if(kind==='html'&&final.state==='COMPLETED')htmlDownloadButton(panel,task.id);
   await taskHistory();notify(final.state==='COMPLETED'?'اكتملت الخطوات المحددة؛ راجع سجل التحقق.':'راجع سجل المهام لعرض الحالة والملفات.',final.state!=='COMPLETED');
 }
 async function taskHistory(){
   const records=await (await api('/tasks')).json();$('task-history').replaceChildren();
   for(const task of records){
     const panel=document.createElement('div');panel.className='panel';
+    if(task.kind==='html'&&task.state==='COMPLETED')htmlDownloadButton(panel,task.id);
     const label=document.createElement('p');label.textContent=task.state+' · '+task.goal;panel.append(label);
     const details=document.createElement('pre');details.textContent=task.result?JSON.stringify(JSON.parse(task.result),null,2):'لم تُسجل نتيجة بعد';panel.append(details);
     const downloadButton=document.createElement('button');downloadButton.textContent='تنزيل الملفات';downloadButton.onclick=safe(async()=>download(await api('/tasks/'+task.id+'/download'),'modax-project.zip'));panel.append(downloadButton);if(task.kind==='code'&&task.result&&JSON.parse(task.result).snapshot){const patch=document.createElement('button');patch.textContent='تنزيل التغييرات .patch';patch.onclick=safe(async()=>download(await api('/tasks/'+task.id+'/patch'),'modax-change.patch'));panel.append(patch);}
@@ -144,6 +148,8 @@ async function taskHistory(){
 }
 $('refresh-tasks').onclick=safe(taskHistory);
 $('coder-form').onsubmit=safe(async e=>{e.preventDefault();await runTask('code',$('code-goal').value);});
+$('html-form').onsubmit=safe(async e=>{e.preventDefault();const epoch=sessionEpoch;$('html-submit').disabled=true;try{await runTask('html',$('html-goal').value);}finally{if(epoch===sessionEpoch)$('html-submit').disabled=false;}});
+function htmlDownloadButton(panel,id){const button=document.createElement('button');button.className='html-download';button.textContent='تنزيل index.html';button.onclick=safe(async()=>download(await api('/tasks/'+id+'/html'),'index.html'));panel.append(button);}
 $('game-form').onsubmit=safe(async e=>{e.preventDefault();await runTask('game',$('game-title').value,Number($('seed').value));});
 async function memory(){const items=await (await api('/memory')).json();$('memory-list').replaceChildren();for(const item of items){const panel=document.createElement('div');panel.className='panel';const text=document.createElement('p');text.textContent=item.content;const button=document.createElement('button');button.className='secondary';button.textContent='حذف';button.onclick=safe(async()=>{await api('/memory/'+item.id,{method:'DELETE'});await memory();});panel.append(text,button);$('memory-list').append(panel);}}
 $('memory-form').onsubmit=safe(async e=>{e.preventDefault();await post('/memory',{content:$('memory-text').value});$('memory-text').value='';await memory();});
@@ -269,6 +275,7 @@ async function chooseMode(mode){
 $('mode-m').onclick=safe(()=>chooseMode('M'));$('mode-x').onclick=safe(()=>chooseMode('X'));
 $('work-code').onclick=safe(async()=>{const goal=$('prompt').value.trim();document.querySelector('[data-view="coder"]').click();if(goal)$('code-goal').value=goal;$('code-goal').focus();});
 $('work-game').onclick=()=>document.querySelector('[data-view="game"]').click();
+$('work-html').onclick=()=>{document.querySelector('[data-view="html"]').click();if($('prompt').value.trim())$('html-goal').value=$('prompt').value.trim();$('html-goal').focus();};
 $('work-history').onclick=()=>document.querySelector('[data-view="tasks"]').click();
 $('about-memory').onclick=()=>document.querySelector('[data-view="memory"]').click();
 $('about-settings').onclick=()=>document.querySelector('.nav[data-view="settings"]').click();
