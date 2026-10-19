@@ -22,3 +22,5 @@ Never mark the full MVP or a phase complete from documentation or mock transport
 User-prioritized0.6.0 M/X modes and SearXNG adapter are implemented. Next: authorized JSON-enabled SearXNG connection and actual grounded search verification. Owner-scoped evaluation-history export/delete remains pending. Never bypass blocked endpoints, execute benchmark code or claim general model superiority/weight training from these features.
 
 - 0.6.2: companion logo, responsive identity, real productivity starters and persisted configured/reported model names — implemented and verified; provider identities are not model-weight attestation.
+
+-0.6.3: independent authenticated free SearXNG service and actual English/Arabic source results verified; earlier connection-pending entries are superseded. Partial-engine/cold-start limits remain. Next executable milestone: owner-scoped Arena evaluation-history JSON export/delete, quota recovery and cross-owner tests.

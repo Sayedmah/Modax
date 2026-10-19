@@ -3,9 +3,9 @@
   "repository": "https://github.com/Sayedmah/Modax",
   "active_branch": "feat/modax-omega-foundation",
   "baseline_commit": "bb0295d55483a9e1733fdc09399058afd3979534",
-  "latest_verified_commit": "f9c8acd821a68a386e9777599ce38ed03d6dc578",
+  "latest_verified_commit": "4b2b08d4f00a2350c862baf540ec005946370ca9",
   "pull_request": "https://github.com/Sayedmah/Modax/pull/2",
-  "last_completed_phase": "0.6.2 MODAX visual identity, productivity starters and persisted chat model identity verified locally, in CI and on the live website",
+  "last_completed_phase": "0.6.3 authenticated independent SearXNG service and actual Arabic/English search verified in MODAX; partial-engine failures explicit",
   "implemented_modules": [
     "auth",
     "sqlite_migrations",
@@ -70,13 +70,16 @@
     "modax_companion_brand",
     "productivity_starters_and_keyboard_send",
     "context_scoped_reported_model_identity",
-    "versioned_web_assets"
+    "versioned_web_assets",
+    "authenticated_searxng_gateway",
+    "pinned_search_container_ci",
+    "explicit_partial_search_results"
   ],
   "test_results": {
     "python": {
-      "passed": 172,
+      "passed": 176,
       "skipped": 1,
-      "seconds": 25.98,
+      "seconds": 24.05,
       "environment": "local Python3.12 with actual Godot4.6",
       "skip_reason": "local PostgreSQL absent; separate final-source CI PostgreSQL job passed"
     },
@@ -113,14 +116,14 @@
       ]
     },
     "github_actions": {
-      "commit": "f9c8acd821a68a386e9777599ce38ed03d6dc578",
-      "run_id": 39269779512,
+      "commit": "4b2b08d4f00a2350c862baf540ec005946370ca9",
+      "run_id": 39276320379,
       "conclusion": "success",
       "jobs": [
         "backend-and-godot",
         "postgres-integration"
       ],
-      "url": "https://github.com/Sayedmah/Modax/actions/runs/39269779512"
+      "url": "https://github.com/Sayedmah/Modax/actions/runs/39276320379"
     },
     "node_session_regressions": {
       "passed": 8
@@ -147,10 +150,9 @@
       "full_editor_import": "still blocked on free host; passes in CI"
     },
     "live_http_current_commit": [
-      "health0.6.1/direct guest UI HTML form and configured models verified",
-      "one actual openrouter/free HTML task COMPLETED;417byte attachment HTTP200 and requested marker",
-      "foreign owner404; server/client did not execute generated scripts",
-      "two sessions revoked; one harmless private synthetic HTML task retained"
+      "health0.6.3 and direct guest UI",
+      "Arabic/English actual SearXNG results200; consent403; private service token gate401",
+      "cloud browser partial-result warning and HTTPS source links"
     ],
     "account_export": {
       "local": "7 new tests passed",
@@ -276,7 +278,7 @@
         "probe_seconds": 110.73,
         "measurement": "whole auth/chat/demo/search-denial/cleanup plus network; not LLM latency"
       },
-      "search": "protocol/mock integration passed; real SearXNG unconfigured; public candidate returned security check and was not bypassed",
+      "search": "0.6.3 supersedes the historical unconfigured state: authenticated own SearXNG service live; Arabic/English results verified, partial engines explicit.",
       "fix": "PostgreSQL optional filter now CAST AS TEXT; real PG filtered/unfiltered/restart checks passed. LTR direction, chat-submit gating and stale chat-load guards passed final CI.",
       "final_source": "fc19eb827f2baccc3e8b6296415e56104dd0914f",
       "live_ui": "Final fc19eb8 cloud browser direct guest M/X, v0.6.0, LTR content with physical right rail verified; no TLS bypass"
@@ -335,6 +337,41 @@
         "cost": "not reported; existing free router only"
       },
       "cloud_browser": "final0.6.2 logo/new welcome/model badge/history reload verified; one harmless demo chat remains in disposable browser guest"
+    },
+    "searxng": {
+      "gateway_cases": 4,
+      "container_ci": {
+        "run_id": 39276320489,
+        "conclusion": "success",
+        "scope": "actual pinned Docker build/start/health/source/unauthenticated401; no public engine queries in CI"
+      },
+      "live": {
+        "version": "0.6.3",
+        "search_without_consent": 403,
+        "private_gateway_without_token": 401,
+        "queries": [
+          {
+            "query": "Python",
+            "status": 200,
+            "results": 5,
+            "partial": true,
+            "unavailable_engines": 2,
+            "probe_seconds": 13.53
+          },
+          {
+            "query": "القاهرة",
+            "status": 200,
+            "results": 5,
+            "partial": true,
+            "unavailable_engines": 2,
+            "probe_seconds": 13.58
+          }
+        ],
+        "measurement": "whole API request plus proxy/network, not isolated engine latency",
+        "cloud_browser": "Python documentation and Cairo Arabic results with clickable sources and partial-result warning verified",
+        "cleanup": "no chat/file/note fixtures created. First probe session invalidated by deployment. Successful search probe logout returned an empty response that its JSON-only harness could not parse; no logout verification is inferred from that harness."
+      },
+      "failure_recovery": "First live queries failed; upstream Bing and Mwmbl defaulted disabled. Explicitly enabled them and removed nonresponsive Brave. No CAPTCHA bypass. Initial CI notes test raced logout/navigation; now waits for auth view before navigating; final full CI passed."
     }
   },
   "blocked_features": [
@@ -344,7 +381,7 @@
     "GPU media workers and compatible model licenses not configured",
     "Full editor import/custom-asset validation on free Render remains blocked; exact primitive template gameplay is verified",
     "Gemini key copied in previous authorized operation but real inference failed; MODAX_GEMINI_MODEL blank keeps AUTO on OpenRouter",
-    "Live web search requires an authorized JSON-enabled SearXNG endpoint; public candidate security check was not bypassed"
+    "Some search engines fail from free hosting; results can be partial. Cold wake-up may exceed bounded API time budget."
   ],
   "remaining_tasks": [
     "bind production PostgreSQL",
@@ -356,7 +393,7 @@
     "comprehensive benchmarks/training",
     "expand multi-agent OMEGA beyond same-provider isolated code reviews"
   ],
-  "next_exact_executable_action": "Diagnose Gemini failure with sanitized provider HTTP status and no secret logging; preserve working OpenRouter AUTO and existing capabilities. SearXNG integration and owner task/Arena deletion remain pending.",
+  "next_exact_executable_action": "Implement owner-scoped Arena evaluation-history JSON export/delete with retained-dataset snapshots, quota release and cross-owner tests. Keep working SearXNG/model routes; inspect current state before editing.",
   "resume_commands": [
     "pip install -e .[dev]",
     "python -m pytest -q",
@@ -373,7 +410,7 @@
     "workspace": "tea-dalrl82d0e5s738de4j0",
     "service": "srv-db75ucmi0phs738mfg6g",
     "plan": "free",
-    "deploy": "dep-dbb2jktg1s2s73btbihg",
+    "deploy": "dep-dbb37u67bikc73f8nc50",
     "status": "live",
     "postgres": "dpg-db74kajncjis73fgelo0-a",
     "database_connection": "DATABASE_URL unbound; no database changes in this increment",
@@ -381,7 +418,18 @@
     "active_storage": "local ephemeral until DATABASE_URL bound",
     "guest_mode": true,
     "public_signup": false,
-    "source_commit": "f9c8acd821a68a386e9777599ce38ed03d6dc578"
+    "source_commit": "4b2b08d4f00a2350c862baf540ec005946370ca9",
+    "search_service": {
+      "id": "srv-dbb34k3bc2fs73dbt5o0",
+      "url": "https://modax-search.onrender.com",
+      "plan": "free",
+      "deploy": "dep-dbb37vbbc2fs73dc7gbg",
+      "status": "live",
+      "source_commit": "4b2b08d4f00a2350c862baf540ec005946370ca9",
+      "auto_deploy": false,
+      "token": "server-only matching environment variables; never export values",
+      "limits": "shared free hours; sleep/cold wake-up; no keepalive job or paid upgrade"
+    }
   },
   "scheduled_continuation": {
     "enabled": true,

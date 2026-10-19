@@ -14,6 +14,10 @@ Sources: [README](https://github.com/zijinz456/OpenTutor/blob/f0142f28e8ed1ab404
 
 Compatibility: not established by a live integration; independent deployment favored. Security: no trusted execution of fetched reference contents. Recheck exact dependencies, model cards, notices, credentials and hardware before integrating.
 
+
+## searxng/searxng — independent service,2026-10-19
+
+Source1c10abe2d3e4ab7ddcc4e9da1a7d07dc7ca7f8f4/version2026.10.17-1c10abe2d; official linux/amd64 digest2fc7a1ee644edac36b7ab2b7885b83b991720da8d81a03838ddf8c228893ca4e. Upstream container labels AGPL-3.0-or-later; original gateway files AGPL-3.0-only with full upstream LICENSE retained. Separate Docker service, CPU/512MiB free host, no GPU/model weights, no MODAX Python dependency added. Source/health endpoints expose license/source links. Two concurrent queries and30rpm; no arbitrary URL fetch/open proxy. Engine results remain untrusted; upstream logs may include failed query URLs. Standalone real container CI39276320489 and actual English/Arabic live search verified. Some engines unavailable; no bypass. See deployment/searxng/README.md for official source/configuration URLs.
 ## Comfy-Org/ComfyUI
 
 Commit: `8010b48d2c1be986613f8e8c761527d205bd756f`.

@@ -114,3 +114,9 @@ Basic structure validation is not JavaScript/CSS/browser/security validation; ge
 - Final local172passed/1PGskip25.98s with Godot4.6;8Node/Ruff/JS and normal51/guest42 UI flows passed. Final CI39269779512 successful including actual PostgreSQL integration.
 - Existing free Render dep-dbb2jktg1s2s73btbihg live; cloud UI/model history verified. Actual free OpenRouter returned reported minimax/minimax-m3.1-flash:free and matching persisted name; API fixture removed/session revoked. One harmless browser DEMO chat retained.
 - No paid inference/service,training,other-service mutation or secret changes in this increment. Gemini remains disabled after the previous failed inference; ephemeral production storage remains a limitation.
+
+## 2026-10-19 — SearXNG0.6.3
+
+Implemented a separate pinned AGPL search container, authenticated bounded JSON gateway, server-only token transport and explicit partial-engine UI/chat metadata. Created one authorized free Render search service and linked it to existing MODAX without changing provider secrets/other services. First deployment revealed disabled Bing/Mwmbl defaults and failed Brave; corrected engine configuration. Real English/Arabic API and cloud UI results passed; two failed engines remain explicit. See PROJECT_STATE.md and deployment/searxng/README.md.
+
+Final source4b2b08d: main CI39276320379 and actual Docker CI39276320489 succeeded.176local tests/1PGskip24.05s;4new gateway cases,8Node,Ruff/JS/shell and normal51/guest42 browser flows passed. Fixed the observed logout/navigation test race after original CI39275224662 failure. Live main/search deploys are recorded in project_state.json. No paid inference/training. Next: Arena history lifecycle.

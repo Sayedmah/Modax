@@ -64,3 +64,7 @@ Basic structure validation is not JavaScript/CSS/browser/security validation; ge
 
 ## Model labels and branding (0.6.2)
 Provider-reported names are not independent model attestation. If a router supplies only its alias, the final model stays unknown. Old adapter-only rows cannot recover their historical model. New history stores the name,not full provider provenance. The logo is raster and has no trademark clearance claim. No speedup or intelligence gain is claimed. Gemini's previous request failed and remains disabled; copied secret validity is not established.
+
+## Search0.6.3 supersedes earlier unconfigured-search notes
+
+Own authenticated SearXNG service now returns actual results, but engines can fail or block hosting IPs; tested responses had two unavailable engines and an explicit partial-results warning. Snippets are not full-page reads. Free Render sleeps and shares workspace hours; cold wake-up may exceed15s API budget. No keep-alive scheduler/paid upgrade. Rate counters are per process and reset on restart. Search service auto-deploy is disabled; deploy deliberate search changes manually. Upstream may log failed query URLs, so hosting logs must remain private; no privacy/no-log guarantee for upstream infrastructure. Production storage remains ephemeral.

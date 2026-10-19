@@ -127,3 +127,13 @@ Basic structure validation is not JavaScript/CSS/browser/security validation; ge
 - Final local172passed/1PGskip25.98s with Godot4.6;8Node/Ruff/JS and normal51/guest42 UI flows passed. Final CI39269779512 successful including actual PostgreSQL integration.
 - Existing free Render dep-dbb2jktg1s2s73btbihg live; cloud UI/model history verified. Actual free OpenRouter returned reported minimax/minimax-m3.1-flash:free and matching persisted name; API fixture removed/session revoked. One harmless browser DEMO chat retained.
 - No paid inference/service,training,other-service mutation or secret changes in this increment. Gemini remains disabled after the previous failed inference; ephemeral production storage remains a limitation.
+
+## 2026-10-19 — SearXNG0.6.3
+
+Source4b2b08d4f00a2350c862baf540ec005946370ca9: main CI39276320379 passed backend-and-godot and real PostgreSQL; separate container CI39276320489 passed actual pinned Docker build, startup, health, source and unauthorized401. Local176passed/1PGskip24.05s with Godot4.6. Four added gateway/transport cases cover auth, query/response/rate/concurrency bounds, credential separation, partial results, all-engine errors and resource release.8Node checks,Ruff,JS/shell syntax and full normal51/guest42 UI flows passed.
+
+Initial main CI39275224662 failed notes_smoke during post-logout navigation. Focused reproduction passed, but source revealed the navigation could cancel logout before token removal. The test now waits for visible auth before navigating; full final CI passed. Initial live searches502 led to enabling upstream-disabled Bing/Mwmbl and dropping nonresponsive Brave. No engine block was bypassed.
+
+On live0.6.3 both Python and Cairo Arabic API queries returned200/five links,partial=true,two unavailable engines. Consent missing403; private gateway without token401. Cloud browser verified Python documentation and Arabic results/warning.13.53s/13.58s are end-to-end API/proxy/network durations, not pure engine performance. Search probe made no chat/file/note records. Its logout harness incorrectly parsed empty responses; no cleanup assertion is claimed from that harness. A deployment invalidated an earlier disposable probe session. No paid inference occurred.
+
+Main deploy dep-dbb37u67bikc73f8nc50 and search dep-dbb37vbbc2fs73dc7gbg verified live on this source. Separate fresh-session lifecycle probe correctly handled empty logout204 and verified subsequent authenticated401. Container CI does not assert public-engine availability; live evidence is separate. Cold starts/partial engines remain limitations. https://github.com/Sayedmah/Modax/actions/runs/39276320379 and https://github.com/Sayedmah/Modax/actions/runs/39276320489
