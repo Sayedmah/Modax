@@ -3,9 +3,9 @@
   "repository": "https://github.com/Sayedmah/Modax",
   "active_branch": "feat/modax-omega-foundation",
   "baseline_commit": "bb0295d55483a9e1733fdc09399058afd3979534",
-  "latest_verified_commit": "5dcb5e035b9dd59a7031244a758e3ed71f6d7c10",
+  "latest_verified_commit": "fc19eb827f2baccc3e8b6296415e56104dd0914f",
   "pull_request": "https://github.com/Sayedmah/Modax/pull/2",
-  "last_completed_phase": "0.5.0 custom private Arena datasets, immutable versions and objective result snapshots; local/CI/hosted API/browser verified",
+  "last_completed_phase": "0.6.0 M chat/X workspaces verified local/CI/live; SearXNG adapter implemented but live search remains unconfigured",
   "implemented_modules": [
     "auth",
     "sqlite_migrations",
@@ -61,15 +61,19 @@
     "stale_document_view_guards",
     "immutable_owner_arena_datasets",
     "content_versioned_evaluation_snapshots",
-    "bounded_canonical_output_grading"
+    "bounded_canonical_output_grading",
+    "m_x_workspace_modes",
+    "mode_scoped_chat_history_and_archives",
+    "opt_in_bounded_searxng_adapter"
   ],
   "test_results": {
     "python": {
-      "passed": 151,
+      "passed": 158,
       "skipped": 1,
-      "seconds": 20.04,
-      "skip_reason": "local PostgreSQL credentials absent; actual PostgreSQL integration passed in CI",
-      "engine_check": "Godot4.6"
+      "seconds": 20.88,
+      "environment": "GitHub Actions final source fc19eb8",
+      "engine_check": "Godot4.6",
+      "skip_reason": "backend job skips PostgreSQL; actual PostgreSQL integration passed in separate job"
     },
     "ruff": "passed",
     "javascript_syntax": "passed",
@@ -103,17 +107,17 @@
       ]
     },
     "github_actions": {
-      "commit": "5dcb5e035b9dd59a7031244a758e3ed71f6d7c10",
-      "run_id": 39105565536,
+      "commit": "fc19eb827f2baccc3e8b6296415e56104dd0914f",
+      "run_id": 39239307570,
       "conclusion": "success",
       "jobs": [
         "backend-and-godot",
         "postgres-integration"
       ],
-      "url": "https://github.com/Sayedmah/Modax/actions/runs/39105565536"
+      "url": "https://github.com/Sayedmah/Modax/actions/runs/39239307570"
     },
     "node_session_regressions": {
-      "passed": 6
+      "passed": 8
     },
     "live_http": [
       "health v0.2 200",
@@ -137,11 +141,11 @@
       "full_editor_import": "still blocked on free host; passes in CI"
     },
     "live_http_current_commit": [
-      "health0.5.0 guest_mode=true persistence=local",
-      "custom dataset201 and foreign-owner read/run404",
-      "non-demo without explicit external consent403 before inference",
-      "explicit DEMO score0; historical version/cases retained after source deletion",
-      "source removed; two sessions revoked; one harmless synthetic evaluation retained"
+      "feature e98aef3 health0.6.0/direct guest UI M/X verified",
+      "M and X history separated; foreign owner404",
+      "explicit DEMO streamed; search403 without consent and503 unconfigured",
+      "test chats removed and sessions revoked",
+      "final fc19eb8 Render live; cloud browser right rail and actual LTR content verified"
     ],
     "account_export": {
       "local": "7 new tests passed",
@@ -179,7 +183,7 @@
         "confirmed document deletion and retained unrelated selection",
         "custom Arena dataset workflows"
       ],
-      "live_network": "2026-10-18 cloud browser direct guest workspace and Arena UI verified without login/TLS bypass; release badge v0.5.0 after deployment. Two extension-origin metadata errors, no MODAX-origin errors observed. Older shell proxy/trust failures are historical."
+      "live_network": "2026-10-19 cloud browser final0.6.0 direct guest M/X and corrected reading direction/right rail verified. Feature API probe e98aef3 passed, fixtures cleaned."
     },
     "chat_restore": {
       "backend_tests": 12,
@@ -251,6 +255,32 @@
         "probe_seconds": 51.38,
         "measurement": "whole auth/CRUD/demo/cleanup plus network; not inference latency"
       }
+    },
+    "workspace_modes": {
+      "local_backend_tests": 7,
+      "browser": "normal15+6notes+7files+5Arena+6modes and guest6+6notes+7files+5Arena+6modes passed; no page errors; right rail/mobile320,390,768,1440",
+      "source_commit": "e98aef3b2bc8130791cb8b9b7c28bae80a26f5ad",
+      "live": {
+        "health_version": "0.6.0",
+        "separate_mode_history": true,
+        "owner_status": 404,
+        "explicit_demo_stream": true,
+        "search_without_consent": 403,
+        "unconfigured_search": 503,
+        "fixture_cleanup": true,
+        "probe_seconds": 110.73,
+        "measurement": "whole auth/chat/demo/search-denial/cleanup plus network; not LLM latency"
+      },
+      "search": "protocol/mock integration passed; real SearXNG unconfigured; public candidate returned security check and was not bypassed",
+      "fix": "PostgreSQL optional filter now CAST AS TEXT; real PG filtered/unfiltered/restart checks passed. LTR direction, chat-submit gating and stale chat-load guards passed final CI.",
+      "final_source": "fc19eb827f2baccc3e8b6296415e56104dd0914f",
+      "live_ui": "Final fc19eb8 cloud browser direct guest M/X, v0.6.0, LTR content with physical right rail verified; no TLS bypass"
+    },
+    "python_local_full": {
+      "passed": 157,
+      "skipped": 1,
+      "seconds": 158.89,
+      "scope": "before one added concurrency regression; final focused7passed8.69s"
     }
   },
   "blocked_features": [
@@ -259,7 +289,8 @@
     "native SDK/signing/export templates unavailable",
     "GPU media workers and compatible model licenses not configured",
     "Full editor import/custom-asset validation on free Render remains blocked; exact primitive template gameplay is verified",
-    "Gemini real inference requires an authorized configured key; paid models not authorized"
+    "Gemini real inference requires an authorized configured key; paid models not authorized",
+    "Live web search requires an authorized JSON-enabled SearXNG endpoint; public candidate security check was not bypassed"
   ],
   "remaining_tasks": [
     "bind production PostgreSQL",
@@ -271,7 +302,7 @@
     "comprehensive benchmarks/training",
     "expand multi-agent OMEGA beyond same-provider isolated code reviews"
   ],
-  "next_exact_executable_action": "Implement owner-scoped evaluation-history JSON export/delete controls for the 100-run quota and retained dataset snapshots; explicit retention-aware confirmation, transactional owner isolation and no unauthorized inference/executable graders.",
+  "next_exact_executable_action": "Connect an authorized JSON-enabled SearXNG service and verify actual results/grounded citations under existing free-service authorization; never bypass security checks or claim weight training. Owner-scoped evaluation-history export/delete remains pending.",
   "resume_commands": [
     "pip install -e .[dev]",
     "python -m pytest -q",
@@ -288,7 +319,7 @@
     "workspace": "tea-dalrl82d0e5s738de4j0",
     "service": "srv-db75ucmi0phs738mfg6g",
     "plan": "free",
-    "deploy": "dep-dba6p5h42hec73da81o0",
+    "deploy": "dep-dbav7svlk1mc73da026g",
     "status": "live",
     "postgres": "dpg-db74kajncjis73fgelo0-a",
     "database_connection": "blocked; secure browser sign-in aborted",
@@ -296,7 +327,7 @@
     "active_storage": "local ephemeral until DATABASE_URL bound",
     "guest_mode": true,
     "public_signup": false,
-    "source_commit": "5dcb5e035b9dd59a7031244a758e3ed71f6d7c10"
+    "source_commit": "fc19eb827f2baccc3e8b6296415e56104dd0914f"
   },
   "scheduled_continuation": {
     "enabled": true,

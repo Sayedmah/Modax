@@ -94,3 +94,17 @@ Implementation117df3efca36d57995b7eca86cde8b87d8a9b9c4:107local tests passed/1Po
 -Render dep-db9hj2u1egvs73cpppug live. Actual hosted health0.4.1,upload201/delete204,read404,removed-attachment404,emptysearch and unchanged chat passed. Current fixture files/chat removed and session revoked. Whole probe49.59s includes authentication/upload/parser/network/cleanup,not model latency. No inference was requested.
 -RootHTTP200; direct remote Chromium ERR_EMPTY_RESPONSE; configured-proxy browser ERR_CERT_AUTHORITY_INVALID. TLS checks retained. Hosted browser not verified; neither this nor prior runner errors prove a public-site certificate defect. No current runtime error logs found after deploy.
 
+## 2026-10-19 — M/X workspaces0.6.0
+
+Implemented physical-right M/X rail, collapsible mode sidebar, separate owner-scoped chat histories and preserved archive modes. M uses concise instructions; X plans projects and hands off real goals to existing Coder/Godot/task tools. Additive migration6 keeps chat columns intact. Optional private notes remain user-controlled; there is no automatic cross-user learning/weight training or guarantee of complete arbitrary projects.
+
+Implemented explicit-consent SearXNG protocol, standalone research and optional per-message snippets with saved source URLs.5unique HTTPS links,256KiB,15s total,2active slots; no result-page fetch or remote scripts. Real search remains UNCONFIGURED: one public candidate returned security-check HTML, not JSON. No bypass, live search success, paid calls/new resources or secret changes are claimed. See WORKSPACE_MODES.md.
+
+Local full157passed/1PGskip158.89s with Godot4.6 preceded one added search-gate regression; final focused7passed8.69s. Normal15+6notes+7files+5Arena+6modes and guest6+6notes+7files+5Arena+6modes passed,zero page errors,320/390/768/1440 rail checks.8Node regressions passed, including late chat-load and owner search-consent reset. Final focused browser additionally checks LTR while the rail stays right.
+
+Real PostgreSQL CI exposed IndeterminateDatatype for the optional IS NULL parameter; explicit CAST AS TEXT fixed it. Source6dae7353 CI39238702549/39238695865 passed both jobs (backend158passed/1skip27.24s,realPG successful). Final UI correction adds LTR content direction and guards chat creation/stream finalization before mode switching. Earlier normal browser run exposed the timing race rather than a model failure.
+
+Hosted feature e98aef3 direct guest M/X UI and0.6.0 API passed: histories separated,foreign404,explicitDEMOstream,search403withoutconsent/503unconfigured. Whole probe110.73s includes network/auth/cleanup,not LLM latency; test chats deleted and sessions revoked. Production storage still ephemeral. Final UI-fix CI/deploy proof is recorded in project_state.json after verification. Next: authorized SearXNG connection and actual grounded search; Arena history lifecycle remains pending.
+
+Final0.6.0 sourcefc19eb827f2baccc3e8b6296415e56104dd0914f: CI39239307570/39239301841 success,both jobs; backend158passed/1PGskip20.88s and8Nodepassed,actual PostgreSQL job passed. Normal+guest mode UI including LTR passed. Render dep-dbav7svlk1mc73da026g live; cloud browser actual LTR/right rail verified; recent runtime error logs empty. Source previous successful PG fix6dae7353 remains ancestor. Live search stays unconfigured; no new inference/training/service/secret change. CI:https://github.com/Sayedmah/Modax/actions/runs/39239307570
+
