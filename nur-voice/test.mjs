@@ -24,7 +24,7 @@ test('rejects empty chat history and invalid roles',()=>{
 test('normalizes message content and rejects invalid model names',()=>{
   assert.deepEqual(validateMessages([{role:'user',content:'  hi  '}]),[{role:'user',content:'hi'}]);
   assert.equal(safeModel('', 'openrouter/free'),'openrouter/free');
-  assert.throws(()=>safeModel('https://example.com/private','default'));
+  assert.throws(()=>safeModel('model?unexpected=1','default'));
 });
 test('converts chat roles correctly for Gemini',()=>{
   assert.deepEqual(geminiContents([{role:'assistant',content:'hello'},{role:'user',content:'hi'}]).map(x=>x.role),['model','user']);
