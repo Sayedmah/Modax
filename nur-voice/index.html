@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080e21">
+<title>Nur · نور AI</title>
+<style>
+:root{--bg:#080e21;--surface:rgba(23,32,59,.72);--line:rgba(199,209,255,.13);--text:#f2f5ff;--muted:#a2accd;--accent:#9d98ff;--shadow:0 25px 90px rgba(0,0,0,.24)}
+*{box-sizing:border-box}html{height:100%}body{min-height:100%;margin:0;color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif;background:radial-gradient(ellipse 60% 55% at 50% 30%,#1e2552 0%,transparent 70%),radial-gradient(ellipse 35% 50% at 92% 80%,#17234a 0%,transparent 80%),var(--bg);overflow-x:hidden}
+button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.52}button:focus-visible,textarea:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #c3baff;outline-offset:3px}
+.shell{min-height:100dvh;max-width:1120px;margin:auto;display:flex;flex-direction:column;padding:20px 22px 26px}
+header{height:65px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px}.brandIcon{height:38px;width:38px;border-radius:13px;background:linear-gradient(145deg,#aea5ff,#4461bd);box-shadow:0 5px 22px #867dff45;display:grid;place-items:center;font-size:24px;color:white}.brand b{font-size:21px;font-weight:750}.brand small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.tools{display:flex;align-items:center;gap:9px}.tiny{font-size:12px;color:#aeb8d5}.led{display:inline-block;width:8px;height:8px;border-radius:50%;background:#f4bd64;margin-inline-end:6px;box-shadow:0 0 12px #fac26775}.led.ok{background:#7ce8c7;box-shadow:0 0 12px #7ce8c785}
+.iconbtn{width:40px;height:40px;color:#d7dcfa;background:#ffffff0e;border:1px solid var(--line);border-radius:14px;display:grid;place-items:center;font-size:19px}.iconbtn:hover{background:#ffffff20}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;flex:1;min-height:0;padding-top:27px}.main{min-width:0;display:flex;flex-direction:column;align-items:center;min-height:600px}.intro{text-align:center}.eyebrow{font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:#a8aeec}.intro h1{font-weight:650;font-size:clamp(26px,3vw,40px);margin:8px 0 5px}.intro p{color:var(--muted);margin:0;font-size:14px}
+.orbArea{height:255px;display:flex;align-items:center;justify-content:center;position:relative;width:100%}.orbBack{position:absolute;width:264px;height:264px;border-radius:50%;background:radial-gradient(circle,#8b80ff17 0%,transparent 67%);filter:blur(8px)}.orb{position:relative;width:174px;height:174px;border:0;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 32% 24%,#e9d7ff 0%,#a1abff 19%,#6770d4 45%,#292d74 70%,#141536 100%);box-shadow:inset -11px -17px 35px #100f5988,inset 8px 14px 29px #ffffff65,0 0 0 18px #8471ff08,0 0 65px #7f68ff70,0 36px 80px #171b65;transition:transform .3s,box-shadow .3s;animation:breathe 5.5s ease-in-out infinite;isolation:isolate}
+.orb:before{content:"";position:absolute;inset:9px;border-radius:50%;background:radial-gradient(ellipse at 32% 23%,#fff9 0%,transparent 33%);filter:blur(7px)}.orb:after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(ellipse at 66% 77%,#68c7fe66,transparent 57%);mix-blend-mode:screen}
+.orb .glyph{position:relative;z-index:1;color:white;opacity:.9;font-size:48px;font-weight:200;filter:drop-shadow(0 3px 15px #8c82ff)}
+.orb.recording{animation:pulse 1.15s ease-in-out infinite;background:radial-gradient(circle at 35% 25%,#ffe4e1,#e674ad 35%,#aa3174 75%,#55132c)}.orb.thinking{animation:spinlight 2s linear infinite}.orb.speaking{animation:pulse 2s ease-in-out infinite}
+@keyframes breathe{50%{transform:scale(1.045)}}@keyframes pulse{50%{transform:scale(1.09);box-shadow:0 0 90px #8f66fbb8}}@keyframes spinlight{50%{filter:hue-rotate(70deg)}}@media(prefers-reduced-motion:reduce){.orb{animation:none}}
+.state{font-size:13px;color:#abb6da;margin:-1px auto 13px;min-height:20px}
+.microw{display:flex;justify-content:center;gap:10px;align-items:center;margin-bottom:21px}.primary{border:1px solid #b8a3ff80;border-radius:25px;background:linear-gradient(115deg,#7b74e8,#7256b8);padding:12px 19px;color:white;display:inline-flex;gap:10px;align-items:center;font-weight:650;box-shadow:0 10px 30px #6b64d044}.primary:hover{filter:brightness(1.14)}.quiet{border:1px solid var(--line);background:#ffffff12;color:#d6dbf8;border-radius:25px;padding:11px 17px}
+.conversation{width:100%;max-width:725px;min-height:60px;max-height:360px;overflow-y:auto;display:flex;flex-direction:column;gap:11px;scrollbar-width:thin;padding:4px 9px 14px;flex:1}.bubble{max-width:86%;border:1px solid var(--line);padding:13px 16px;border-radius:17px;line-height:1.8;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}.bubble.user{background:linear-gradient(120deg,#6862c766,#4c54a058);align-self:flex-start;border-bottom-right-radius:5px}.bubble.assistant{background:#ffffff0e;align-self:flex-end;border-bottom-left-radius:5px}.bubble .tag{display:block;color:#bfbdfb;font-size:11px;font-weight:700;margin-bottom:4px}
+.empty{text-align:center;color:#949fc4;font-size:13px;padding:6px 20px 2px;line-height:2}.composer{width:100%;max-width:725px;display:flex;align-items:flex-end;gap:8px;border:1px solid #a5a6eb42;background:#141d37cc;border-radius:21px;padding:10px 11px;margin-top:10px;box-shadow:var(--shadow)}
+.composer textarea{flex:1;min-height:42px;max-height:120px;resize:vertical;border:0;outline:0;background:transparent;color:#fff;padding:10px 8px;line-height:1.5;font-size:14px}.composer textarea::placeholder{color:#7f8cb2}
+.send{border:0;border-radius:13px;width:43px;height:43px;background:linear-gradient(135deg,#9286ff,#5e79d5);color:white;font-size:21px;flex:none}.send:hover{filter:brightness(1.15)}
+.hint{color:#7582a8;font-size:11px;text-align:center;margin:12px 5px}
+aside{display:flex;flex-direction:column;gap:15px}.panel{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:22px 19px;box-shadow:0 14px 40px #00000020;backdrop-filter:blur(15px)}.panel h3{font-size:15px;font-weight:670;margin:0 0 11px}.panel p{font-size:12px;color:var(--muted);line-height:1.9;margin:0}.cap{display:flex;align-items:center;justify-content:space-between;margin-top:17px;font-size:12px;color:#bac4e1}.pill{display:inline-block;border:1px solid #a6adf945;background:#a4b4ff11;border-radius:18px;padding:5px 10px;font-size:11px;color:#bfc3ff}
+.quick{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.chip{background:#ffffff0a;border:1px solid var(--line);border-radius:12px;padding:11px 8px;color:#e2e5fe;font-size:12px;text-align:center}.chip:hover{background:#ffffff20}
+footer{border-top:1px solid var(--line);margin-top:18px;padding-top:14px;display:flex;justify-content:space-between;gap:15px;color:#7380a5;font-size:11px}footer a{color:#9caaf7;text-decoration:none}
+dialog{color:white;background:#111a33;border:1px solid #afb1ee44;border-radius:22px;width:min(470px,calc(100vw - 25px));padding:25px;box-shadow:0 20px 100px #0009}dialog::backdrop{background:#020814bb;backdrop-filter:blur(6px)}dialog h2{margin:0 0 8px;font-size:21px}dialog p{color:#aab6d4;font-size:12px;line-height:1.8}.field{display:flex;flex-direction:column;gap:7px;margin-top:15px;font-size:12px;color:#c8d1ef}.field input,.field select{width:100%;border-radius:12px;border:1px solid #ffffff25;background:#121e39;color:#f7f7ff;padding:12px 13px;outline:0}.field input::placeholder{color:#677798}.field option{color:#111}.settingsactions{display:flex;gap:10px;justify-content:flex-start;margin-top:20px;align-items:center;flex-wrap:wrap}.subtle{color:#aebaf2;cursor:pointer;text-decoration:underline;font-size:12px;background:none;border:0}.warn{color:#ffb3b7;font-size:12px;min-height:18px;padding-top:8px}
+@media(max-width:820px){.layout{grid-template-columns:1fr;gap:10px;padding-top:15px}.shell{padding:11px 13px 17px}.main{min-height:0}.orbArea{height:225px}.orb{width:153px;height:153px}.conversation{max-height:300px;min-height:95px}.panel{padding:16px}aside{display:grid;grid-template-columns:1fr 1fr}.intro h1{font-size:29px}.tools .tiny{display:none}footer{flex-wrap:wrap}}
+@media(max-width:500px){aside{display:none}.main{min-height:calc(100dvh - 155px)}.conversation{max-height:none;min-height:135px}.orbArea{height:212px}.intro p{font-size:12px}.microw{margin-bottom:9px}.state{margin-bottom:9px}.composer{margin-top:auto}.bubble{max-width:95%}.hint{margin-bottom:0}}
+</style>
+</head>
+<body>
+<div class="shell">
+<header>
+  <div class="brand"><div class="brandIcon">✦</div><div><b>نـور <span style="color:#aaa7ff">Nur</span></b><small>مساعدك الذكي بالصوت · نسخة ويب</small></div></div>
+  <div class="tools"><span class="tiny"><span class="led" id="statusLed"></span><span id="providerStatus">إعداد الاتصال</span></span><button class="iconbtn" id="settingsButton" type="button" title="الإعدادات" aria-label="الإعدادات">⚙</button></div>
+</header>
+<div class="layout">
+<main class="main">
+  <div class="intro"><div class="eyebrow">YOUR VOICE COMPANION</div><h1>أهلًا، أنا نور ✨</h1><p>اسألني، اتكلم معايا، أو خلّيني أساعدك في أي فكرة.</p></div>
+  <div class="orbArea"><div class="orbBack"></div><button class="orb" id="orb" type="button" title="اضغط للتحدث" aria-label="تحدث إلى نور"><span class="glyph">✦</span></button></div>
+  <div class="state" id="state" aria-live="polite">جاهزة أسمعك</div>
+  <div class="microw"><button class="primary" id="micButton" type="button"><span id="micIcon">🎙</span><span id="micLabel">اضغط للتحدث</span></button><button class="quiet" id="soundButton" type="button" aria-pressed="true">🔊 الصوت مُفعّل</button></div>
+  <div class="conversation" id="messages" aria-live="polite"><div class="empty" id="empty">جرب تقول: «يا نور، احكيلي حاجة لطيفة»<br>أو اكتب رسالتك تحت.</div></div>
+  <form class="composer" id="form"><textarea id="input" rows="1" maxlength="9000" placeholder="اسأل نور أي حاجة..." aria-label="رسالتك"></textarea><button class="send" type="submit" aria-label="إرسال">➤</button></form>
+  <div class="hint">الميكروفون يحتاج إذن من المتصفح · الردود من Gemini أو OpenRouter بعد إعداد مفتاح API</div>
+</main>
+<aside>
+  <section class="panel"><h3>✦ أهلاً بيك في عالم نور</h3><p>مساعد صوتي عربي وإنجليزي. تقدر تسأل، تتعلم، تكتب، وتسمع الرد بصوت هاتفك.</p><div class="cap"><span>المساعد النشط</span><span class="pill" id="providerBadge">غير متصل</span></div><div class="cap"><span>المحادثة</span><span class="pill">خاصة بهذه الجلسة</span></div></section>
+  <section class="panel"><h3>✨ جرّب تسأل نور</h3><div class="quick"><button class="chip" data-prompt="احكيلي معلومة غريبة">💡 معلومة غريبة</button><button class="chip" data-prompt="علّمني كلمة إنجليزية جديدة">🌍 تعلّم إنجليزي</button><button class="chip" data-prompt="ساعدني أخطط ليومي">📅 خطط يومي</button><button class="chip" data-prompt="إزاي أبدأ أتعلم البرمجة؟">💻 برمجة</button></div></section>
+  <section class="panel"><h3>🔒 الخصوصية</h3><p>مفتاح API يظل في جلسة المتصفح، ويُرسل عبر HTTPS إلى خدمة Render ومنها إلى مزود الذكاء الاصطناعي. لا يُحفظ في GitHub ولا يُخزّن في قاعدة بيانات.</p><button class="subtle" id="clearButton" type="button" style="margin-top:13px">مسح المحادثة</button></section>
+</aside>
+</div>
+<footer><span>Nur Voice Web · تجربة ويب مستقلة مستوحاة من مشروع Nur مفتوح المصدر</span><a href="https://github.com/MultiX0/ip-nas" target="_blank" rel="noopener">مشروع Nur الأصلي ↗</a></footer>
+</div>
+<dialog id="settings">
+  <h2>إعداد نور ✦</h2><p>اختار مزود AI وحط مفتاحك. ما تحطش المفتاح في GitHub؛ يُستخدم في جلسة المتصفح فقط، والخادم لا يسجله.</p>
+  <label class="field">المزوّد<select id="provider"><option value="openrouter">OpenRouter — نماذج مجانية متاحة</option><option value="gemini">Google Gemini — يدعم التسجيل الصوتي</option></select></label>
+  <label class="field">مفتاح API<input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="الصق مفتاح Gemini أو OpenRouter"></label>
+  <label class="field">اسم النموذج (اختياري)<input id="model" type="text" autocomplete="off" spellcheck="false" placeholder="openrouter/free أو gemini-2.5-flash"></label>
+  <label class="field">رمز الدخول للخادم (إذا أعددت مفتاحًا على Render)<input id="access" type="password" autocomplete="off" placeholder="اتركه فارغًا إذا تستخدم مفتاحك الشخصي"></label>
+  <p>الميكروفون: مع Gemini نسجّل صوتًا ونرسله للنموذج لفهمه. مع OpenRouter نستخدم تحويل الكلام إلى نص عبر المتصفح عند توفره. الرد الصوتي يستخدم أصوات جهازك.</p>
+  <div class="warn" id="settingsError"></div>
+  <div class="settingsactions"><button class="primary" id="saveSettings" type="button">حفظ وتشغيل</button><button class="quiet" id="closeSettings" type="button">إغلاق</button><button class="subtle" id="forgetKey" type="button">نسيان المفتاح</button></div>
+</dialog>
+<script>
+(function(){
+  'use strict';
+  const el=(id)=>document.getElementById(id);
+  const read=(key,def)=>{try{return sessionStorage.getItem(key)||def}catch(e){return def}};
+  const write=(key,value)=>{try{sessionStorage.setItem(key,value)}catch(e){}};
+  let provider=read('nur.provider','openrouter');
+  let key=read('nur.key','');
+  let model=read('nur.model','');
+  let access=read('nur.access','');
+  let history=[];
+  try{const h=JSON.parse(read('nur.history','[]'));if(Array.isArray(h))history=h.filter(m=>m&&['user','assistant'].includes(m.role)&&typeof m.content==='string').slice(-22)}catch(e){}
+  let speaking=true, busy=false, recording=false, recognition=null, recorder=null, stream=null, chunks=[], recordTimer=null;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const status=(msg)=>{el('state').textContent=msg};
+  const setOrb=(name)=>{el('orb').className='orb'+(name?' '+name:'')};
+  const saveHistory=()=>write('nur.history',JSON.stringify(history.slice(-22)));
+  function updateProvider(){
+    el('statusLed').classList.toggle('ok',!!key);
+    el('providerStatus').textContent=key?(provider==='gemini'?'Gemini':'OpenRouter'):'المفتاح غير مُعدّ';
+    el('providerBadge').textContent=key?(provider==='gemini'?'Gemini':'OpenRouter Free'):'ينتظر الإعداد';
+  }
+  function bubble(role,content){
+    const empty=el('empty');if(empty)empty.remove();
+    const node=document.createElement('div');node.className='bubble '+role;
+    const tag=document.createElement('span');tag.className='tag';tag.textContent=role==='user'?'أنت':'✦ نور';
+    const body=document.createElement('div');body.textContent=content;
+    node.append(tag,body);el('messages').appendChild(node);
+    el('messages').scrollTop=el('messages').scrollHeight;
+    return body;
+  }
+  function showHistory(){el('messages').textContent='';if(!history.length){const d=document.createElement('div');d.id='empty';d.className='empty';d.textContent='جرّب تسأل نور أي سؤال أو تضغط على الميكروفون';el('messages').appendChild(d)}else history.forEach(m=>bubble(m.role,m.content))}
+  function speak(text){
+    if(!speaking||!window.speechSynthesis)return;
+    speechSynthesis.cancel();
+    const utterance=new SpeechSynthesisUtterance(text.slice(0,2300));
+    const arabic=/[\u0600-\u06FF]/.test(text);
+    utterance.lang=arabic?'ar-EG':'en-US';utterance.rate=0.98;utterance.pitch=1.03;
+    const voices=speechSynthesis.getVoices();
+    const preferred=voices.find(v=>v.lang.toLowerCase()===(arabic?'ar-eg':'en-us'))||voices.find(v=>v.lang.startsWith(arabic?'ar':'en'));
+    if(preferred)utterance.voice=preferred;
+    utterance.onstart=()=>{setOrb('speaking');status('نور بتتكلم...')};
+    utterance.onend=()=>{setOrb('');status('جاهزة أسمعك')};
+    utterance.onerror=()=>{setOrb('');status('الرد ظاهر في المحادثة')};
+    speechSynthesis.speak(utterance);
+  }
+  function isConfigured(){if(key||access)return true;openSettings();status('أضف مفتاح API من الإعدادات الأول');return false}
+  function openSettings(){
+    el('provider').value=provider;el('apiKey').value=key;el('model').value=model;el('access').value=access;
+    el('settingsError').textContent='';el('settings').showModal();
+  }
+  async function request(route,body){
+    const resp=await fetch(route,{method:'POST',headers:{'Content-Type':'application/json',...(access?{'x-nur-access':access}:{})},body:JSON.stringify(body)});
+    let data;try{data=await resp.json()}catch(e){throw Error('رد غير مفهوم من الخادم')};
+    if(!resp.ok)throw Error(data.error||'فشل الاتصال بالخادم');
+    return data;
+  }
+  async function sendMessage(text){
+    text=String(text||'').trim();if(!text||busy)return;
+    if(!isConfigured())return;
+    if(window.speechSynthesis)speechSynthesis.cancel();
+    busy=true;history.push({role:'user',content:text});history=history.slice(-22);saveHistory();bubble('user',text);
+    el('input').value='';status('نور بتفكر في رد...');setOrb('thinking');
+    const typing=bubble('assistant','جاري التفكير…');
+    try{
+      const result=await request('/api/chat',{provider,apiKey:key,model:model||(provider==='gemini'?'gemini-2.5-flash':'openrouter/free'),messages:history});
+      typing.textContent=result.reply;
+      history.push({role:'assistant',content:result.reply});saveHistory();
+      status('نور ردّت عليك');setOrb('');speak(result.reply);
+    }catch(e){typing.textContent='حصلت مشكلة: '+e.message;status('تعذّر إرسال الرسالة');setOrb('')}
+    finally{busy=false;el('input').focus()}
+  }
+  function resetMic(){
+    recording=false;el('micLabel').textContent='اضغط للتحدث';el('micIcon').textContent='🎙';setOrb('');
+    if(recordTimer){clearTimeout(recordTimer);recordTimer=null}
+    if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
+  }
+  function speechMic(){
+    if(!SR){status('المتصفح لا يدعم تحويل الكلام إلى نص؛ جرّب Gemini للتسجيل الصوتي');return}
+    recognition=new SR();recognition.lang='ar-EG';recognition.continuous=false;recognition.interimResults=true;
+    recognition.onresult=(event)=>{
+      const transcript=Array.from(event.results).map(x=>x[0].transcript).join(' ');
+      el('input').value=transcript;
+    };
+    recognition.onerror=(event)=>{status('تعذر استخدام الميكروفون: '+event.error);resetMic()};
+    recognition.onend=()=>{
+      const answer=el('input').value.trim();resetMic();
+      if(answer)sendMessage(answer);else status('لم أسمع كلامًا واضحًا');
+    };
+    recording=true;el('micLabel').textContent='إيقاف الاستماع';el('micIcon').textContent='⏹';status('باتسمعك دلوقتي...');setOrb('recording');
+    try{recognition.start()}catch(e){resetMic();status('الميكروفون غير متاح')}
+  }
+  async function audioMic(){
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){speechMic();return}
+    if(!key && !access){openSettings();return}
+    try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}})}
+    catch(e){resetMic();status('اسمح للمتصفح باستخدام الميكروفون من إعدادات الموقع');return}
+    const types=['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg'];
+    const mime=types.find(t=>MediaRecorder.isTypeSupported(t));
+    try{recorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined)}
+    catch(e){resetMic();status('صيغة التسجيل غير مدعومة');return}
+    chunks=[];
+    recorder.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data)};
+    recorder.onerror=()=>{resetMic();status('خطأ أثناء التسجيل')};
+    recorder.onstop=async()=>{
+      const blob=new Blob(chunks,{type:recorder.mimeType||'audio/mp4'});resetMic();
+      if(blob.size===0){status('التسجيل فارغ');return}
+      if(blob.size>3100000){status('التسجيل طويل جدًا؛ جرب رسالة أقصر');return}
+      const reader=new FileReader();reader.onload=async()=>{
+        const audio=String(reader.result).split(',')[1]||'';
+        busy=true;status('نور بتسمع تسجيلك...');setOrb('thinking');
+        const answer=bubble('assistant','جاري تحليل الرسالة الصوتية…');
+        try{
+          const data=await request('/api/voice',{provider:'gemini',apiKey:key,model:model||'gemini-2.5-flash',mime:blob.type.split(';')[0],audio,messages:[...history,{role:'user',content:'رسالة صوتية'}].slice(-22)});
+          const transcript=data.transcript||'رسالة صوتية';
+          bubble('user','🎙 '+transcript);
+          answer.textContent=data.reply;
+          history.push({role:'user',content:transcript},{role:'assistant',content:data.reply});history=history.slice(-22);saveHistory();
+          setOrb('');status('نور فهمت كلامك');speak(data.reply);
+        }catch(e){answer.textContent='تعذّر فهم الصوت: '+e.message;setOrb('');status('حصلت مشكلة في التسجيل')}
+        finally{busy=false}
+      };
+      reader.readAsDataURL(blob);
+    };
+    recorder.start();
+    recording=true;el('micLabel').textContent='إنهاء التسجيل';el('micIcon').textContent='⏹';setOrb('recording');status('سجّلي رسالتك؛ اضغط مرة أخرى للإرسال');
+    recordTimer=setTimeout(()=>{if(recorder&&recorder.state==='recording')recorder.stop()},18000);
+  }
+  function toggleMic(){
+    if(busy)return;
+    if(recording){
+      if(recorder&&recorder.state==='recording')recorder.stop();
+      else if(recognition)recognition.stop();
+      return;
+    }
+    if(!isConfigured())return;
+    if(window.speechSynthesis)speechSynthesis.cancel();
+    if(provider==='gemini')audioMic();else speechMic();
+  }
+  el('form').addEventListener('submit',e=>{e.preventDefault();sendMessage(el('input').value)});
+  el('input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage(el('input').value)}});
+  el('micButton').addEventListener('click',toggleMic);
+  el('orb').addEventListener('click',toggleMic);
+  el('soundButton').addEventListener('click',()=>{
+    speaking=!speaking;
+    if(!speaking&&window.speechSynthesis)speechSynthesis.cancel();
+    el('soundButton').textContent=speaking?'🔊 الصوت مُفعّل':'🔇 الصوت مُغلق';
+    el('soundButton').setAttribute('aria-pressed',String(speaking));
+  });
+  el('settingsButton').addEventListener('click',openSettings);
+  el('closeSettings').addEventListener('click',()=>el('settings').close());
+  el('forgetKey').addEventListener('click',()=>{key='';write('nur.key','');el('apiKey').value='';updateProvider();el('settingsError').textContent='تم حذف المفتاح من الجلسة'});
+  el('saveSettings').addEventListener('click',()=>{
+    provider=el('provider').value;key=el('apiKey').value.trim();model=el('model').value.trim();access=el('access').value.trim();
+    if(model&&!/^[A-Za-z0-9._:/-]{2,100}$/.test(model)){el('settingsError').textContent='اسم النموذج غير صالح';return}
+    write('nur.provider',provider);write('nur.key',key);write('nur.model',model);write('nur.access',access);
+    updateProvider();el('settings').close();status(key||access?'نور جاهزة للتحدث':'أضف مفتاح API لتبدأ');
+  });
+  el('clearButton').addEventListener('click',()=>{if(!confirm('مسح الرسائل في هذه الجلسة؟'))return;history=[];saveHistory();showHistory();status('بدأنا محادثة جديدة')});
+  document.querySelectorAll('[data-prompt]').forEach(btn=>btn.addEventListener('click',()=>sendMessage(btn.getAttribute('data-prompt'))));
+  showHistory();updateProvider();if(!key&&!access)status('افتح الإعدادات وأضف مفتاح AI لتبدأ');
+})();
+</script>
+</body>
+</html>
